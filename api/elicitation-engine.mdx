@@ -1,0 +1,460 @@
+---
+title: "Elicitation Engine API"
+description: "Interactive progressive disclosure system for component creation"
+icon: "messages-question"
+---
+
+## Overview
+
+The Elicitation Engine provides progressive disclosure workflows for creating components interactively. It handles step-by-step data collection with contextual validation, smart defaults, and security checks.
+
+## Class: ElicitationEngine
+
+### Constructor
+
+```javascript
+const ElicitationEngine = require('.aiox-core/core/elicitation/elicitation-engine');
+
+const engine = new ElicitationEngine();
+```
+
+## Core Methods
+
+### startSession
+
+Initialize a new elicitation session.
+
+<ParamField path="componentType" type="string" required>
+  Type of component being created (e.g., 'agent', 'task', 'workflow')
+</ParamField>
+
+<ParamField path="options" type="Object" default="{}">
+  <ParamField path="saveSession" type="boolean" default="false">
+    Whether to save session state to disk
+  </ParamField>
+</ParamField>
+
+```javascript
+await engine.startSession('agent', {
+  saveSession: true
+});
+```
+
+### runProgressive
+
+Execute a progressive elicitation workflow with multiple steps.
+
+<ParamField path="steps" type="Array<Step>" required>
+  Array of elicitation step definitions
+</ParamField>
+
+<ResponseField name="answers" type="Object">
+  Collected answers from all steps, or null if cancelled
+</ResponseField>
+
+```javascript
+const steps = [
+  {
+    title: 'Basic Information',
+    description: 'Define fundamental details',
+    questions: [
+      {
+        type: 'input',
+        name: 'agentId',
+        message: 'What is the agent ID?',
+        validate: (input) => /^[a-z][a-z0-9-]*$/.test(input) || 'Invalid ID format'
+      }
+    ],
+    required: ['agentId']
+  }
+];
+
+const answers = await engine.runProgressive(steps);
+
+if (answers) {
+  console.log('Agent ID:', answers.agentId);
+} else {
+  console.log('User cancelled');
+}
+```
+
+### loadSession
+
+Load a previously saved elicitation session.
+
+<ParamField path="sessionPath" type="string" required>
+  Path to session file
+</ParamField>
+
+<ResponseField name="sessionData" type="Object">
+  Session data or null if load fails
+</ResponseField>
+
+```javascript
+const sessionData = await engine.loadSession('.aiox-sessions/agent-123456.json');
+
+if (sessionData) {
+  console.log('Resumed session:', sessionData.componentType);
+  console.log('Completed steps:', sessionData.currentStep);
+}
+```
+
+### getSessionSummary
+
+Get a summary of the current session state.
+
+<ResponseField name="summary" type="Object">
+  <ResponseField name="componentType" type="string">
+    Type of component being created
+  </ResponseField>
+  <ResponseField name="completedSteps" type="number">
+    Number of completed steps
+  </ResponseField>
+  <ResponseField name="answers" type="number">
+    Number of collected answers
+  </ResponseField>
+  <ResponseField name="duration" type="number">
+    Session duration in milliseconds
+  </ResponseField>
+</ResponseField>
+
+```javascript
+const summary = engine.getSessionSummary();
+console.log(`Progress: ${summary.completedSteps} steps completed`);
+console.log(`Duration: ${Math.round(summary.duration / 1000)}s`);
+```
+
+### completeSession
+
+Mark the session as complete.
+
+<ParamField path="status" type="string" required>
+  Completion status ('success', 'cancelled', 'error')
+</ParamField>
+
+```javascript
+await engine.completeSession('success');
+```
+
+### mockSession
+
+Mock a session with predefined answers for batch creation or testing.
+
+<ParamField path="answers" type="Object" required>
+  Predefined answers object
+</ParamField>
+
+```javascript
+// For batch creation
+await engine.mockSession({
+  agentId: 'data-analyst',
+  agentTitle: 'Data Analyst',
+  description: 'Analyzes data and generates insights'
+});
+
+const result = await engine.runProgressive(steps);
+// Returns mocked answers immediately without user interaction
+```
+
+## Step Definition
+
+A step defines a stage in the elicitation workflow.
+
+### Step Structure
+
+<ParamField path="title" type="string" required>
+  Step title displayed to user
+</ParamField>
+
+<ParamField path="description" type="string">
+  Step description
+</ParamField>
+
+<ParamField path="help" type="string">
+  Contextual help text
+</ParamField>
+
+<ParamField path="questions" type="Array<Question>" required>
+  Array of questions for this step
+</ParamField>
+
+<ParamField path="required" type="string[]">
+  Required field names
+</ParamField>
+
+<ParamField path="condition" type="Object">
+  Conditional display based on previous answers
+</ParamField>
+
+<ParamField path="validators" type="Array<Validator>">
+  Custom step-level validators
+</ParamField>
+
+```javascript
+const step = {
+  title: 'Agent Configuration',
+  description: 'Configure agent behavior',
+  help: 'Define how the agent should interact with users',
+  questions: [
+    {
+      type: 'list',
+      name: 'mode',
+      message: 'Select agent mode:',
+      choices: ['interactive', 'autonomous', 'hybrid']
+    }
+  ],
+  required: ['mode'],
+  condition: {
+    field: 'agentType',
+    operator: 'equals',
+    value: 'specialized'
+  }
+};
+```
+
+## Question Types
+
+### Input Question
+
+```javascript
+{
+  type: 'input',
+  name: 'agentName',
+  message: 'Enter agent name:',
+  default: 'My Agent',
+  examples: ['Data Analyst', 'Code Reviewer'],
+  validate: (input) => input.length > 0 || 'Name is required'
+}
+```
+
+### Confirm Question
+
+```javascript
+{
+  type: 'confirm',
+  name: 'enableFeature',
+  message: 'Enable advanced features?',
+  default: true
+}
+```
+
+### List Question
+
+```javascript
+{
+  type: 'list',
+  name: 'framework',
+  message: 'Select framework:',
+  choices: [
+    { name: 'React', value: 'react' },
+    { name: 'Vue', value: 'vue' },
+    { name: 'Angular', value: 'angular' }
+  ]
+}
+```
+
+### Checkbox Question
+
+```javascript
+{
+  type: 'checkbox',
+  name: 'features',
+  message: 'Select features:',
+  choices: [
+    'Authentication',
+    'Database',
+    'API Integration',
+    'Testing'
+  ]
+}
+```
+
+## Smart Defaults
+
+Questions can use smart defaults derived from previous answers.
+
+### From Answer
+
+Derive default from a previous answer.
+
+```javascript
+{
+  type: 'input',
+  name: 'agentTitle',
+  message: 'Agent title:',
+  smartDefault: {
+    type: 'fromAnswer',
+    source: 'agentId',
+    transform: (id) => id.split('-')
+      .map(w => w.charAt(0).toUpperCase() + w.slice(1))
+      .join(' ')
+  }
+}
+// If agentId = 'data-analyst', default = 'Data Analyst'
+```
+
+### Generated Default
+
+```javascript
+{
+  type: 'input',
+  name: 'slug',
+  message: 'URL slug:',
+  smartDefault: {
+    type: 'generated',
+    generator: 'kebabCase',
+    source: 'title'
+  }
+}
+```
+
+### Conditional Default
+
+```javascript
+{
+  type: 'input',
+  name: 'port',
+  message: 'Server port:',
+  smartDefault: {
+    type: 'conditional',
+    condition: { field: 'environment', operator: 'equals', value: 'production' },
+    ifTrue: '443',
+    ifFalse: '3000'
+  }
+}
+```
+
+## Validation
+
+### Built-in Validators
+
+#### Regex Validator
+
+```javascript
+{
+  type: 'regex',
+  pattern: '^[a-z][a-z0-9-]*$',
+  message: 'Must be lowercase with hyphens only'
+}
+```
+
+#### Length Validator
+
+```javascript
+{
+  type: 'length',
+  min: 3,
+  max: 50
+}
+```
+
+#### Unique Validator
+
+```javascript
+{
+  type: 'unique',
+  path: '.aiox-core/development/agents/{name}.md',
+  message: 'Agent already exists'
+}
+```
+
+### Custom Validator
+
+```javascript
+const validator = async (value) => {
+  if (value.includes('test')) {
+    return 'Cannot contain "test"';
+  }
+  return true;
+};
+
+const step = {
+  title: 'Validation Example',
+  questions: [/* ... */],
+  validators: [validator]
+};
+```
+
+## Security Features
+
+The elicitation engine includes automatic security validation:
+
+- **Input sanitization** - Dangerous patterns are blocked
+- **ReDoS prevention** - Regex patterns are validated for safety
+- **Path traversal prevention** - File paths are validated
+- **Command injection prevention** - Shell commands are sanitized
+
+```javascript
+// These inputs are automatically blocked:
+'eval(malicious code)'        // Blocked: eval detected
+'<script>alert(1)</script>'   // Blocked: script tag
+'javascript:void(0)'          // Blocked: javascript protocol
+```
+
+## Complete Example
+
+```javascript
+const ElicitationEngine = require('.aiox-core/core/elicitation/elicitation-engine');
+
+const engine = new ElicitationEngine();
+
+// Define workflow steps
+const steps = [
+  {
+    title: 'Basic Information',
+    description: 'Define agent fundamentals',
+    questions: [
+      {
+        type: 'input',
+        name: 'agentId',
+        message: 'Agent ID:',
+        validate: (input) => /^[a-z][a-z0-9-]*$/.test(input) || 'Invalid format'
+      },
+      {
+        type: 'input',
+        name: 'agentTitle',
+        message: 'Agent title:',
+        smartDefault: {
+          type: 'fromAnswer',
+          source: 'agentId',
+          transform: (id) => id.split('-').map(w => 
+            w.charAt(0).toUpperCase() + w.slice(1)
+          ).join(' ')
+        }
+      }
+    ],
+    required: ['agentId', 'agentTitle']
+  },
+  {
+    title: 'Configuration',
+    description: 'Configure agent behavior',
+    questions: [
+      {
+        type: 'list',
+        name: 'mode',
+        message: 'Agent mode:',
+        choices: ['interactive', 'autonomous', 'hybrid'],
+        default: 'interactive'
+      },
+      {
+        type: 'checkbox',
+        name: 'capabilities',
+        message: 'Select capabilities:',
+        choices: ['code-analysis', 'testing', 'documentation', 'refactoring']
+      }
+    ]
+  }
+];
+
+// Run workflow
+await engine.startSession('agent', { saveSession: true });
+const answers = await engine.runProgressive(steps);
+
+if (answers) {
+  console.log('Agent created:', answers);
+  await engine.completeSession('success');
+} else {
+  console.log('Creation cancelled');
+  await engine.completeSession('cancelled');
+}
+```

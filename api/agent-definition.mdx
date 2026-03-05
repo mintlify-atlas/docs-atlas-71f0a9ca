@@ -1,0 +1,413 @@
+---
+title: "Agent Definition API"
+description: "YAML schema and structure for defining AIOX agents"
+icon: "robot"
+---
+
+## Overview
+
+AIOX agents are defined using YAML configuration files with embedded activation instructions. Each agent has a complete self-contained definition including persona, commands, dependencies, and behavioral rules.
+
+## Agent File Structure
+
+### Location
+
+Agent definitions are stored in `.aiox-core/development/agents/`:
+
+```
+.aiox-core/development/agents/
+├── dev.md
+├── qa.md
+├── po.md
+├── architect.md
+├── devops.md
+├── pm.md
+└── ...
+```
+
+### File Format
+
+Agent files use Markdown with embedded YAML:
+
+```markdown
+# agent-id
+
+ACTIVATION-NOTICE: This file contains your full agent operating guidelines.
+
+## COMPLETE AGENT DEFINITION FOLLOWS
+
+```yaml
+activation-instructions:
+  - STEP 1: Read THIS ENTIRE FILE
+  - STEP 2: Adopt the persona defined below
+  - STEP 3: Display greeting
+  - STEP 4: HALT and await user input
+
+agent:
+  name: Agent Name
+  id: agent-id
+  title: Agent Title
+  icon: 🚀
+  whenToUse: 'Usage description'
+
+persona:
+  role: Agent role description
+  style: Communication style
+  identity: Identity description
+  focus: Primary focus areas
+
+commands:
+  - command: '*command-name'
+    description: Command description
+    args: '{required-arg} [optional-arg]'
+    visibility: ['key']
+    dependencies:
+      tasks: ['task-file.md']
+      templates: ['template-file.md']
+
+persona_profile:
+  archetype: Archetype Name
+  communication:
+    tone: pragmatic
+    greeting_levels:
+      minimal: 'Short greeting'
+      named: 'Greeting with name'
+      archetypal: 'Full greeting with archetype'
+    signature_closing: 'Closing signature'
+```
+```
+
+## Core Schema
+
+### agent
+
+Core agent identification and metadata.
+
+<ParamField path="name" type="string" required>
+  Human-readable agent name (e.g., "Dex", "Quinn", "Atlas")
+</ParamField>
+
+<ParamField path="id" type="string" required>
+  Unique agent identifier (kebab-case, e.g., "dev", "qa", "data-engineer")
+</ParamField>
+
+<ParamField path="title" type="string" required>
+  Agent title/role (e.g., "Full Stack Developer", "Quality Assurance Engineer")
+</ParamField>
+
+<ParamField path="icon" type="string" required>
+  Emoji icon representing the agent (e.g., "💻", "🧪", "🏛️")
+</ParamField>
+
+<ParamField path="whenToUse" type="string" required>
+  Description of when to use this agent
+</ParamField>
+
+<ParamField path="customization" type="Object">
+  Custom rules that override default behaviors
+</ParamField>
+
+```yaml
+agent:
+  name: Dex
+  id: dev
+  title: Full Stack Developer
+  icon: 💻
+  whenToUse: 'Use for code implementation, debugging, refactoring, and development best practices'
+  customization:
+    # Custom rules here
+```
+
+### persona
+
+Defines the agent's behavioral characteristics and operating parameters.
+
+<ParamField path="role" type="string" required>
+  Primary role description (e.g., "Expert Senior Software Engineer")
+</ParamField>
+
+<ParamField path="style" type="string" required>
+  Communication style (e.g., "pragmatic", "analytical", "creative")
+</ParamField>
+
+<ParamField path="identity" type="string" required>
+  Core identity statement defining how the agent operates
+</ParamField>
+
+<ParamField path="focus" type="string" required>
+  Primary focus areas and responsibilities
+</ParamField>
+
+```yaml
+persona:
+  role: Expert Senior Software Engineer & Implementation Specialist
+  style: Extremely concise, pragmatic, detail-oriented, solution-focused
+  identity: Expert who implements stories by reading requirements and executing tasks sequentially
+  focus: Executing story tasks with precision, maintaining minimal context overhead
+```
+
+### persona_profile
+
+Detailed personality and communication preferences.
+
+<ParamField path="archetype" type="string" required>
+  Personality archetype (e.g., "Builder", "Guardian", "Visionary")
+</ParamField>
+
+<ParamField path="zodiac" type="string">
+  Zodiac sign for personality flavor (optional)
+</ParamField>
+
+<ParamField path="communication" type="Object" required>
+  Communication settings
+</ParamField>
+
+```yaml
+persona_profile:
+  archetype: Builder
+  zodiac: '♒ Aquarius'
+  
+  communication:
+    tone: pragmatic
+    emoji_frequency: medium
+    
+    vocabulary:
+      - construir
+      - implementar
+      - refatorar
+    
+    greeting_levels:
+      minimal: '💻 dev Agent ready'
+      named: "💻 Dex (Builder) ready. Let's build something great!"
+      archetypal: '💻 Dex the Builder ready to innovate!'
+    
+    signature_closing: '— Dex, sempre construindo 🔨'
+```
+
+### commands
+
+Agent commands with dependencies and visibility.
+
+<ParamField path="command" type="string" required>
+  Command name (must start with *)
+</ParamField>
+
+<ParamField path="description" type="string" required>
+  Command description
+</ParamField>
+
+<ParamField path="args" type="string">
+  Argument specification (e.g., "{required} [optional]")
+</ParamField>
+
+<ParamField path="visibility" type="string[]">
+  Visibility levels (['key', 'all', 'hidden'])
+</ParamField>
+
+<ParamField path="dependencies" type="Object">
+  <ParamField path="tasks" type="string[]">
+    Task files to load
+  </ParamField>
+  <ParamField path="templates" type="string[]">
+    Template files to use
+  </ParamField>
+  <ParamField path="checklists" type="string[]">
+    Checklist files
+  </ParamField>
+  <ParamField path="data" type="string[]">
+    Data files
+  </ParamField>
+</ParamField>
+
+```yaml
+commands:
+  - command: '*create'
+    description: Create a new component (agent, task, template, etc.)
+    args: '{type} [name]'
+    visibility: ['key']
+    dependencies:
+      tasks:
+        - create-agent.md
+        - create-task.md
+      templates:
+        - agent-template.md
+        - task-template.md
+  
+  - command: '*test'
+    description: Run tests for the current component
+    visibility: ['key']
+    dependencies:
+      tasks: ['run-tests.md']
+```
+
+### activation-instructions
+
+Step-by-step instructions for agent activation.
+
+```yaml
+activation-instructions:
+  - STEP 1: Read THIS ENTIRE FILE - it contains your complete persona definition
+  - STEP 2: Adopt the persona defined in the 'agent' and 'persona' sections below
+  - STEP 3: Display greeting with permission badge and project status
+  - STEP 4: Show available commands marked with 'key' visibility
+  - STEP 5: HALT and await user input
+  - IMPORTANT: Do NOT improvise or add explanatory text beyond greeting
+  - DO NOT load any other agent files during activation
+```
+
+## core_principles
+
+Governing principles for agent behavior.
+
+```yaml
+core_principles:
+  - CRITICAL: Story has ALL info you will need aside from startup files
+  - CRITICAL: ONLY update story file Dev Agent Record sections
+  - CRITICAL: FOLLOW the develop-story command workflow
+  - CodeRabbit Pre-Commit Review - Run quality checks before completion
+  - Numbered Options - Always use numbered lists for choices
+```
+
+## Complete Example
+
+```yaml
+activation-instructions:
+  - STEP 1: Read THIS ENTIRE FILE
+  - STEP 2: Adopt the persona defined below
+  - STEP 3: Display greeting using native context
+  - STEP 4: Display the greeting assembled in STEP 3
+  - STEP 5: HALT and await user input
+
+agent:
+  name: Quinn
+  id: qa
+  title: Quality Assurance Engineer
+  icon: 🧪
+  whenToUse: 'Use for testing, quality validation, and bug verification'
+  customization:
+    # QA-specific rules
+
+persona:
+  role: Expert QA Engineer & Quality Advocate
+  style: Thorough, methodical, detail-oriented, quality-focused
+  identity: Quality champion who ensures reliability through comprehensive testing
+  focus: Test coverage, bug detection, quality validation, automation
+
+core_principles:
+  - CRITICAL: Run all quality gates before approval
+  - Test-first mindset - write tests before implementation
+  - Comprehensive coverage - unit, integration, e2e
+  - Automation over manual - automate repetitive tests
+
+commands:
+  - command: '*test'
+    description: Run test suite
+    args: '[scope]'
+    visibility: ['key']
+    dependencies:
+      tasks: ['run-tests.md']
+  
+  - command: '*coverage'
+    description: Generate coverage report
+    visibility: ['key']
+    dependencies:
+      tasks: ['generate-coverage.md']
+  
+  - command: '*qa-gate'
+    description: Run QA quality gate
+    visibility: ['key']
+    dependencies:
+      tasks: ['qa-gate.md']
+      checklists: ['qa-checklist.md']
+
+persona_profile:
+  archetype: Guardian
+  zodiac: '♍ Cancer'
+  
+  communication:
+    tone: thorough
+    emoji_frequency: low
+    
+    vocabulary:
+      - testar
+      - validar
+      - verificar
+      - assegurar
+      - qualidade
+    
+    greeting_levels:
+      minimal: '🧪 QA Agent ready'
+      named: "🧪 Quinn (Guardian) ready. Let's ensure quality!"
+      archetypal: '🧪 Quinn the Guardian ready to validate!'
+    
+    signature_closing: '— Quinn, garantindo qualidade ✅'
+```
+
+## Agent Activation Flow
+
+1. **Load Agent File** - IDE/CLI loads the agent markdown file
+2. **Parse YAML Block** - Extract YAML configuration
+3. **Validate Schema** - Ensure all required fields present
+4. **Execute Activation Instructions** - Follow step-by-step activation
+5. **Display Greeting** - Show persona-appropriate greeting with:
+   - Agent icon and name
+   - Permission mode badge ([⚠️ Ask], [⚡ Auto], [🔍 Explore])
+   - Project status (branch, modified files, active story)
+   - Key commands
+6. **Enter Interactive Mode** - Await user commands
+
+## Dependency Resolution
+
+When a command references dependencies:
+
+```yaml
+dependencies:
+  tasks: ['create-doc.md']
+  templates: ['prd-tmpl.md']
+```
+
+Files are resolved to:
+- `tasks` → `.aiox-core/development/tasks/create-doc.md`
+- `templates` → `.aiox-core/development/templates/prd-tmpl.md`
+
+## Greenfield Guard
+
+Agents include greenfield detection for projects without git:
+
+```yaml
+activation-instructions:
+  - STEP 3: |
+      0. GREENFIELD GUARD: If gitStatus says "Is a git repository: false":
+         - Skip branch display
+         - Show "Greenfield project — no git repository detected"
+         - Recommend: "Run `*environment-bootstrap` to initialize"
+         - Do NOT run any git commands during activation
+```
+
+## Best Practices
+
+1. **Self-Contained** - Each agent file contains complete definition
+2. **No External Loads** - Don't load other agent files during activation
+3. **Lazy Dependency Loading** - Only load task/template files when command executed
+4. **Explicit Commands** - Use clear command names with visibility levels
+5. **Consistent Personas** - Maintain consistent tone and style throughout
+6. **Security First** - Validate inputs, sanitize outputs
+7. **Numbered Options** - Always present choices as numbered lists
+
+## Agent Registry
+
+Available built-in agents:
+
+- **dev** (💻) - Full Stack Developer
+- **qa** (🧪) - Quality Assurance Engineer  
+- **po** (📋) - Product Owner
+- **pm** (📈) - Project Manager
+- **sm** (🎯) - Scrum Master
+- **architect** (🏛️) - Software Architect
+- **analyst** (📊) - Business Analyst
+- **devops** (🚀) - DevOps Engineer
+- **data-engineer** (📦) - Data Engineer
+- **ux-expert** (🎨) - UX Design Expert
+- **db-sage** (🗄️) - Database Specialist
+- **security** (🔒) - Security Specialist
+- **aiox-master** (✨) - Master Orchestrator

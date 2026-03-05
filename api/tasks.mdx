@@ -1,0 +1,535 @@
+---
+title: "Tasks API"
+description: "Task definition and execution system for reusable workflows"
+icon: "list-check"
+---
+
+## Overview
+
+Tasks are reusable workflow definitions that agents execute to accomplish specific goals. They include elicitation steps, validation rules, and execution instructions.
+
+## Task Structure
+
+Tasks are defined in `.aiox-core/development/tasks/` as Markdown files with embedded workflow instructions.
+
+### Location
+
+```
+.aiox-core/development/tasks/
+├── create-agent.md
+├── develop-story.md
+├── run-tests.md
+├── qa-gate.md
+└── ...
+```
+
+### Task File Format
+
+```markdown
+# Task Title
+
+Brief description of what this task does.
+
+## Prerequisites
+
+- Requirement 1
+- Requirement 2
+
+## Steps
+
+1. Step 1 description
+   - Substep details
+   
+2. Step 2 description
+   - Substep details
+
+## Success Criteria
+
+- [ ] Criterion 1
+- [ ] Criterion 2
+
+## Error Handling
+
+How to handle common errors.
+```
+
+## Task Elicitation
+
+Complex tasks use elicitation workflows for interactive data collection.
+
+### Elicitation Steps Definition
+
+```javascript
+const taskElicitationSteps = [
+  {
+    title: 'Basic Task Information',
+    description: 'Define the fundamental details of your task',
+    help: 'A task is a reusable workflow that an agent can execute',
+    questions: [
+      {
+        type: 'input',
+        name: 'taskId',
+        message: 'What is the task ID?',
+        examples: ['analyze-data', 'generate-report'],
+        validate: (input) => {
+          if (!input) return 'Task ID is required';
+          if (!/^[a-z][a-z0-9-]*$/.test(input)) {
+            return 'ID must be lowercase with hyphens only';
+          }
+          return true;
+        }
+      },
+      {
+        type: 'input',
+        name: 'taskTitle',
+        message: 'What is the task title?',
+        smartDefault: {
+          type: 'fromAnswer',
+          source: 'taskId',
+          transform: (id) => id.split('-')
+            .map(w => w.charAt(0).toUpperCase() + w.slice(1))
+            .join(' ')
+        }
+      }
+    ],
+    required: ['taskId', 'taskTitle']
+  },
+  {
+    title: 'Task Workflow',
+    description: 'Define how the task should be executed',
+    questions: [
+      {
+        type: 'confirm',
+        name: 'isInteractive',
+        message: 'Is this an interactive task?',
+        default: false
+      },
+      {
+        type: 'list',
+        name: 'workflowType',
+        message: 'What type of workflow is this?',
+        choices: [
+          { name: 'Sequential - Steps run in order', value: 'sequential' },
+          { name: 'Conditional - Steps depend on conditions', value: 'conditional' },
+          { name: 'Iterative - Steps may repeat', value: 'iterative' },
+          { name: 'Parallel - Some steps run simultaneously', value: 'parallel' }
+        ]
+      }
+    ]
+  }
+];
+```
+
+### Running Task Elicitation
+
+```javascript
+const ElicitationEngine = require('.aiox-core/core/elicitation/elicitation-engine');
+const taskElicitationSteps = require('.aiox-core/core/elicitation/task-elicitation');
+
+const engine = new ElicitationEngine();
+
+await engine.startSession('task', { saveSession: true });
+const answers = await engine.runProgressive(taskElicitationSteps);
+
+if (answers) {
+  console.log('Task created:', answers.taskId);
+  await engine.completeSession('success');
+}
+```
+
+## Task Properties
+
+### Basic Information
+
+<ParamField path="taskId" type="string" required>
+  Unique task identifier (kebab-case)
+</ParamField>
+
+<ParamField path="taskTitle" type="string" required>
+  Human-readable task title
+</ParamField>
+
+<ParamField path="agentName" type="string" required>
+  Agent that owns this task
+</ParamField>
+
+<ParamField path="taskDescription" type="string" required>
+  2-3 sentence description of task purpose
+</ParamField>
+
+### Context & Prerequisites
+
+<ParamField path="requiresContext" type="boolean" default="true">
+  Whether task requires specific context/input
+</ParamField>
+
+<ParamField path="contextDescription" type="string">
+  Description of required context
+</ParamField>
+
+<ParamField path="prerequisites" type="string[]">
+  List of prerequisites (e.g., 'Valid file path', 'Dependencies installed')
+</ParamField>
+
+### Workflow Configuration
+
+<ParamField path="isInteractive" type="boolean" default="false">
+  Whether task requires user input
+</ParamField>
+
+<ParamField path="workflowType" type="string" required>
+  Workflow type: 'sequential', 'conditional', 'iterative', or 'parallel'
+</ParamField>
+
+<ParamField path="stepCount" type="number" required>
+  Number of main workflow steps (1-10)
+</ParamField>
+
+### Output & Success
+
+<ParamField path="outputDescription" type="string" required>
+  Description of task output
+</ParamField>
+
+<ParamField path="outputFormat" type="string" required>
+  Output format: 'Text/Markdown', 'JSON', 'YAML', 'CSV', 'HTML', 'File(s)', 'Console output'
+</ParamField>
+
+<ParamField path="successCriteria" type="string[]" required>
+  List of success criteria
+</ParamField>
+
+### Error Handling
+
+<ParamField path="errorStrategy" type="string" required>
+  Error handling strategy: 'fail-fast', 'collect', 'retry', or 'fallback'
+</ParamField>
+
+<ParamField path="retryCount" type="number">
+  Number of retry attempts (1-5, only if errorStrategy is 'retry')
+</ParamField>
+
+<ParamField path="commonErrors" type="string[]">
+  List of common errors to handle
+</ParamField>
+
+### Security & Validation
+
+<ParamField path="enableSecurityChecks" type="boolean" default="true">
+  Whether to enable security validation
+</ParamField>
+
+<ParamField path="securityChecks" type="string[]">
+  Security checks to apply (e.g., 'Input sanitization', 'Path traversal prevention')
+</ParamField>
+
+## Task Execution
+
+### Execution Context
+
+```typescript
+interface TaskContext {
+  taskId: string;              // Task identifier
+  args: string[];              // Command arguments
+  agent: string;               // Executing agent ID
+  storyId?: string;            // Current story (if applicable)
+  projectRoot: string;         // Project root directory
+  verbose?: boolean;           // Verbose output
+  dryRun?: boolean;           // Preview without execution
+}
+```
+
+### Execution Flow
+
+1. **Load Task** - Load task definition from file
+2. **Validate Prerequisites** - Check all prerequisites met
+3. **Collect Context** - Gather required input (elicitation if interactive)
+4. **Execute Steps** - Run workflow steps in order
+5. **Validate Output** - Check success criteria
+6. **Handle Errors** - Apply error handling strategy
+7. **Report Result** - Return execution result
+
+```javascript
+const executeTask = async (taskId, context) => {
+  // 1. Load task definition
+  const task = await loadTask(taskId);
+  
+  // 2. Validate prerequisites
+  const prereqCheck = await validatePrerequisites(task.prerequisites);
+  if (!prereqCheck.valid) {
+    throw new Error(`Prerequisites not met: ${prereqCheck.missing.join(', ')}`);
+  }
+  
+  // 3. Collect context
+  let taskContext = context;
+  if (task.requiresContext && task.isInteractive) {
+    taskContext = await collectContext(task);
+  }
+  
+  // 4. Execute steps
+  const results = [];
+  for (let i = 0; i < task.steps.length; i++) {
+    const step = task.steps[i];
+    
+    try {
+      const result = await executeStep(step, taskContext);
+      results.push(result);
+    } catch (error) {
+      if (task.errorStrategy === 'fail-fast') {
+        throw error;
+      } else if (task.errorStrategy === 'retry') {
+        const retried = await retryStep(step, taskContext, task.retryCount);
+        results.push(retried);
+      } else {
+        // collect or fallback
+        results.push({ error: error.message, step: i });
+      }
+    }
+  }
+  
+  // 5. Validate output
+  const validation = await validateOutput(results, task.successCriteria);
+  
+  return {
+    success: validation.valid,
+    results,
+    validation
+  };
+};
+```
+
+## Example Tasks
+
+### Sequential Task
+
+```javascript
+// create-agent.md workflow
+const createAgentTask = {
+  taskId: 'create-agent',
+  taskTitle: 'Create Agent',
+  workflowType: 'sequential',
+  isInteractive: true,
+  steps: [
+    'Elicit agent details',
+    'Validate agent ID uniqueness',
+    'Generate agent file from template',
+    'Create agent tests',
+    'Run quality gate'
+  ]
+};
+```
+
+### Conditional Task
+
+```javascript
+// develop-story.md workflow
+const developStoryTask = {
+  taskId: 'develop-story',
+  taskTitle: 'Develop Story',
+  workflowType: 'conditional',
+  steps: [
+    'Load story file',
+    'Check story status',
+    'IF status == "Draft" THEN exit with message',
+    'Parse acceptance criteria',
+    'FOR EACH acceptance criterion',
+    '  Implement changes',
+    '  Update checkbox in story',
+    'IF all criteria met THEN mark story complete'
+  ]
+};
+```
+
+### Parallel Task
+
+```javascript
+// qa-gate.md workflow
+const qaGateTask = {
+  taskId: 'qa-gate',
+  taskTitle: 'QA Quality Gate',
+  workflowType: 'parallel',
+  steps: [
+    'PARALLEL [',
+    '  Run unit tests',
+    '  Run integration tests',
+    '  Run linter',
+    '  Check code coverage',
+    ']',
+    'Collect results',
+    'Generate report'
+  ]
+};
+```
+
+## Task Templates
+
+Tasks can use templates for file generation:
+
+```javascript
+// Task references template
+const task = {
+  taskId: 'create-component',
+  dependencies: {
+    templates: ['component-template.tsx']
+  },
+  steps: [
+    'Elicit component details',
+    'Load template',
+    'Populate template with answers',
+    'Write component file',
+    'Create test file'
+  ]
+};
+
+// Execute with template
+const executeWithTemplate = async (task, answers) => {
+  const template = await loadTemplate(task.dependencies.templates[0]);
+  const populated = template.replace(/{{(\w+)}}/g, (_, key) => answers[key]);
+  await writeFile(answers.outputPath, populated);
+};
+```
+
+## Complete Task Example
+
+```javascript
+const ElicitationEngine = require('.aiox-core/core/elicitation/elicitation-engine');
+const fs = require('fs-extra');
+const path = require('path');
+
+// Define task
+const analyzeDataTask = {
+  taskId: 'analyze-data',
+  taskTitle: 'Analyze Data Set',
+  agentName: 'data-analyst',
+  taskDescription: 'Analyzes a dataset and generates insights report',
+  
+  requiresContext: true,
+  prerequisites: ['Valid data file', 'Read permissions'],
+  
+  isInteractive: true,
+  workflowType: 'sequential',
+  stepCount: 4,
+  
+  steps: [
+    {
+      name: 'Load Data',
+      action: async (ctx) => {
+        const data = await fs.readJson(ctx.dataPath);
+        return { data, rowCount: data.length };
+      }
+    },
+    {
+      name: 'Validate Data',
+      action: async (ctx, prev) => {
+        const validation = validateDataset(prev.data);
+        if (!validation.valid) {
+          throw new Error(`Invalid data: ${validation.errors.join(', ')}`);
+        }
+        return validation;
+      }
+    },
+    {
+      name: 'Analyze',
+      action: async (ctx, prev) => {
+        return {
+          summary: calculateSummary(prev.data),
+          insights: generateInsights(prev.data)
+        };
+      }
+    },
+    {
+      name: 'Generate Report',
+      action: async (ctx, prev) => {
+        const report = formatReport(prev.summary, prev.insights);
+        await fs.writeFile(ctx.outputPath, report);
+        return { reportPath: ctx.outputPath };
+      }
+    }
+  ],
+  
+  outputDescription: 'Analysis report in markdown format',
+  outputFormat: 'Text/Markdown',
+  
+  successCriteria: [
+    'All data rows processed',
+    'Report file created',
+    'No validation errors'
+  ],
+  
+  errorStrategy: 'fail-fast',
+  commonErrors: ['File not found', 'Invalid format', 'Permission denied']
+};
+
+// Execute task
+const executeAnalyzeData = async (dataPath, outputPath) => {
+  const engine = new ElicitationEngine();
+  
+  // Start session
+  await engine.startSession('task', { saveSession: true });
+  
+  // Collect context
+  const context = {
+    dataPath,
+    outputPath,
+    timestamp: new Date().toISOString()
+  };
+  
+  // Execute steps
+  let previousResult = null;
+  const results = [];
+  
+  for (const step of analyzeDataTask.steps) {
+    console.log(`🔄 ${step.name}...`);
+    
+    try {
+      const result = await step.action(context, previousResult);
+      results.push({ step: step.name, success: true, result });
+      previousResult = result;
+    } catch (error) {
+      console.error(`❌ ${step.name} failed:`, error.message);
+      
+      if (analyzeDataTask.errorStrategy === 'fail-fast') {
+        await engine.completeSession('error');
+        throw error;
+      }
+      
+      results.push({ step: step.name, success: false, error: error.message });
+    }
+  }
+  
+  // Validate success
+  const allSuccess = results.every(r => r.success);
+  
+  if (allSuccess) {
+    console.log('✅ Task completed successfully');
+    await engine.completeSession('success');
+  } else {
+    console.log('❌ Task completed with errors');
+    await engine.completeSession('error');
+  }
+  
+  return { success: allSuccess, results };
+};
+
+// Usage
+try {
+  const result = await executeAnalyzeData(
+    'data/sales-2024.json',
+    'reports/sales-analysis.md'
+  );
+  
+  console.log('Results:', result.results.length, 'steps executed');
+} catch (error) {
+  console.error('Task failed:', error.message);
+}
+```
+
+## Best Practices
+
+1. **Clear Steps** - Break complex workflows into clear sequential steps
+2. **Validation** - Validate inputs and prerequisites early
+3. **Error Handling** - Choose appropriate error strategy for task type
+4. **Interactive When Needed** - Use elicitation for complex configuration
+5. **Idempotent** - Tasks should be safe to retry
+6. **Documented** - Include clear descriptions and examples
+7. **Tested** - Create tests for critical tasks

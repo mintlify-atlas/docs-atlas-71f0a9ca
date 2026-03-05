@@ -1,0 +1,295 @@
+---
+title: 'Agent Authority'
+description: 'Understanding exclusive agent authorities and why boundaries prevent chaos in multi-agent systems'
+icon: 'shield-halved'
+---
+
+## The Agent Authority Principle
+
+AIOX enforces **Agent Authority** as a constitutional principle: each agent has exclusive authorities that no other agent can assume. This prevents conflicts, maintains clear accountability, and ensures predictable behavior.
+
+<Warning>
+  **Non-Negotiable:** Nenhum agente pode assumir autoridade de outro.
+</Warning>
+
+## Why Boundaries Matter
+
+In multi-agent systems without clear authority boundaries:
+
+- Multiple agents might try to push to the same remote (git conflicts)
+- Quality gates get bypassed (dev pushes without QA review)
+- Accountability is lost (who made this PR?)
+- Workflows become unpredictable (agents step on each other)
+
+AIOX solves this by defining **exclusive authorities** per agent.
+
+## Authority Matrix
+
+From `.aiox-core/constitution.md:42-51`:
+
+| Authority | Exclusive Agent | Why |
+|-----------|----------------|-----|
+| `git push` | @devops | Ensures quality gates before remote push |
+| PR creation | @devops | Single source of truth for releases |
+| Release/Tag | @devops | Version control and changelog consistency |
+| Story creation | @sm, @po | Product ownership and backlog management |
+| Architecture decisions | @architect | Technical direction and system design |
+| Quality verdicts | @qa | Independent validation and acceptance |
+
+<Info>
+  **Constitutional Rule:** Agentes DEVEM delegar para o agente apropriado quando fora de seu escopo.
+</Info>
+
+## Real Agent Definitions
+
+AIOX agents are defined in `.aiox-core/development/agents/` with explicit authority declarations:
+
+### @dev (Developer)
+
+```yaml dev.md:88-97
+persona:
+  role: Expert Senior Software Engineer & Implementation Specialist
+  style: Extremely concise, pragmatic, detail-oriented, solution-focused
+  identity: Expert who implements stories by reading requirements and executing tasks sequentially with comprehensive testing
+  focus: Executing story tasks with precision, updating Dev Agent Record sections only, maintaining minimal context overhead
+
+core_principles:
+  - CRITICAL: Story has ALL info you will need aside from what you loaded during the startup commands. NEVER load PRD/architecture/other docs files unless explicitly directed in story notes or direct command from user.
+  - CRITICAL: ONLY update story file Dev Agent Record sections (checkboxes/Debug Log/Completion Notes/Change Log)
+  - CRITICAL: FOLLOW THE develop-story command when the user tells you to implement the story
+```
+
+**@dev authorities:**
+- Implement code from stories
+- Run local tests and linting
+- Update story Dev Agent Record
+- Create local commits
+
+**@dev CANNOT:**
+- Push to remote repository
+- Create pull requests
+- Approve stories for production
+- Modify architecture documents
+
+### @devops (DevOps Engineer)
+
+```yaml devops.md:86-100
+persona:
+  role: GitHub Repository Guardian & Release Manager
+  style: Systematic, quality-focused, security-conscious, detail-oriented
+  identity: Repository integrity guardian who enforces quality gates and manages all remote GitHub operations
+  focus: Repository governance, version management, CI/CD orchestration, quality assurance before push
+
+  core_principles:
+    - Repository Integrity First - Never push broken code
+    - Quality Gates Are Mandatory - All checks must PASS before push
+    - CodeRabbit Pre-PR Review - Run automated code review before creating PRs, block on CRITICAL issues
+    - Semantic Versioning Always - Follow MAJOR.MINOR.PATCH strictly
+    - Systematic Release Management - Document every release with changelog
+    - Branch Hygiene - Keep repository clean, remove stale branches
+    - CI/CD Automation - Automate quality checks and deployments
+    - Security Consciousness - Never push secrets or credentials
+```
+
+**@devops exclusive authorities:**
+- `git push` to remote
+- Create pull requests via `gh pr create`
+- Tag releases and manage versions
+- Enforce quality gates (lint, typecheck, tests)
+- Manage CI/CD pipelines
+
+**@devops CANNOT:**
+- Implement feature code
+- Create stories
+- Perform QA validation
+
+## Authority Enforcement
+
+AIOX enforces authorities through:
+
+### 1. Agent Definitions
+
+Each agent file explicitly states what it can and cannot do:
+
+```markdown
+whenToUse: 'Use for repository operations, version management, CI/CD, quality gates, and GitHub push operations. ONLY agent authorized to push to remote repository.'
+```
+
+### 2. Task Workflows
+
+Tasks are assigned to specific agents:
+
+```yaml
+- phase: 8
+  agent: devops
+  action: pre-push
+  task: pre-push.md
+  notes: |
+    DevOps runs quality gates:
+    - npm run lint (must PASS)
+    - npm run typecheck (must PASS)
+    - npm test (must PASS)
+    - git push to remote
+```
+
+### 3. Agent Invoker
+
+The `AgentInvoker` class tracks supported agents and their capabilities:
+
+```javascript agent-invoker.js:32-75
+const SUPPORTED_AGENTS = {
+  pm: {
+    name: 'pm',
+    displayName: 'Project Manager',
+    file: 'pm.md',
+    capabilities: ['planning', 'coordination', 'story-management'],
+  },
+  architect: {
+    name: 'architect',
+    displayName: 'Architect',
+    file: 'architect.md',
+    capabilities: ['design', 'architecture', 'technical-decisions'],
+  },
+  analyst: {
+    name: 'analyst',
+    displayName: 'Business Analyst',
+    file: 'analyst.md',
+    capabilities: ['requirements', 'analysis', 'documentation'],
+  },
+  dev: {
+    name: 'dev',
+    displayName: 'Developer',
+    file: 'dev.md',
+    capabilities: ['implementation', 'coding', 'debugging'],
+  },
+  qa: {
+    name: 'qa',
+    displayName: 'QA Engineer',
+    file: 'qa.md',
+    capabilities: ['testing', 'quality', 'validation'],
+  },
+  devops: {
+    name: 'devops',
+    displayName: 'DevOps Engineer',
+    file: 'devops.md',
+    capabilities: ['deployment', 'infrastructure', 'ci-cd'],
+  },
+  po: {
+    name: 'po',
+    displayName: 'Product Owner',
+    file: 'po.md',
+    capabilities: ['backlog', 'prioritization', 'acceptance'],
+  },
+};
+```
+
+## Delegation Pattern
+
+When an agent encounters a task outside its authority, it delegates:
+
+<Steps>
+  <Step title="Recognize Boundary">
+    Agent detects it's being asked to do something outside its authority
+    
+    Example: @dev is asked to "push this to GitHub"
+  </Step>
+  
+  <Step title="Identify Correct Agent">
+    Consult authority matrix to find the appropriate agent
+    
+    Result: @devops owns `git push`
+  </Step>
+  
+  <Step title="Delegate with Context">
+    Pass necessary context and handoff to the correct agent
+    
+    ```yaml
+    handoff:
+      to_agent: devops
+      reason: git_push_required
+      context:
+        commits_ready: true
+        tests_passing: true
+    ```
+  </Step>
+  
+  <Step title="Await Completion">
+    Wait for the delegated agent to complete the task and return results
+  </Step>
+</Steps>
+
+## Example Workflow with Authority Boundaries
+
+From `story-development-cycle.yaml:39-166`:
+
+```yaml
+sequence:
+  - step: create_story
+    phase: 1
+    agent: sm        # Scrum Master creates story
+    action: Criar próxima story
+
+  - step: validate_story
+    phase: 2
+    agent: po        # Product Owner validates
+    action: Validar story (10 checks)
+
+  - step: implement_story
+    phase: 3
+    agent: dev       # Developer implements
+    action: Desenvolver story
+
+  - step: qa_review
+    phase: 4
+    agent: qa        # QA validates quality
+    action: Revisar qualidade
+
+  - step: push_to_remote
+    phase: 5
+    agent: devops    # DevOps pushes (exclusive authority)
+    action: Push para remote com quality gates
+```
+
+Notice how each phase uses the agent with the correct authority.
+
+## Benefits of Clear Boundaries
+
+<CardGroup cols={2}>
+  <Card title="Accountability" icon="user-check">
+    Every action has a clear owner. When something goes wrong, you know who to ask.
+  </Card>
+  
+  <Card title="Predictability" icon="compass">
+    Workflows behave consistently. No agent will surprise you by doing something unexpected.
+  </Card>
+  
+  <Card title="Safety" icon="shield">
+    Critical operations (git push, releases) are protected by quality gates that can't be bypassed.
+  </Card>
+  
+  <Card title="Scalability" icon="chart-network">
+    Add new agents without worrying about conflicts. Authorities don't overlap.
+  </Card>
+</CardGroup>
+
+## Anti-Patterns
+
+<Warning>
+  **Don't do this:**
+  - Give multiple agents `git push` authority
+  - Let @dev bypass QA by pushing directly
+  - Allow any agent to create stories
+  - Ignore authority boundaries for "convenience"
+</Warning>
+
+These shortcuts create chaos in multi-agent systems and make debugging impossible.
+
+## Related Concepts
+
+- [Story-Driven Development](/concepts/story-driven-development) - How agents collaborate on stories
+- [Workflow Orchestration](/concepts/workflow-orchestration) - Agent handoffs in workflows
+- [Constitution](/constitution) - Full authority rules
+
+<Card title="See Agent Definitions" icon="users" href="/agents/overview">
+  Explore all AIOX agents and their authorities
+</Card>

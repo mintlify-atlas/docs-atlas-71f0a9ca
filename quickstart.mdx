@@ -1,80 +1,530 @@
 ---
-title: "Quickstart"
-description: "Start building awesome documentation in minutes"
+title: Quickstart Guide
+description: Get Synkra AIOX installed and activate your first AI agent in under 10 minutes
 ---
 
-## Get started in three steps
+# Quickstart Guide
 
-Get your documentation site running locally and make your first customization.
-
-### Step 1: Set up your local environment
-
-<AccordionGroup>
-  <Accordion icon="copy" title="Clone your docs locally">
-    During the onboarding process, you created a GitHub repository with your docs content if you didn't already have one. You can find a link to this repository in your [dashboard](https://dashboard.mintlify.com).
-    
-    To clone the repository locally so that you can make and preview changes to your docs, follow the [Cloning a repository](https://docs.github.com/en/repositories/creating-and-managing-repositories/cloning-a-repository) guide in the GitHub docs.
-  </Accordion>
-  <Accordion icon="rectangle-terminal" title="Start the preview server">
-    1. Install the Mintlify CLI: `npm i -g mint`
-    2. Navigate to your docs directory and run: `mint dev`
-    3. Open `http://localhost:3000` to see your docs live!
-    
-    <Tip>Your preview updates automatically as you edit files.</Tip>
-  </Accordion>
-</AccordionGroup>
-
-### Step 2: Deploy your changes
-
-<AccordionGroup>
-  <Accordion icon="github" title="Install our GitHub app">
-    Install the Mintlify GitHub app from your [dashboard](https://dashboard.mintlify.com/settings/organization/github-app).
-    
-    Our GitHub app automatically deploys your changes to your docs site, so you don't need to manage deployments yourself.
-</Accordion>
-<Accordion icon="palette" title="Update your site name and colors">
-    For a first change, let's update the name and colors of your docs site.
-
-    1. Open `docs.json` in your editor.
-    2. Change the `"name"` field to your project name.
-    3. Update the `"colors"` to match your brand.
-    4. Save and see your changes instantly at `http://localhost:3000`.
-
-    <Tip>Try changing the primary color to see an immediate difference!</Tip>
-  </Accordion>
-</AccordionGroup>
-
-### Step 3: Go live
-
-<Accordion icon="rocket" title="Publish your docs">
-  1. Commit and push your changes.
-  2. Your docs will update and be live in moments!
-</Accordion>
-
-## Next steps
-
-Now that you have your docs running, explore these key features:
-
-<CardGroup cols={2}>
-
-<Card title="Write Content" icon="pen-to-square" href="/essentials/markdown">
-  Learn MDX syntax and start writing your documentation.
-</Card>
-
-<Card title="Customize style" icon="palette" href="/essentials/settings">
-  Make your docs match your brand perfectly.
-</Card>
-
-<Card title="Add code examples" icon="square-code" href="/essentials/code">
-  Include syntax-highlighted code blocks.
-</Card>
-
-<Card title="API documentation" icon="code" href="/api-reference/introduction">
-  Auto-generate API docs from OpenAPI specs.
-</Card>
-
-</CardGroup>
+Get started with Synkra AIOX in **10 minutes or less**. This guide walks you through installation, agent activation, and running your first command.
 
 <Note>
-  **Need help?** See our [full documentation](https://mintlify.com/docs) or join our [community](https://mintlify.com/community).
+**Goal:** By the end of this guide, you'll have AIOX installed, an agent activated, and you'll see the agent respond to a command - proving your setup works.
 </Note>
+
+## Prerequisites
+
+Before starting, make sure you have:
+
+- **Node.js 18.0.0 or higher** (v20+ recommended)
+- **npm 9.0.0 or higher**
+- One of these IDEs/CLIs:
+  - Claude Code (slash commands: `/dev`, `/qa`, etc.)
+  - Gemini CLI (slash commands: `/aiox-menu`, `/aiox-dev`, etc.)
+  - Codex CLI (skills: `/skills` → `aiox-dev`)
+  - Cursor (agent mentions: `@dev`, `@qa`, etc.)
+  - GitHub Copilot (repository instructions + MCP)
+
+<Steps>
+
+<Step title="Install AIOX">
+
+### For a New Project
+
+Create a new project with AIOX pre-configured:
+
+```bash
+npx aiox-core init my-project
+```
+
+This will:
+- Create a new directory `my-project/`
+- Run the interactive installation wizard
+- Set up all agents and workflows
+- Initialize git (optional)
+- Install dependencies
+
+### For an Existing Project
+
+Add AIOX to your current project:
+
+```bash
+cd your-project
+npx aiox-core install
+```
+
+The installer will:
+- Detect your existing setup
+- Ask which components to install
+- Preserve your existing configuration
+- Set up AIOX alongside your code
+
+<Note>
+The installation wizard is interactive and uses modern prompts (like Vite). You can cancel at any time with `Ctrl+C`.
+</Note>
+
+### Installation Options
+
+<CodeGroup>
+
+```bash Default (Interactive)
+npx aiox-core install
+```
+
+```bash Force Reinstall
+npx aiox-core install --force
+```
+
+```bash Silent Mode (CI/CD)
+npx aiox-core install --quiet --force
+```
+
+```bash Dry Run (Preview)
+npx aiox-core install --dry-run
+```
+
+</CodeGroup>
+
+**What gets installed:**
+
+- `.aiox-core/` - Framework core (agents, tasks, workflows)
+- `.aiox/` - Project settings and agent history
+- `docs/stories/` - Story files directory
+- `squads/` - Squad definitions (optional)
+- Configuration files for your IDE
+
+</Step>
+
+<Step title="Configure Your IDE">
+
+AIOX works differently depending on your IDE. Choose your setup:
+
+### Claude Code ✅ (Fully Automatic)
+
+No configuration needed! The `.claude/CLAUDE.md` file is loaded automatically.
+
+**Activation pattern:**
+```
+/dev
+/qa
+/architect
+/analyst
+```
+
+**Verify sync (optional):**
+```bash
+npm run sync:ide:claude
+npm run validate:claude-sync
+```
+
+---
+
+### Gemini CLI ✅ (Automatic with Commands)
+
+AIOX is pre-configured with slash commands.
+
+**Activation pattern:**
+```
+/aiox-menu    # Show all available agents
+/aiox-dev     # Activate dev agent
+/aiox-qa      # Activate qa agent
+```
+
+**Verify sync:**
+```bash
+npm run sync:ide:gemini
+npm run validate:gemini-sync
+```
+
+---
+
+### Codex CLI ✅ (Skills-based)
+
+AIOX integrates via local skills.
+
+**Activation pattern:**
+```
+/skills              # List all skills
+Select: aiox-dev     # Activate dev agent
+```
+
+**Or use shortcuts:**
+```
+@dev
+/dev
+/dev.md
+```
+
+**Generate local skills:**
+```bash
+npm run sync:skills:codex
+npm run validate:codex-sync
+```
+
+---
+
+### Cursor ⚠️ (Manual Setup Required)
+
+1. Open Cursor Settings
+2. Navigate to **User Rules**
+3. Copy content from `.cursor/global-rules.md`
+4. Paste into User Rules section
+5. Save
+
+**Activation pattern:**
+```
+@dev
+@qa
+@architect
+```
+
+<Warning>
+Cursor has no lifecycle hooks. Some AIOX automations won't work. Focus on agent rules and MCP integration.
+</Warning>
+
+---
+
+### GitHub Copilot ⚠️ (Limited Support)
+
+1. Repository instructions from `AGENTS.md` are loaded automatically in VS Code
+2. Use MCP for tool integration
+3. Activate agents via chat mentions
+
+**Activation pattern:**
+```
+@dev
+@qa
+```
+
+<Warning>
+GitHub Copilot has no lifecycle hooks. Many AIOX automations depend on IDE-specific features.
+</Warning>
+
+</Step>
+
+<Step title="Activate Your First Agent">
+
+Now let's activate an agent and verify it works.
+
+### Choose an Agent
+
+For your first experience, we recommend the `dev` agent:
+
+<CodeGroup>
+
+```bash Claude Code
+/dev
+```
+
+```bash Gemini CLI
+/aiox-dev
+```
+
+```bash Codex CLI
+/skills
+# Then select: aiox-dev
+```
+
+```bash Cursor
+@dev
+```
+
+```bash GitHub Copilot
+@dev
+```
+
+</CodeGroup>
+
+### Expected Greeting
+
+You should see a greeting like this:
+
+```
+💻 Dex the Builder ready to innovate! [⚠️ Ask]
+
+**Role:** Expert Senior Software Engineer & Implementation Specialist
+
+📊 **Project Status:** 
+Branch: main | 0 modified files | No active story
+
+**Available Commands:**
+  *help              - Show all available commands
+  *guide             - Comprehensive usage instructions
+  *develop-story     - Implement a story file
+  *debug             - Debug current implementation
+  *refactor          - Refactor code for quality
+
+Type `*guide` for comprehensive usage instructions.
+
+— Dex, sempre construindo 🔨
+```
+
+<Note>
+The greeting shows:
+- **Agent name** and archetype
+- **Current role** and expertise
+- **Project status** (branch, files, story)
+- **Quick commands** available
+- **Permission mode** (Ask, Auto, or Explore)
+</Note>
+
+### Troubleshooting Activation
+
+If you don't see a greeting:
+
+1. **Claude Code / Gemini CLI:** Check that files exist in `.claude/` or `.gemini/`
+2. **Codex CLI:** Run `npm run sync:skills:codex` to generate skills
+3. **Cursor:** Verify you pasted rules into User Rules section
+4. **All IDEs:** Check `AGENTS.md` exists in project root
+
+</Step>
+
+<Step title="Run Your First Command">
+
+Now let's verify the agent responds correctly.
+
+### Try the Help Command
+
+Type this in your IDE chat:
+
+```
+*help
+```
+
+The agent should respond with a **complete list of available commands**, organized by category:
+
+```
+💻 dev Agent Commands
+
+📋 Story & Development:
+  *develop-story <file>   - Implement a story file
+  *continue              - Continue current story
+  *status                - Show current status
+
+🔍 Code Quality:
+  *debug                 - Debug current implementation
+  *refactor              - Refactor code
+  *lint                  - Run linting
+  *typecheck             - Run type checking
+
+📊 Documentation:
+  *document              - Generate documentation
+  *guide                 - Show comprehensive guide
+
+...
+```
+
+### Try a Second Command
+
+Let's check the project status:
+
+```
+*status
+```
+
+The agent should show:
+- Current git branch
+- Modified files
+- Active story (if any)
+- Recent commits
+
+<Note>
+**Success!** If you see command responses, your AIOX installation is working correctly.
+</Note>
+
+</Step>
+
+<Step title="Verify Installation (Optional)">
+
+Run the built-in health check to verify everything is set up correctly:
+
+```bash
+npx aiox-core doctor
+```
+
+This checks:
+- ✅ Node.js and npm versions
+- ✅ Required directories exist
+- ✅ Agent files are valid
+- ✅ Configuration files are correct
+- ✅ Dependencies are installed
+
+### Fix Issues Automatically
+
+If the doctor finds issues:
+
+```bash
+npx aiox-core doctor --fix
+```
+
+This will attempt to repair common problems automatically.
+
+</Step>
+
+</Steps>
+
+## What's Installed?
+
+Here's what AIOX added to your project:
+
+```
+your-project/
+├── .aiox-core/              # Framework core
+│   ├── development/
+│   │   ├── agents/          # 11 specialized agents
+│   │   ├── tasks/           # Executable task workflows
+│   │   ├── templates/       # Document templates
+│   │   ├── workflows/       # Multi-step workflows
+│   │   └── checklists/      # Quality checklists
+│   ├── core/                # Core utilities
+│   ├── infrastructure/      # IDE sync, scripts
+│   └── constitution.md      # Core principles
+├── .aiox/                   # Project-specific data
+│   ├── config.yaml          # Project configuration
+│   ├── history/             # Agent execution history
+│   └── handoffs/            # Agent-to-agent handoffs
+├── .claude/                 # Claude Code integration
+│   ├── CLAUDE.md            # Main rules file
+│   └── rules/               # Additional rules
+├── .gemini/                 # Gemini CLI integration
+│   ├── commands/            # Slash commands
+│   └── rules/               # Agent rules
+├── .codex/                  # Codex CLI integration
+│   ├── agents/              # Agent definitions
+│   └── skills/              # Local skills
+├── .cursor/                 # Cursor integration
+│   └── rules/               # Cursor rules
+├── docs/
+│   └── stories/             # Story files (created as needed)
+├── squads/                  # Squad definitions (optional)
+└── AGENTS.md                # Agent registry (for Codex, Copilot)
+```
+
+## Available Agents
+
+You now have access to 11 specialized agents:
+
+<CardGroup cols={3}>
+  <Card title="@analyst" icon="search">
+    Market research, competitive analysis, discovery
+  </Card>
+  <Card title="@pm" icon="clipboard-list">
+    Product management, PRD creation, prioritization
+  </Card>
+  <Card title="@architect" icon="building">
+    System design, technical architecture, patterns
+  </Card>
+  <Card title="@ux-expert" icon="palette">
+    UX design, usability, user research
+  </Card>
+  <Card title="@sm" icon="tasks">
+    Scrum master, story creation, sprint planning
+  </Card>
+  <Card title="@dev" icon="code">
+    Development, implementation, debugging
+  </Card>
+  <Card title="@qa" icon="check-circle">
+    Quality assurance, testing, validation
+  </Card>
+  <Card title="@po" icon="user-tie">
+    Product owner, backlog management
+  </Card>
+  <Card title="@devops" icon="server">
+    Git operations, CI/CD, deployments
+  </Card>
+  <Card title="@data-engineer" icon="database">
+    Data pipelines, ETL, analytics
+  </Card>
+  <Card title="@aiox-master" icon="crown">
+    Meta-orchestration, framework development
+  </Card>
+</CardGroup>
+
+## Next Steps
+
+Now that you have AIOX working, here's what to explore next:
+
+<CardGroup cols={2}>
+  <Card title="User Guide" icon="book-open" href="/guides/user-guide">
+    Learn the complete AIOX workflow from planning to deployment
+  </Card>
+  <Card title="Agent Guide" icon="users" href="/guides/agents">
+    Deep dive into each agent's capabilities and commands
+  </Card>
+  <Card title="Story-Driven Development" icon="bookmark" href="/guides/stories">
+    Understand how stories drive the development workflow
+  </Card>
+  <Card title="Squads" icon="layer-group" href="/guides/squads">
+    Extend AIOX to creative writing, business, and more
+  </Card>
+</CardGroup>
+
+## Common Issues
+
+<AccordionGroup>
+  <Accordion title="Agent doesn't respond to activation">
+    **Claude Code / Gemini CLI:**
+    - Verify files exist in `.claude/` or `.gemini/`
+    - Run sync: `npm run sync:ide:claude` or `npm run sync:ide:gemini`
+    
+    **Codex CLI:**
+    - Generate skills: `npm run sync:skills:codex`
+    - Check `AGENTS.md` exists in project root
+    
+    **Cursor:**
+    - Verify you added rules to User Rules section
+    - Restart Cursor after adding rules
+  </Accordion>
+  
+  <Accordion title="Commands not recognized">
+    Commands start with `*` (asterisk):
+    - ✅ Correct: `*help`
+    - ❌ Wrong: `help`
+    
+    Make sure you activated the agent first before sending commands.
+  </Accordion>
+  
+  <Accordion title="Installation fails">
+    Check prerequisites:
+    ```bash
+    node --version   # Should be >=18.0.0
+    npm --version    # Should be >=9.0.0
+    ```
+    
+    Try with `--force`:
+    ```bash
+    npx aiox-core install --force
+    ```
+  </Accordion>
+  
+  <Accordion title="'npx: command not found'">
+    npm is not in your PATH. Try:
+    ```bash
+    npm install -g npx
+    npx aiox-core install
+    ```
+  </Accordion>
+</AccordionGroup>
+
+## Getting Help
+
+If you're stuck:
+
+1. **Run diagnostics:** `npx aiox-core doctor`
+2. **Check detailed installation guide:** See [Installation](/installation)
+3. **Search GitHub issues:** [aiox-core/issues](https://github.com/SynkraAI/aiox-core/issues)
+4. **Report a bug:** [New issue](https://github.com/SynkraAI/aiox-core/issues/new)
+
+## Success Criteria
+
+You've successfully completed the quickstart if:
+
+- ✅ AIOX is installed (`npx aiox-core doctor` passes)
+- ✅ You activated an agent and saw the greeting
+- ✅ The agent responded to `*help` with a command list
+- ✅ You understand how to activate agents in your IDE
+
+**Congratulations!** You're ready to start building with AIOX.
+
+👉 **[Continue to Installation Guide →](/installation)** for advanced setup options
+
+👉 **[Continue to User Guide →](/guides/user-guide)** to learn the complete workflow

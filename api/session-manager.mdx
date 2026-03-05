@@ -1,0 +1,390 @@
+---
+title: "Session Manager API"
+description: "Manage and persist elicitation sessions across interactions"
+icon: "clock-rotate-left"
+---
+
+## Overview
+
+The Session Manager handles saving, loading, and managing elicitation sessions, enabling users to pause and resume component creation workflows.
+
+## Class: ElicitationSessionManager
+
+### Constructor
+
+<ParamField path="sessionDir" type="string" default=".aiox/sessions">
+  Directory for storing session files
+</ParamField>
+
+```javascript
+const ElicitationSessionManager = require('.aiox-core/core/elicitation/session-manager');
+
+const manager = new ElicitationSessionManager('.aiox/sessions');
+await manager.init();
+```
+
+## Core Methods
+
+### init
+
+Initialize session storage directory.
+
+```javascript
+await manager.init();
+```
+
+### createSession
+
+Create a new session with metadata.
+
+<ParamField path="type" type="string" required>
+  Component type (e.g., 'agent', 'task', 'workflow')
+</ParamField>
+
+<ParamField path="metadata" type="Object" default="{}">
+  Additional session metadata
+</ParamField>
+
+<ResponseField name="sessionId" type="string">
+  Generated session ID (16-character hex string)
+</ResponseField>
+
+```javascript
+const sessionId = await manager.createSession('agent', {
+  projectName: 'My Project',
+  userName: 'developer'
+});
+
+console.log('Session ID:', sessionId); // e.g., 'a3f2c1b4d5e6f7a8'
+```
+
+### saveSession
+
+Save current session state to disk.
+
+<ParamField path="session" type="Object">
+  Session data to save (uses active session if not provided)
+</ParamField>
+
+```javascript
+// Save active session
+await manager.saveSession();
+
+// Save specific session
+await manager.saveSession(sessionData);
+```
+
+### loadSession
+
+Load an existing session from disk.
+
+<ParamField path="sessionId" type="string" required>
+  Session ID to load (must be valid 16-char hex)
+</ParamField>
+
+<ResponseField name="session" type="Object">
+  Loaded session data
+</ResponseField>
+
+```javascript
+try {
+  const session = await manager.loadSession('a3f2c1b4d5e6f7a8');
+  console.log('Loaded session:', session.type);
+  console.log('Current step:', session.currentStep);
+  console.log('Answers:', session.answers);
+} catch (error) {
+  console.error('Session not found:', error.message);
+}
+```
+
+### updateAnswers
+
+Update session answers and progress.
+
+<ParamField path="answers" type="Object" required>
+  New answers to merge with existing answers
+</ParamField>
+
+<ParamField path="stepIndex" type="number">
+  Current step index (optional)
+</ParamField>
+
+```javascript
+await manager.updateAnswers({
+  agentName: 'Data Analyst',
+  description: 'Analyzes datasets'
+}, 2);
+```
+
+### listSessions
+
+List all sessions with optional filtering.
+
+<ParamField path="filters" type="Object" default="{}">
+  <ParamField path="type" type="string">
+    Filter by component type
+  </ParamField>
+  <ParamField path="status" type="string">
+    Filter by status ('active', 'completed')
+  </ParamField>
+  <ParamField path="after" type="string">
+    Filter by creation date (ISO 8601)
+  </ParamField>
+</ParamField>
+
+<ResponseField name="sessions" type="Array<Object>">
+  Array of session summaries
+</ResponseField>
+
+```javascript
+// List all active agent sessions
+const sessions = await manager.listSessions({
+  type: 'agent',
+  status: 'active'
+});
+
+sessions.forEach(session => {
+  console.log(`${session.id}: ${session.type} - ${session.progress}% complete`);
+});
+```
+
+### resumeSession
+
+Resume a paused session with progress information.
+
+<ParamField path="sessionId" type="string" required>
+  Session ID to resume
+</ParamField>
+
+<ResponseField name="resumeInfo" type="Object">
+  <ResponseField name="id" type="string">
+    Session ID
+  </ResponseField>
+  <ResponseField name="type" type="string">
+    Component type
+  </ResponseField>
+  <ResponseField name="resumeFrom" type="number">
+    Step index to resume from
+  </ResponseField>
+  <ResponseField name="completedSteps" type="number">
+    Number of completed steps
+  </ResponseField>
+  <ResponseField name="remainingSteps" type="number">
+    Number of remaining steps
+  </ResponseField>
+  <ResponseField name="percentComplete" type="number">
+    Completion percentage
+  </ResponseField>
+</ResponseField>
+
+```javascript
+const resumeInfo = await manager.resumeSession('a3f2c1b4d5e6f7a8');
+
+console.log(`Resuming ${resumeInfo.type} creation`);
+console.log(`Progress: ${resumeInfo.percentComplete}%`);
+console.log(`Resume from step: ${resumeInfo.resumeFrom}`);
+```
+
+### completeSession
+
+Mark a session as completed.
+
+<ParamField path="result" type="string" default="success">
+  Completion result ('success', 'cancelled', 'error')
+</ParamField>
+
+```javascript
+// Mark as successfully completed
+await manager.completeSession('success');
+
+// Mark as cancelled
+await manager.completeSession('cancelled');
+```
+
+### deleteSession
+
+Delete a session from storage.
+
+<ParamField path="sessionId" type="string" required>
+  Session ID to delete
+</ParamField>
+
+```javascript
+await manager.deleteSession('a3f2c1b4d5e6f7a8');
+console.log('Session deleted');
+```
+
+### exportSession
+
+Export session data in various formats.
+
+<ParamField path="sessionId" type="string" required>
+  Session ID to export
+</ParamField>
+
+<ParamField path="format" type="string" default="json">
+  Export format ('json' or 'yaml')
+</ParamField>
+
+<ResponseField name="data" type="string">
+  Exported session data as string
+</ResponseField>
+
+```javascript
+// Export as JSON
+const jsonData = await manager.exportSession('a3f2c1b4d5e6f7a8', 'json');
+console.log(jsonData);
+
+// Export as YAML
+const yamlData = await manager.exportSession('a3f2c1b4d5e6f7a8', 'yaml');
+console.log(yamlData);
+```
+
+### cleanupOldSessions
+
+Delete old completed sessions.
+
+<ParamField path="daysOld" type="number" default="30">
+  Delete sessions older than this many days
+</ParamField>
+
+<ResponseField name="deletedCount" type="number">
+  Number of sessions deleted
+</ResponseField>
+
+```javascript
+const deleted = await manager.cleanupOldSessions(30);
+console.log(`Deleted ${deleted} old sessions`);
+```
+
+### getActiveSession
+
+Get the currently active session.
+
+<ResponseField name="session" type="Object">
+  Active session or null
+</ResponseField>
+
+```javascript
+const activeSession = manager.getActiveSession();
+if (activeSession) {
+  console.log('Active session:', activeSession.id);
+}
+```
+
+### clearActiveSession
+
+Clear the active session reference.
+
+```javascript
+manager.clearActiveSession();
+```
+
+## Session Structure
+
+A session object contains:
+
+```typescript
+interface Session {
+  id: string;              // Unique session ID
+  type: string;            // Component type
+  version: string;         // Session format version
+  created: string;         // ISO 8601 timestamp
+  updated: string;         // ISO 8601 timestamp
+  status: string;          // 'active' | 'completed'
+  currentStep: number;     // Current step index
+  totalSteps: number;      // Total number of steps
+  answers: Object;         // Collected answers
+  metadata: Object;        // Additional metadata
+  completedAt?: string;    // Completion timestamp
+  result?: string;         // Completion result
+}
+```
+
+## Security
+
+The Session Manager includes security features:
+
+- **Path traversal prevention** - Session IDs are validated to prevent directory traversal attacks
+- **Format validation** - Only accepts valid 16-character hex session IDs
+- **Safe file operations** - Uses validated paths for all file operations
+
+```javascript
+// Valid session ID
+await manager.loadSession('a3f2c1b4d5e6f7a8'); // ✅ OK
+
+// Invalid session IDs (blocked)
+await manager.loadSession('../etc/passwd');     // ❌ Blocked
+await manager.loadSession('invalid-id');        // ❌ Blocked
+await manager.loadSession('ABCD');              // ❌ Blocked (too short)
+```
+
+## Complete Example
+
+```javascript
+const ElicitationSessionManager = require('.aiox-core/core/elicitation/session-manager');
+
+// Initialize manager
+const manager = new ElicitationSessionManager();
+await manager.init();
+
+// Create new session
+const sessionId = await manager.createSession('agent', {
+  projectName: 'Analytics Platform',
+  userName: 'developer'
+});
+
+console.log('Created session:', sessionId);
+
+// Simulate workflow progress
+await manager.updateAnswers({
+  agentId: 'data-analyst',
+  agentTitle: 'Data Analyst'
+}, 0);
+
+await manager.updateAnswers({
+  description: 'Analyzes data and generates insights',
+  icon: '📊'
+}, 1);
+
+// Get session summary
+const activeSession = manager.getActiveSession();
+console.log('Answers collected:', Object.keys(activeSession.answers).length);
+
+// Later: Resume session
+const resumeInfo = await manager.resumeSession(sessionId);
+console.log(`Resuming from step ${resumeInfo.resumeFrom}`);
+console.log(`${resumeInfo.percentComplete}% complete`);
+
+// Complete session
+await manager.completeSession('success');
+
+// List all sessions
+const allSessions = await manager.listSessions();
+console.log(`Total sessions: ${allSessions.length}`);
+
+// Cleanup old sessions (30+ days)
+const deleted = await manager.cleanupOldSessions(30);
+console.log(`Cleaned up ${deleted} old sessions`);
+```
+
+## CLI Integration Example
+
+```javascript
+// Resume interrupted workflow
+const sessions = await manager.listSessions({ status: 'active' });
+
+if (sessions.length > 0) {
+  console.log('Found interrupted sessions:');
+  sessions.forEach((s, i) => {
+    console.log(`${i + 1}. ${s.type} (${s.progress}% complete)`);
+  });
+  
+  // User selects session to resume
+  const choice = await getUserChoice();
+  const session = await manager.resumeSession(sessions[choice].id);
+  
+  // Continue workflow from saved state
+  await continueWorkflow(session);
+}
+```

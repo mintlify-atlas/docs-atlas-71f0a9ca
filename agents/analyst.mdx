@@ -1,0 +1,425 @@
+---
+title: "Atlas - Analyst Agent"
+description: "Business Analyst for market research, competitive analysis, and strategic ideation"
+icon: "magnifying-glass"
+---
+
+# 🔍 Atlas - Business Analyst
+
+**Role**: Insightful Analyst & Strategic Ideation Partner  
+**Archetype**: Decoder ♏ Scorpio  
+**Persona**: Analytical, inquisitive, creative, facilitative, objective, data-informed
+
+## When to Use Atlas
+
+Activate `@analyst` for:
+
+- 🔍 Market research and competitive analysis
+- 💡 Brainstorming sessions and structured ideation
+- 📊 User research and needs analysis
+- 📋 Creating project briefs and feasibility studies
+- 🌐 Industry trends analysis and strategic insights
+
+**NOT for**: PRD creation (use `@pm`), Story creation (use `@sm`), Architecture design (use `@architect`)
+
+## Activation
+
+<CodeGroup>
+```bash Cursor IDE
+@analyst
+```
+
+```bash Claude Desktop
+/analyst
+```
+
+```bash Codex CLI
+@analyst *brainstorm {topic}
+```
+</CodeGroup>
+
+## Core Commands
+
+<AccordionGroup>
+  <Accordion title="Research & Analysis" icon="magnifying-glass">
+    ```bash
+    *perform-market-research          # Create market research analysis
+    *create-competitor-analysis       # Competitive analysis report
+    *create-project-brief             # Project brief document
+    *research-prompt {topic}          # Generate deep research prompt
+    ```
+  </Accordion>
+
+  <Accordion title="Ideation & Discovery" icon="lightbulb">
+    ```bash
+    *brainstorm {topic}               # Structured brainstorming session
+    *elicit                           # Advanced elicitation session
+    ```
+  </Accordion>
+
+  <Accordion title="Spec Pipeline (ADE)" icon="diagram-project">
+    ```bash
+    *research-deps                    # Research dependencies for story
+    ```
+  </Accordion>
+
+  <Accordion title="Memory Layer (ADE)" icon="brain">
+    ```bash
+    *extract-patterns                 # Extract code patterns from codebase
+    ```
+  </Accordion>
+
+  <Accordion title="Utilities" icon="wrench">
+    ```bash
+    *doc-out                          # Output complete document
+    *session-info                     # Show session details
+    *guide                            # Show comprehensive guide
+    *yolo                             # Toggle permission mode
+    *exit                             # Exit analyst mode
+    ```
+  </Accordion>
+</AccordionGroup>
+
+## Research Workflow
+
+### Market Research
+
+```bash
+# 1. Activate Atlas
+@analyst
+
+# 2. Perform market research
+*perform-market-research
+
+# Atlas will:
+# - Gather market data using Exa tool
+# - Analyze industry trends
+# - Identify key players and market size
+# - Document opportunities and threats
+# - Generate market-research-tmpl.yaml output
+```
+
+### Competitive Analysis
+
+```bash
+*create-competitor-analysis
+
+# Atlas will:
+# - Identify direct and indirect competitors
+# - Analyze competitor features and positioning
+# - Compare pricing models
+# - Document strengths and weaknesses
+# - Generate competitor-analysis-tmpl.yaml
+```
+
+## Brainstorming Workflow
+
+### Structured Ideation
+
+```bash
+*brainstorm "new feature ideas for user dashboard"
+
+# Atlas will:
+# 1. Choose brainstorming technique (e.g., SCAMPER, Six Thinking Hats)
+# 2. Facilitate structured session
+# 3. Capture all ideas without judgment
+# 4. Help prioritize and cluster concepts
+# 5. Generate brainstorming-output-tmpl.yaml
+```
+
+**Brainstorming techniques used**:
+
+<Tabs>
+  <Tab title="SCAMPER">
+    **Framework**: Substitute, Combine, Adapt, Modify, Put to other uses, Eliminate, Reverse
+    
+    **Best for**: Product innovation, feature enhancement
+    
+    **Example questions**:
+    - What can we substitute in the current flow?
+    - How can we combine existing features?
+    - What can we eliminate to simplify?
+  </Tab>
+  
+  <Tab title="Six Thinking Hats">
+    **Framework**: White (facts), Red (emotions), Black (caution), Yellow (optimism), Green (creativity), Blue (process)
+    
+    **Best for**: Comprehensive exploration, team alignment
+    
+    **Ensures**: All perspectives considered
+  </Tab>
+  
+  <Tab title="Mind Mapping">
+    **Framework**: Central idea with branching concepts
+    
+    **Best for**: Exploring relationships, visual thinkers
+    
+    **Output**: Hierarchical idea structure
+  </Tab>
+  
+  <Tab title="5 Whys">
+    **Framework**: Ask "why" 5 times to find root cause
+    
+    **Best for**: Problem analysis, uncovering needs
+    
+    **Output**: Deep understanding of user pain points
+  </Tab>
+</Tabs>
+
+## Project Discovery
+
+### Creating Project Brief
+
+```bash
+*create-project-brief
+
+# Atlas will:
+# - Elicit project goals and objectives
+# - Document target audience and use cases
+# - Identify success metrics
+# - Capture constraints and assumptions
+# - Generate project-brief-tmpl.yaml
+```
+
+**Project brief includes**:
+
+```yaml
+project_brief:
+  name: "Project Alpha"
+  vision: "Transform how users interact with data"
+  
+  goals:
+    - "Increase user engagement by 40%"
+    - "Reduce onboarding time to < 5 minutes"
+  
+  target_audience:
+    - "Data analysts (primary)"
+    - "Business executives (secondary)"
+  
+  success_metrics:
+    - "Daily active users (DAU)"
+    - "Time to first insight"
+    - "User satisfaction score"
+  
+  constraints:
+    - "Budget: $50k"
+    - "Timeline: 3 months"
+    - "Team: 4 developers"
+```
+
+## Spec Pipeline Integration
+
+### Research Dependencies
+
+```bash
+*research-deps story-1.2.3
+
+# Atlas will:
+# 1. Read story requirements
+# 2. Research technical dependencies
+# 3. Identify external APIs or libraries needed
+# 4. Document integration complexity
+# 5. Flag potential blockers
+```
+
+**Output example**:
+
+```yaml
+dependencies:
+  story: story-1.2.3
+  
+  external_apis:
+    - name: "Stripe API"
+      purpose: "Payment processing"
+      complexity: MEDIUM
+      docs: "https://stripe.com/docs/api"
+  
+  libraries:
+    - name: "@stripe/stripe-js"
+      version: "^2.0.0"
+      reason: "Official Stripe SDK"
+  
+  blockers:
+    - "Need Stripe account and API keys"
+    - "PCI compliance review required"
+```
+
+## Advanced Elicitation
+
+```bash
+*elicit
+
+# Interactive session with elicit=true
+# Atlas will:
+# - Ask probing questions to uncover needs
+# - Use techniques: Laddering, Critical Incident, Contextual Inquiry
+# - Document tacit knowledge
+# - Synthesize insights
+```
+
+**Elicitation techniques**:
+
+- **Laddering**: Ask "why" to understand motivations
+- **Critical Incident**: Explore specific events
+- **Contextual Inquiry**: Understand user environment
+- **Card Sorting**: Organize information architecture
+
+## Core Principles
+
+<CardGroup cols={2}>
+  <Card title="Curiosity-Driven" icon="compass">
+    Ask probing "why" questions to uncover underlying truths
+  </Card>
+  
+  <Card title="Evidence-Based" icon="chart-line">
+    Ground findings in verifiable data and credible sources
+  </Card>
+  
+  <Card title="Strategic Context" icon="chess">
+    Frame all work within broader strategic context
+  </Card>
+  
+  <Card title="Action-Oriented" icon="bullseye">
+    Produce clear, actionable deliverables
+  </Card>
+</CardGroup>
+
+## Collaboration
+
+### Provides Research To
+
+- **@pm (Morgan)**: Market research and insights for PRD creation
+- **@po (Pax)**: Competitive analysis and user research
+- **@architect (Aria)**: Technical research for architecture decisions
+
+### Works With
+
+- **@sm (River)**: Story research and dependency analysis
+
+## Research Tools Integration
+
+### Exa Search
+
+**Uses**: Advanced web research for market data
+
+```bash
+# Atlas uses Exa to:
+# - Find industry reports and whitepapers
+# - Research competitor information
+# - Gather market trends data
+# - Identify authoritative sources
+```
+
+### Google Workspace
+
+**Uses**: Documentation in Google Drive, Docs, Sheets
+
+```bash
+# Atlas can:
+# - Store research reports in Drive
+# - Create collaborative research documents
+# - Build data tables in Sheets
+```
+
+### Context7
+
+**Uses**: Library and API documentation research
+
+```bash
+# When researching technical dependencies:
+# - Look up library documentation
+# - Find API specifications
+# - Understand integration patterns
+```
+
+## Memory Layer Integration
+
+### Pattern Extraction
+
+```bash
+*extract-patterns
+
+# Atlas will:
+# 1. Scan codebase for recurring patterns
+# 2. Document architectural patterns
+# 3. Identify common coding conventions
+# 4. Generate pattern catalog
+```
+
+**Output**: `.aiox/memory/patterns.yaml`
+
+```yaml
+patterns:
+  - id: "repository-pattern"
+    description: "Data access layer abstraction"
+    files:
+      - "api/src/repositories/user-repository.js"
+      - "api/src/repositories/post-repository.js"
+    usage_count: 12
+  
+  - id: "async-middleware"
+    description: "Async error handling in Express"
+    files:
+      - "api/src/middleware/async-handler.js"
+    usage_count: 34
+```
+
+## Troubleshooting
+
+<AccordionGroup>
+  <Accordion title="Research taking too long" icon="clock">
+    **Issue**: Exa search or research tasks timing out
+    
+    **Solutions**:
+    1. Break research into smaller topics
+    2. Use more specific search queries
+    3. Set time limits per research area
+  </Accordion>
+  
+  <Accordion title="Brainstorming not productive" icon="lightbulb">
+    **Issue**: Session not generating useful ideas
+    
+    **Solutions**:
+    1. Try different brainstorming technique
+    2. Be more specific with topic framing
+    3. Use divergent thinking first, convergent later
+    4. Ensure psychological safety (no idea judging)
+  </Accordion>
+  
+  <Accordion title="Research sources not credible" icon="shield-check">
+    **Issue**: Concerns about data reliability
+    
+    **Solutions**:
+    1. Verify sources are authoritative (gov, edu, industry leaders)
+    2. Cross-reference multiple sources
+    3. Check publication dates for currency
+    4. Document source credibility in report
+  </Accordion>
+</AccordionGroup>
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Create PRD" icon="file-lines" href="/agents/pm">
+    Use Morgan to create product requirements from research
+  </Card>
+  
+  <Card title="Architecture Design" icon="building" href="/agents/architect">
+    Hand off technical research to Aria for architecture
+  </Card>
+  
+  <Card title="Story Creation" icon="book" href="/agents/sm">
+    Provide insights to River for story drafting
+  </Card>
+  
+  <Card title="Data Engineering" icon="database" href="/agents/data-engineer">
+    Research database options with Dara
+  </Card>
+</CardGroup>
+
+## Learn More
+
+- [Market Research Best Practices](/workflows/market-research)
+- [Brainstorming Techniques Guide](/workflows/brainstorming)
+- [Elicitation Methods](/workflows/elicitation)
+- [Research Tools](/tools/research-tools)

@@ -1,0 +1,586 @@
+---
+title: Quality Gates
+description: Three-layer quality gate system with automated checks, PR automation, and human review orchestration
+---
+
+# Quality Gates
+
+Synkra AIOX implements a comprehensive 3-layer quality gate pipeline that ensures code quality through automated checks, AI-powered review, and strategic human oversight.
+
+## Architecture
+
+The quality gate system consists of three sequential layers with fail-fast behavior:
+
+```
+quality-gates/
+├── layer1-precommit.js          # Fast local checks
+├── layer2-pr-automation.js      # AI code review
+├── layer3-human-review.js       # Strategic human review
+├── human-review-orchestrator.js # Review orchestration
+├── notification-manager.js      # Review notifications
+├── quality-gate-manager.js      # Pipeline orchestrator
+└── quality-gate-config.yaml     # Configuration
+```
+
+### Pipeline Flow
+
+```
+┌───────────────────┐
+│  Layer 1: Pre-commit  │  ← Fail Fast
+│  - Lint               │
+│  - Test               │
+│  - Typecheck          │
+└──────────┬─────────┘
+           │
+           │ Pass
+           │
+┌──────────┴─────────┐
+│  Layer 2: PR Auto     │  ← Block on Critical
+│  - CodeRabbit         │
+│  - Quinn AI           │
+└──────────┬─────────┘
+           │
+           │ Pass
+           │
+┌──────────┴─────────┐
+│  Layer 3: Human       │
+│  - Strategic Review   │
+│  - Focus Areas        │
+│  - Sign-off           │
+└────────────────────┘
+```
+
+## Basic Usage
+
+### Running the Quality Gate Pipeline
+
+```javascript .aiox-core/core/quality-gates/quality-gate-manager.js
+const { QualityGateManager } = require('./.aiox-core/core/quality-gates/quality-gate-manager');
+
+// Load manager with config
+const manager = await QualityGateManager.load('.aiox-core/core/quality-gates/quality-gate-config.yaml');
+
+// Run full pipeline
+const result = await manager.orchestrate({
+  verbose: true,
+  storyId: 'PROJ-123',
+});
+
+if (result.pass) {
+  console.log('✅ All quality gates passed');
+} else {
+  console.error(`❌ Failed at ${result.stoppedAt}`);
+  console.error(result.message);
+  process.exit(result.exitCode);
+}
+
+// Save results
+await manager.saveStatus();
+const reportPath = await manager.saveReport('PROJ-123');
+console.log(`Report saved: ${reportPath}`);
+```
+
+### Running Individual Layers
+
+```javascript
+// Run only Layer 1 (pre-commit)
+const layer1Result = await manager.runLayer1({
+  verbose: true,
+});
+
+// Run only Layer 2 (PR automation)
+const layer2Result = await manager.runLayer2({
+  verbose: true,
+  prNumber: 42,
+});
+
+// Run only Layer 3 (human review)
+const layer3Result = await manager.runLayer3({
+  verbose: true,
+  reviewer: '@architect',
+});
+
+// Run specific layer by number
+const result = await manager.runLayer(2, context);
+```
+
+## Layer 1: Pre-commit Checks
+
+Fast, local checks that fail-fast on errors.
+
+### Configuration
+
+```yaml quality-gate-config.yaml
+layer1:
+  enabled: true
+  failFast: true
+  checks:
+    lint:
+      enabled: true
+      command: "npm run lint"
+      failOn: "error"  # error | warning
+      timeout: 60000   # 1 minute
+    test:
+      enabled: true
+      command: "npm test"
+      timeout: 300000  # 5 minutes
+      coverage:
+        enabled: true
+        minimum: 80
+    typecheck:
+      enabled: true
+      command: "npm run typecheck"
+      timeout: 120000  # 2 minutes
+```
+
+### Execution
+
+```javascript .aiox-core/core/quality-gates/layer1-precommit.js
+const { Layer1PreCommit } = require('./.aiox-core/core/quality-gates/layer1-precommit');
+
+const layer1 = new Layer1PreCommit({
+  failFast: true,
+  checks: {
+    lint: { enabled: true, command: 'npm run lint' },
+    test: { enabled: true, command: 'npm test' },
+    typecheck: { enabled: true, command: 'npm run typecheck' },
+  },
+});
+
+const result = await layer1.execute({ verbose: true });
+
+console.log(`Layer 1: ${result.pass ? 'PASSED' : 'FAILED'}`);
+result.results.forEach((check) => {
+  console.log(`  ${check.check}: ${check.message}`);
+  if (check.issues) {
+    console.log(`    Errors: ${check.issues.errors}`);
+    console.log(`    Warnings: ${check.issues.warnings}`);
+  }
+});
+```
+
+### Result Structure
+
+```typescript
+interface Layer1Result {
+  pass: boolean;
+  layer: "Layer 1";
+  duration: number;
+  results: Array<{
+    check: "lint" | "test" | "typecheck";
+    pass: boolean;
+    message: string;
+    duration: number;
+    issues?: {
+      errors: number;
+      warnings: number;
+      critical?: number;
+    };
+    coverage?: {
+      lines: number;
+      branches: number;
+      functions: number;
+      statements: number;
+    };
+  }>;
+}
+```
+
+## Layer 2: PR Automation
+
+AI-powered code review with blocking, warning, and documentation levels.
+
+### Configuration
+
+```yaml quality-gate-config.yaml
+layer2:
+  enabled: true
+  coderabbit:
+    enabled: true
+    command: "wsl bash -c 'cd ${PROJECT_ROOT} && ~/.local/bin/coderabbit --prompt-only -t uncommitted'"
+    timeout: 900000  # 15 minutes
+    blockOn:
+      - CRITICAL
+    warnOn:
+      - HIGH
+    documentOn:
+      - MEDIUM
+    ignoreOn:
+      - LOW
+  quinn:
+    enabled: true
+    autoReview: true
+    agentPath: ".claude/commands/AIOX/agents/qa.md"
+    severity:
+      block: ["CRITICAL"]
+      warn: ["HIGH", "MEDIUM"]
+```
+
+### Execution
+
+```javascript .aiox-core/core/quality-gates/layer2-pr-automation.js
+const { Layer2PRAutomation } = require('./.aiox-core/core/quality-gates/layer2-pr-automation');
+
+const layer2 = new Layer2PRAutomation({
+  coderabbit: {
+    enabled: true,
+    command: 'coderabbit --prompt-only -t uncommitted',
+    blockOn: ['CRITICAL'],
+    warnOn: ['HIGH'],
+  },
+  quinn: {
+    enabled: true,
+    autoReview: true,
+  },
+});
+
+const result = await layer2.execute({
+  verbose: true,
+  prNumber: 42,
+});
+
+console.log(`Layer 2: ${result.pass ? 'PASSED' : 'BLOCKED'}`);
+result.results.forEach((check) => {
+  console.log(`  ${check.check}:`);
+  console.log(`    Blocking: ${check.issues.blocking}`);
+  console.log(`    Warnings: ${check.issues.warnings}`);
+  console.log(`    Documentation: ${check.issues.documentation}`);
+});
+```
+
+### Severity Levels
+
+| Severity | Action | Description |
+|----------|--------|-------------|
+| `CRITICAL` | Block | Must be fixed before merge |
+| `HIGH` | Warn | Should be addressed |
+| `MEDIUM` | Document | Document for future |
+| `LOW` | Ignore | Informational only |
+
+## Layer 3: Human Review
+
+Strategic human review with focus areas and sign-off.
+
+### Configuration
+
+```yaml quality-gate-config.yaml
+layer3:
+  enabled: true
+  requireSignoff: true
+  assignmentStrategy: "auto"  # auto | manual | round-robin
+  defaultReviewer: "@architect"
+  checklist:
+    enabled: true
+    template: "strategic-review-checklist"
+    minItems: 5
+  signoff:
+    required: true
+    expiry: 86400000  # 24 hours
+```
+
+### Execution
+
+```javascript .aiox-core/core/quality-gates/layer3-human-review.js
+const { Layer3HumanReview } = require('./.aiox-core/core/quality-gates/layer3-human-review');
+
+const layer3 = new Layer3HumanReview({
+  requireSignoff: true,
+  defaultReviewer: '@architect',
+  checklist: {
+    enabled: true,
+    template: 'strategic-review-checklist',
+  },
+});
+
+const result = await layer3.execute({
+  verbose: true,
+  previousLayers: [layer1Result, layer2Result],
+  reviewer: '@architect',
+});
+
+console.log(`Layer 3: ${result.pass ? 'PASSED' : 'PENDING'}`);
+result.results.forEach((check) => {
+  console.log(`  ${check.check}: ${check.message}`);
+  if (check.check === 'signoff') {
+    console.log(`    Signed off: ${check.signedOff}`);
+    console.log(`    Reviewer: ${check.reviewer}`);
+  }
+});
+```
+
+## Human Review Orchestration
+
+Intelligent orchestration of the human review process.
+
+### Focus Area Recommendation
+
+```javascript .aiox-core/core/quality-gates/human-review-orchestrator.js
+const { HumanReviewOrchestrator } = require('./.aiox-core/core/quality-gates/human-review-orchestrator');
+
+const orchestrator = new HumanReviewOrchestrator({
+  focusAreaRules: {
+    highComplexity: { priority: 'high', threshold: 10 },
+    newPatterns: { priority: 'high', threshold: 5 },
+    securitySensitive: { priority: 'critical', keywords: ['auth', 'crypto', 'password'] },
+  },
+});
+
+// Orchestrate full review
+const result = await orchestrator.orchestrateReview(
+  {
+    storyId: 'PROJ-123',
+    changedFiles: ['src/auth.js', 'src/crypto.js'],
+    verbose: true,
+  },
+  layer1Result,
+  layer2Result
+);
+
+console.log(`Reviewer: ${result.reviewRequest.reviewer}`);
+console.log(`Estimated time: ${result.reviewRequest.estimatedTime} minutes`);
+
+console.log('\nFocus Areas:');
+result.reviewRequest.focusAreas.primary.forEach((area) => {
+  console.log(`  • ${area.area}: ${area.reason}`);
+});
+
+console.log('\nSkip Areas:');
+result.reviewRequest.skipAreas.forEach((area) => {
+  console.log(`  • ${area}`);
+});
+```
+
+### Focus Area Types
+
+```typescript
+interface FocusArea {
+  area: string;
+  priority: "critical" | "high" | "medium" | "low";
+  reason: string;
+  files?: string[];
+  lineNumbers?: number[];
+}
+
+interface ReviewRequest {
+  id: string;
+  storyId: string;
+  reviewer: string;
+  estimatedTime: number; // minutes
+  focusAreas: {
+    primary: FocusArea[];
+    secondary: FocusArea[];
+  };
+  skipAreas: string[];
+  checklist: ChecklistItem[];
+  deadline: string; // ISO timestamp
+}
+```
+
+### Blocking on Failures
+
+```javascript
+// Block on Layer 1 failure
+const blockResult = orchestrator.block(
+  { pass: false, layer: 'Layer 1', issues: [...] },
+  'layer1',
+  startTime
+);
+
+console.log(`Blocked: ${blockResult.reason}`);
+console.log('Fix these first:');
+blockResult.fixFirst.forEach((fix) => {
+  console.log(`  → ${fix.suggestion}`);
+});
+```
+
+### Completing Reviews
+
+```javascript
+// Complete a review
+const completedReview = await orchestrator.completeReview(
+  requestId,
+  {
+    approved: true,
+    comments: [
+      { area: 'architecture', comment: 'Looks good', approved: true },
+      { area: 'security', comment: 'Add input validation', approved: false },
+    ],
+    signedOff: true,
+    reviewer: '@architect',
+  }
+);
+
+console.log(`Review completed: ${completedReview.status}`);
+```
+
+## Notification System
+
+Automatic notifications for review requests and completions.
+
+### Configuration
+
+```javascript .aiox-core/core/quality-gates/notification-manager.js
+const { NotificationManager } = require('./.aiox-core/core/quality-gates/notification-manager');
+
+const notifications = new NotificationManager({
+  channels: {
+    slack: {
+      enabled: true,
+      webhookUrl: process.env.SLACK_WEBHOOK,
+    },
+    email: {
+      enabled: true,
+      recipients: ['team@example.com'],
+    },
+    github: {
+      enabled: true,
+      token: process.env.GITHUB_TOKEN,
+    },
+  },
+});
+
+// Send review request notification
+await notifications.sendReviewRequest(reviewRequest);
+
+// Send blocking notification
+await notifications.sendBlockingNotification(blockResult);
+
+// Send completion notification
+await notifications.sendCompletionNotification(completedReview);
+```
+
+## Custom Quality Gates
+
+Create custom quality gate checks:
+
+```javascript
+const { BaseLayer } = require('./.aiox-core/core/quality-gates/base-layer');
+
+class CustomSecurityCheck extends BaseLayer {
+  async execute(context) {
+    const startTime = Date.now();
+    const results = [];
+
+    // Run custom security scan
+    const vulnerabilities = await this.scanForVulnerabilities();
+    
+    results.push({
+      check: 'security-scan',
+      pass: vulnerabilities.length === 0,
+      message: `Found ${vulnerabilities.length} vulnerabilities`,
+      duration: Date.now() - startTime,
+      issues: {
+        critical: vulnerabilities.filter((v) => v.severity === 'critical').length,
+        high: vulnerabilities.filter((v) => v.severity === 'high').length,
+      },
+    });
+
+    return {
+      pass: vulnerabilities.length === 0,
+      layer: 'Custom Security',
+      duration: Date.now() - startTime,
+      results,
+    };
+  }
+
+  async scanForVulnerabilities() {
+    // Custom security scanning logic
+    return [];
+  }
+}
+
+// Use custom gate
+const customGate = new CustomSecurityCheck();
+const result = await customGate.execute({ verbose: true });
+```
+
+## Complete Pipeline Example
+
+```javascript
+const { QualityGateManager } = require('./.aiox-core/core/quality-gates/quality-gate-manager');
+
+async function runQualityPipeline(storyId) {
+  const manager = await QualityGateManager.load();
+
+  console.log('🔍 Starting Quality Gate Pipeline');
+  console.log(`Story: ${storyId}`);
+  console.log('='.repeat(50));
+
+  // Run full pipeline with human review orchestration
+  const result = await manager.orchestrateHumanReview({
+    storyId,
+    verbose: true,
+    changedFiles: getChangedFiles(),
+  });
+
+  // Save status and report
+  await manager.saveStatus();
+  const reportPath = await manager.saveReport(storyId);
+
+  console.log('\n' + '='.repeat(50));
+  console.log(`Status: ${result.status}`);
+  console.log(`Duration: ${manager.formatDuration(result.duration)}`);
+  console.log(`Report: ${reportPath}`);
+
+  if (result.reviewRequest) {
+    console.log(`\n👤 Review assigned to: ${result.reviewRequest.reviewer}`);
+    console.log(`⏱️  Estimated time: ${result.reviewRequest.estimatedTime} min`);
+  }
+
+  return result;
+}
+
+// Run it
+runQualityPipeline('PROJ-123')
+  .then((result) => {
+    process.exit(result.exitCode);
+  })
+  .catch((error) => {
+    console.error('Pipeline error:', error);
+    process.exit(1);
+  });
+```
+
+## CLI Integration
+
+Run quality gates from the command line:
+
+```bash
+# Run full pipeline
+aiox qa run --story PROJ-123 --verbose
+
+# Run specific layer
+aiox qa run --layer 1
+aiox qa run --layer 2
+aiox qa run --layer 3
+
+# Get status
+aiox qa status
+
+# View reports
+aiox qa reports --story PROJ-123
+
+# Complete human review
+aiox qa review complete --request-id abc123 --approved
+```
+
+## Performance Metrics
+
+- **Layer 1**: 30s - 5 min (depends on test suite)
+- **Layer 2**: 2 - 15 min (AI code review)
+- **Layer 3**: 10 - 60 min (human review)
+- **Total Pipeline**: 15 - 80 min (with parallelization)
+
+## Best Practices
+
+1. **Fail Fast**: Layer 1 catches most issues quickly
+2. **Focus Human Time**: AI reviews handle routine issues
+3. **Strategic Review**: Humans review high-risk areas only
+4. **Parallel Execution**: Run independent checks in parallel
+5. **Skip Redundancy**: Don't review what AI already verified
+
+## Next Steps
+
+- [MCP Integration →](/advanced/mcp-integration)
+- [CI/CD Integration →](/deployment/cicd)
+- [Custom Quality Gates →](/customization/quality-gates)

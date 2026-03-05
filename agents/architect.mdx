@@ -1,0 +1,597 @@
+---
+title: "Aria - Architect Agent"
+description: "Holistic System Architect & Full-Stack Technical Leader"
+icon: "building"
+---
+
+# 🏛️ Aria - System Architect
+
+**Role**: Holistic System Architect & Full-Stack Technical Leader  
+**Archetype**: Visionary ♐ Sagittarius  
+**Persona**: Comprehensive, pragmatic, user-centric, technically deep yet accessible
+
+## When to Use Aria
+
+Activate `@architect` for:
+
+- 🏛️ Complete system architecture (fullstack, backend, frontend, infrastructure)
+- 🛠️ Technology stack selection and evaluation
+- 🔌 API design (REST/GraphQL/tRPC/WebSocket)
+- 🔒 Security architecture (authentication, authorization, encryption)
+- ⚡ Performance optimization across all layers
+- 🚀 Deployment strategy and infrastructure planning
+
+**NOT for**: Database schema design (delegate to `@data-engineer`), Market research (use `@analyst`), PRD creation (use `@pm`)
+
+## Activation
+
+<CodeGroup>
+```bash Cursor IDE
+@architect
+```
+
+```bash Claude Desktop
+/architect
+```
+
+```bash Codex CLI
+@architect *create-full-stack-architecture
+```
+</CodeGroup>
+
+## Core Commands
+
+<AccordionGroup>
+  <Accordion title="Architecture Design" icon="drafting-compass">
+    ```bash
+    *create-full-stack-architecture    # Complete system design
+    *create-backend-architecture       # Backend-specific architecture
+    *create-front-end-architecture     # Frontend-specific architecture
+    *create-brownfield-architecture    # Existing project architecture
+    ```
+  </Accordion>
+
+  <Accordion title="Documentation & Analysis" icon="file-lines">
+    ```bash
+    *document-project                  # Generate project documentation
+    *analyze-project-structure         # Analyze for new features (WIS-15)
+    *research {topic}                  # Generate deep research prompt
+    ```
+  </Accordion>
+
+  <Accordion title="Spec Pipeline (ADE)" icon="diagram-project">
+    ```bash
+    *assess-complexity                 # Story complexity assessment
+    *create-plan                       # Implementation plan with phases
+    *create-context                    # Project context for story
+    ```
+  </Accordion>
+
+  <Accordion title="Memory Layer (ADE)" icon="brain">
+    ```bash
+    *map-codebase                      # Generate codebase map
+    ```
+  </Accordion>
+
+  <Accordion title="Validation" icon="circle-check">
+    ```bash
+    *validate-tech-preset {name}       # Validate tech preset structure
+    *validate-tech-preset-all          # Validate all presets
+    ```
+  </Accordion>
+</AccordionGroup>
+
+## Architecture Design Workflow
+
+### Full-Stack Architecture
+
+```bash
+# 1. Activate Aria
+@architect
+
+# 2. Create complete system architecture
+*create-full-stack-architecture
+
+# Aria will:
+# - Analyze requirements from PRD
+# - Select technology stack
+# - Design API layer
+# - Plan frontend architecture
+# - Design backend services
+# - Plan infrastructure
+# - Document security approach
+# - Create deployment strategy
+```
+
+### Architecture Components
+
+<Tabs>
+  <Tab title="Technology Stack">
+    **Covers**:
+    - Frontend framework (React, Vue, Svelte)
+    - Backend framework (Express, Fastify, tRPC)
+    - Database selection (PostgreSQL, MongoDB, etc.)
+    - State management (Zustand, Redux, Jotai)
+    - Styling approach (Tailwind, CSS-in-JS)
+    - Build tools (Vite, Webpack, Turbopack)
+    
+    **Selection criteria**:
+    - Team experience
+    - Project requirements
+    - Performance needs
+    - Ecosystem maturity
+    - "Boring technology" where possible
+  </Tab>
+  
+  <Tab title="API Design">
+    **Defines**:
+    - API style (REST, GraphQL, tRPC, hybrid)
+    - Authentication (JWT, sessions, OAuth)
+    - Authorization patterns
+    - Rate limiting strategy
+    - Error handling conventions
+    - Pagination approach
+    - Versioning strategy
+    
+    **Patterns**:
+    - RESTful resource design
+    - GraphQL schema stitching
+    - tRPC procedure organization
+    - WebSocket event patterns
+  </Tab>
+  
+  <Tab title="Security Architecture">
+    **Layers**:
+    1. **Authentication**: JWT, sessions, OAuth providers
+    2. **Authorization**: RBAC, ABAC, RLS policies
+    3. **Encryption**: TLS, at-rest encryption
+    4. **Input Validation**: Schema validation, sanitization
+    5. **Rate Limiting**: Per-user, per-IP
+    6. **CORS**: Cross-origin policies
+    7. **CSP**: Content Security Policy
+    8. **Secrets**: Environment variables, vaults
+  </Tab>
+  
+  <Tab title="Infrastructure">
+    **Plans**:
+    - Hosting platform (Vercel, Railway, AWS)
+    - CDN strategy (Cloudflare, Fastly)
+    - Database hosting (Supabase, PlanetScale)
+    - Caching layer (Redis, Memcached)
+    - Monitoring (Sentry, Datadog)
+    - Logging (Logtail, CloudWatch)
+    - CI/CD pipeline (GitHub Actions)
+    - Scaling approach (horizontal, vertical)
+  </Tab>
+</Tabs>
+
+## Responsibility Boundaries
+
+### Primary Scope
+
+<Info>
+Aria owns **application-level architecture**:
+
+- System design and component boundaries
+- Technology stack selection
+- API design and integration patterns
+- Frontend and backend architecture
+- Cross-cutting concerns (logging, monitoring, error handling)
+- Infrastructure planning
+</Info>
+
+### Delegation to Data Engineer
+
+<Warning>
+**Delegate to @data-engineer** for:
+
+- ❌ Database schema design (tables, relationships, indexes)
+- ❌ Query optimization and performance tuning
+- ❌ ETL pipeline design
+- ❌ Data modeling (normalization, denormalization)
+- ❌ Database-specific optimizations (RLS, triggers, views)
+
+**Aria retains**:
+- ✅ Database technology selection (PostgreSQL vs MongoDB)
+- ✅ Data access patterns at application level
+- ✅ Caching strategy
+- ✅ Integration of data layer with application
+</Warning>
+
+**Collaboration pattern**:
+
+```bash
+# User asks: "Which database should I use?"
+@architect  # Aria answers from system perspective
+
+# User asks: "Design the user schema"
+# Aria responds: "I'll involve @data-engineer for schema design."
+@data-engineer *create-schema
+```
+
+### Delegation to DevOps
+
+<Warning>
+**Delegate to @devops** for:
+
+- ❌ Git push to remote
+- ❌ Pull request creation
+- ❌ CI/CD pipeline configuration
+- ❌ Release management
+
+**Aria retains**:
+- ✅ Git workflow design (branching strategy)
+- ✅ Repository structure recommendations
+- ✅ Development environment setup
+</Warning>
+
+## CodeRabbit Architectural Review
+
+**Focus**: Architectural patterns, security, anti-patterns, cross-stack consistency
+
+```bash
+# Review architectural changes
+wsl bash -c 'cd ${PROJECT_ROOT} && ~/.local/bin/coderabbit --prompt-only -t uncommitted'
+```
+
+**Severity handling**:
+
+<Tabs>
+  <Tab title="CRITICAL">
+    **Action**: Block architecture approval
+    
+    **Focus**:
+    - Security vulnerabilities
+    - Data integrity risks
+    - Critical anti-patterns
+    
+    **Examples**:
+    - Hardcoded credentials
+    - SQL injection vulnerabilities
+    - Insecure authentication patterns
+    - Data exposure risks
+  </Tab>
+  
+  <Tab title="HIGH">
+    **Action**: Flag for immediate architectural discussion
+    
+    **Focus**:
+    - Performance bottlenecks
+    - Scalability issues
+    - Major anti-patterns
+    
+    **Examples**:
+    - N+1 query patterns
+    - Missing indexes on critical queries
+    - Memory leaks
+    - Unoptimized API calls
+    - Tight coupling between layers
+  </Tab>
+  
+  <Tab title="MEDIUM">
+    **Action**: Document as technical debt
+    
+    **Focus**:
+    - Code maintainability
+    - Design patterns
+    - Developer experience
+    
+    **Examples**:
+    - Inconsistent API patterns
+    - Missing error handling
+    - Poor separation of concerns
+  </Tab>
+</Tabs>
+
+**Architectural patterns checked**:
+- API consistency (REST conventions, error handling)
+- Authentication/Authorization patterns
+- Data access patterns (repository, query optimization)
+- Error handling consistency
+- Security layers (validation, sanitization, rate limiting)
+- Performance patterns (caching, lazy loading, code splitting)
+- Integration patterns (events, messaging, webhooks)
+
+## Project Structure Analysis
+
+### WIS-15: New Feature Analysis
+
+```bash
+*analyze-project-structure
+```
+
+**Analyzes**:
+1. **Codebase structure**: Folders, modules, organization
+2. **Existing patterns**: API routes, services, components
+3. **Dependencies**: Libraries, frameworks, tools
+4. **Architecture style**: Monolith, microservices, modular
+5. **Integration points**: APIs, databases, external services
+6. **Testing setup**: Test frameworks, coverage
+
+**Output**: Detailed report for implementing new features
+
+```markdown
+# Project Structure Analysis
+
+## Architecture Style
+Monolithic Node.js application with React frontend
+
+## Key Patterns
+- API: RESTful with Express.js
+- Data: Repository pattern with Supabase
+- Frontend: Component-based with Zustand state
+
+## Integration Points
+- Supabase (PostgreSQL + Auth + Storage)
+- Stripe (Payments)
+- SendGrid (Email)
+
+## Recommendations for New Feature
+1. Follow existing repository pattern
+2. Add API route in `api/src/routes/`
+3. Create Zustand store in `app/stores/`
+4. Add tests in `tests/integration/`
+```
+
+## Codebase Mapping (Memory Layer)
+
+```bash
+*map-codebase
+```
+
+**Generates**:
+
+```yaml
+# .aiox/memory/codebase-map.yaml
+structure:
+  api:
+    routes:
+      - users.js
+      - posts.js
+      - auth.js
+    services:
+      - user-service.js
+      - email-service.js
+    repositories:
+      - user-repository.js
+  
+  app:
+    components:
+      - Button.tsx
+      - Card.tsx
+    pages:
+      - Dashboard.tsx
+      - Profile.tsx
+    stores:
+      - user-store.ts
+
+patterns:
+  api_pattern: "Express REST with middleware"
+  data_pattern: "Repository with Supabase client"
+  state_pattern: "Zustand stores with immer"
+  
+conventions:
+  naming: "kebab-case for files, PascalCase for components"
+  imports: "Absolute imports with @ alias"
+  testing: "Jest + React Testing Library"
+```
+
+**Uses**:
+- New feature implementation guidance
+- Onboarding new developers
+- Consistency enforcement
+- Refactoring planning
+
+## Spec Pipeline Integration
+
+### Complexity Assessment
+
+```bash
+*assess-complexity story-1.2.3
+```
+
+**Evaluates**:
+- Technical complexity (algorithms, integrations)
+- Scope (number of files, components)
+- Risk level (breaking changes, migrations)
+- Dependencies (external APIs, new libraries)
+- Testing needs (unit, integration, E2E)
+
+**Output**:
+
+```yaml
+complexity:
+  story: story-1.2.3
+  overall: MEDIUM
+  
+  factors:
+    technical: HIGH  # New OAuth integration
+    scope: LOW       # 3 files changed
+    risk: MEDIUM     # Auth changes
+    dependencies: HIGH  # New library: passport.js
+  
+  estimate:
+    hours: 8-12
+    confidence: MEDIUM
+  
+  recommendations:
+    - "Break into 2 stories: OAuth setup + UI integration"
+    - "Allocate time for passport.js learning"
+    - "Plan comprehensive E2E tests for auth flows"
+```
+
+### Implementation Planning
+
+```bash
+*create-plan story-1.2.3
+```
+
+**Generates**: `implementation.yaml`
+
+```yaml
+story: story-1.2.3
+phases:
+  - id: 1
+    name: "OAuth Configuration"
+    subtasks:
+      - id: 1.1
+        description: "Install passport.js and strategies"
+        files: ["package.json"]
+        dependencies: []
+      
+      - id: 1.2
+        description: "Configure OAuth providers"
+        files: ["api/src/config/oauth.js"]
+        dependencies: [1.1]
+  
+  - id: 2
+    name: "API Integration"
+    subtasks:
+      - id: 2.1
+        description: "Create OAuth routes"
+        files: ["api/src/routes/oauth.js"]
+        dependencies: [1.2]
+```
+
+### Context Generation
+
+```bash
+*create-context story-1.2.3
+```
+
+**Generates**: Story context for Coder Agent
+
+```yaml
+project_context:
+  architecture: "Monolithic Node.js + React"
+  patterns:
+    - "Repository pattern for data access"
+    - "Middleware for authentication"
+  conventions:
+    - "Use async/await, no callbacks"
+    - "Absolute imports with @ alias"
+
+files_context:
+  relevant_files:
+    - path: "api/src/config/auth.js"
+      purpose: "Existing auth configuration"
+    - path: "api/src/middleware/auth.js"
+      purpose: "Auth middleware to extend"
+
+story_context:
+  acceptance_criteria: [...]
+  technical_notes: [...]
+```
+
+## Technology Preset Validation
+
+```bash
+# Validate single preset
+*validate-tech-preset nextjs-supabase
+
+# Validate all presets
+*validate-tech-preset-all
+```
+
+**Checks**:
+- Preset structure validity
+- Package version compatibility
+- Configuration correctness
+- Template completeness
+
+**With --fix flag**:
+```bash
+*validate-tech-preset nextjs-supabase --fix
+
+# Aria will:
+# 1. Detect issues
+# 2. Create story to fix them
+# 3. Assign to @dev for implementation
+```
+
+## Collaboration
+
+### Receives Work From
+
+- **@pm (Morgan)**: PRD with system requirements
+
+### Delegates To
+
+- **@data-engineer (Dara)**: Database schema design
+- **@ux-design-expert (Uma)**: Frontend architecture collaboration
+- **@devops (Gage)**: Git push and PR operations
+
+### Works With
+
+- **@dev (Dex)**: Architecture clarification during implementation
+
+## Architecture Templates
+
+Aria uses these templates:
+
+```yaml
+Templates:
+  - architecture-tmpl.yaml           # Base architecture
+  - fullstack-architecture-tmpl.yaml # Complete system
+  - front-end-architecture-tmpl.yaml # Frontend-specific
+  - brownfield-architecture-tmpl.yaml # Existing projects
+```
+
+## Troubleshooting
+
+<AccordionGroup>
+  <Accordion title="Architecture too complex" icon="circle-exclamation">
+    **Signs**:
+    - Too many layers
+    - Over-engineering for current needs
+    - Complex patterns for simple use cases
+    
+    **Solution**:
+    1. Apply "boring technology" principle
+    2. Start simple, add complexity as needed
+    3. Focus on current requirements, not future-proofing
+  </Accordion>
+  
+  <Accordion title="Database vs Architecture decision" icon="question">
+    **Rule of thumb**:
+    - **Aria**: "Should we use PostgreSQL or MongoDB?" (System-level)
+    - **Dara**: "Design the users table schema" (Implementation-level)
+    
+    **When unsure**: Start with Aria, who will delegate if needed.
+  </Accordion>
+  
+  <Accordion title="CodeRabbit architectural review taking long" icon="clock">
+    **Normal**: Architectural reviews can take 10-20 minutes
+    
+    **Timeout**: 15 minutes (configurable)
+    
+    **If timeout**: Review continues server-side, check back later
+  </Accordion>
+</AccordionGroup>
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Database Design" icon="database" href="/agents/data-engineer">
+    Delegate schema design to Dara
+  </Card>
+  
+  <Card title="UX Design" icon="palette" href="/agents/ux-design-expert">
+    Collaborate on frontend with Uma
+  </Card>
+  
+  <Card title="Implementation" icon="code" href="/agents/dev">
+    Hand off to Dex for coding
+  </Card>
+  
+  <Card title="DevOps" icon="rocket" href="/agents/devops">
+    Push changes with Gage
+  </Card>
+</CardGroup>
+
+## Learn More
+
+- [System Architecture](/architecture/system-design)
+- [Technology Stack Selection](/architecture/tech-stack)
+- [API Design Patterns](/architecture/api-design)
+- [Security Architecture](/architecture/security)

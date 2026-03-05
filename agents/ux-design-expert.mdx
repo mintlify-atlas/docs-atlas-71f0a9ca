@@ -1,0 +1,693 @@
+---
+title: "Uma - UX Design Expert Agent"
+description: "UX/UI Designer & Design System Architect combining user empathy with systematic design"
+icon: "palette"
+---
+
+# 🎨 Uma - UX/UI Designer & Design System Architect
+
+**Role**: UX/UI Designer & Design System Architect  
+**Archetype**: Empathizer ♋ Cancer  
+**Persona**: Empathetic yet data-driven, creative yet systematic, user-obsessed yet metric-focused
+
+## When to Use Uma
+
+Activate `@ux-design-expert` for:
+
+- 🔍 User research and needs analysis
+- 📐 Wireframing and interaction flows
+- 🎨 Design system audits (brownfield projects)
+- 🎯 Design token extraction and management
+- 🧩 Atomic component building (atoms → molecules → organisms)
+- ♿ Accessibility testing and WCAG compliance
+
+**NOT for**: System architecture (use `@architect`), Database design (use `@data-engineer`), Backend implementation (use `@dev`)
+
+## Activation
+
+<CodeGroup>
+```bash Cursor IDE
+@ux-design-expert
+```
+
+```bash Claude Desktop
+/ux-design-expert
+```
+
+```bash Codex CLI
+@ux-design-expert *research
+```
+</CodeGroup>
+
+## Core Commands
+
+<AccordionGroup>
+  <Accordion title="Phase 1: UX Research & Design" icon="user">
+    ```bash
+    *research                         # User research and needs analysis
+    *wireframe {fidelity}             # Create wireframes (low/mid/high)
+    *generate-ui-prompt               # Generate prompts for AI tools (v0, Lovable)
+    *create-front-end-spec            # Detailed frontend specification
+    ```
+  </Accordion>
+
+  <Accordion title="Phase 2: Design System Audit" icon="magnifying-glass">
+    ```bash
+    *audit {path}                     # Scan codebase for UI redundancies
+    *consolidate                      # Reduce redundancy via clustering
+    *shock-report                     # Visual HTML report + ROI metrics
+    ```
+  </Accordion>
+
+  <Accordion title="Phase 3: Design Tokens & Setup" icon="swatchbook">
+    ```bash
+    *tokenize                         # Extract design tokens
+    *setup                            # Initialize design system structure
+    *migrate                          # Generate phased migration strategy
+    *upgrade-tailwind                 # Plan Tailwind CSS v4 upgrades
+    *audit-tailwind-config            # Validate Tailwind config health
+    *export-dtcg                      # Generate W3C Design Tokens bundles
+    *bootstrap-shadcn                 # Install Shadcn/Radix library
+    ```
+  </Accordion>
+
+  <Accordion title="Phase 4: Atomic Component Building" icon="cubes">
+    ```bash
+    *build {component}                # Build production-ready component
+    *compose {molecule}               # Compose molecule from atoms
+    *extend {component}               # Add variant to existing component
+    ```
+  </Accordion>
+
+  <Accordion title="Phase 5: Documentation & Quality" icon="check">
+    ```bash
+    *document                         # Generate pattern library docs
+    *a11y-check                       # Run accessibility audit (WCAG AA/AAA)
+    *calculate-roi                    # Calculate ROI and cost savings
+    ```
+  </Accordion>
+
+  <Accordion title="Universal Commands" icon="globe">
+    ```bash
+    *scan {path|url}                  # Analyze HTML/React artifact
+    *integrate {squad}                # Connect with squad
+    *help                             # Show all commands by phase
+    *status                           # Show current workflow phase
+    *guide                            # Show comprehensive guide
+    *yolo                             # Toggle permission mode
+    *exit                             # Exit UX-Design Expert mode
+    ```
+  </Accordion>
+</AccordionGroup>
+
+## Hybrid Philosophy
+
+### Sally's UX Principles (Phase 1)
+
+<CardGroup cols={2}>
+  <Card title="User-Centric" icon="heart">
+    Every design decision serves real user needs
+  </Card>
+  
+  <Card title="Empathetic Discovery" icon="users">
+    Deep user research drives all decisions
+  </Card>
+  
+  <Card title="Iterative Simplicity" icon="arrows-rotate">
+    Start simple, refine based on feedback
+  </Card>
+  
+  <Card title="Delight in Details" icon="sparkles">
+    Micro-interactions create memorable experiences
+  </Card>
+</CardGroup>
+
+### Brad Frost's System Principles (Phases 2-5)
+
+<CardGroup cols={2}>
+  <Card title="Metric-Driven" icon="chart-line">
+    Numbers over opinions (47 buttons → 3 = 93.6% reduction)
+  </Card>
+  
+  <Card title="Visual Shock Therapy" icon="bolt">
+    Show the chaos with real data
+  </Card>
+  
+  <Card title="Intelligent Consolidation" icon="brain">
+    Cluster similar patterns algorithmically
+  </Card>
+  
+  <Card title="Atomic Design" icon="atom">
+    Atoms → Molecules → Organisms → Templates → Pages
+  </Card>
+</CardGroup>
+
+## Workflow: Complete UX to Build
+
+### Phase 1: UX Research & Design
+
+```bash
+# 1. Activate Uma
+@ux-design-expert
+
+# 2. Conduct user research
+*research
+
+# Uma will:
+# - Identify target users and personas
+# - Conduct interviews or surveys
+# - Analyze user needs and pain points
+# - Document behavioral patterns
+# - Create user personas
+# - Generate research report
+
+# 3. Create wireframes
+*wireframe high
+
+# Uma will:
+# - Design interaction flows
+# - Create wireframes (low/mid/high fidelity)
+# - Define user journeys
+# - Document UI patterns
+# - Prepare for handoff to dev
+```
+
+**Research outputs**:
+
+```yaml
+user_personas:
+  - name: "Sarah, Data Analyst"
+    age: 32
+    goals:
+      - "Quick access to insights"
+      - "Clean, uncluttered interface"
+    pain_points:
+      - "Too many clicks to get to data"
+      - "Overwhelming dashboards"
+    behaviors:
+      - "Uses keyboard shortcuts"
+      - "Prefers dark mode"
+```
+
+### Phase 2: Design System Audit (Brownfield)
+
+```bash
+# Audit existing codebase for UI redundancies
+*audit ./src
+
+# Uma will:
+# - Scan all components for patterns
+# - Identify button variations (e.g., 47 different buttons)
+# - Find color inconsistencies (e.g., 89 different colors)
+# - Detect spacing variations
+# - Calculate redundancy metrics
+
+# Example output:
+# 🔍 Found 47 button variations
+# 🔍 Found 89 color values
+# 🔍 Found 23 font size variations
+# 📊 Total redundancy: 176 patterns
+
+# Consolidate patterns
+*consolidate
+
+# Uma will:
+# - Use clustering algorithms
+# - Group similar patterns
+# - Reduce 47 buttons → 3 core variants
+# - Reduce 89 colors → 12 token colors
+# - Calculate reduction: 93.6%
+
+# Generate visual report
+*shock-report
+
+# Creates HTML report showing:
+# - Side-by-side before/after comparisons
+# - Redundancy metrics
+# - ROI calculations
+# - Migration roadmap
+```
+
+**Shock Report metrics**:
+
+```yaml
+reduction_metrics:
+  buttons: "47 → 3 variants (93.6% reduction)"
+  colors: "89 → 12 tokens (86.5% reduction)"
+  spacing: "31 → 8 values (74.2% reduction)"
+  
+roi_estimate:
+  dev_time_saved: "340 hours/year"
+  cost_savings: "$68,000/year"
+  maintenance_reduction: "85%"
+  roi_multiple: "34.6x"
+```
+
+### Phase 3: Design Tokens & System Setup
+
+```bash
+# Extract design tokens
+*tokenize
+
+# Uma will:
+# - Extract colors, typography, spacing from consolidated patterns
+# - Generate tokens.yaml
+# - Create CSS variables
+# - Generate Tailwind config
+# - Document token hierarchy
+
+# Setup design system structure
+*setup
+
+# Creates:
+design-system/
+├── tokens.yaml              # Design tokens source
+├── tokens/
+│   ├── colors.css          # CSS custom properties
+│   └── tailwind.config.js  # Tailwind tokens
+├── components/
+│   ├── atoms/              # Base components
+│   ├── molecules/          # Composed components
+│   └── organisms/          # Complex UI sections
+└── docs/                    # Pattern library
+```
+
+**Design tokens example**:
+
+```yaml
+colors:
+  primary:
+    50: "#f0f9ff"
+    500: "#0ea5e9"
+    900: "#0c4a6e"
+  
+  semantic:
+    success: "{colors.primary.500}"
+    error: "#ef4444"
+    warning: "#f59e0b"
+
+spacing:
+  xs: "0.25rem"   # 4px
+  sm: "0.5rem"    # 8px
+  md: "1rem"      # 16px
+  lg: "1.5rem"    # 24px
+  xl: "2rem"      # 32px
+
+typography:
+  font_family:
+    sans: "Inter, system-ui, sans-serif"
+    mono: "'Fira Code', monospace"
+  
+  font_size:
+    xs: "0.75rem"   # 12px
+    sm: "0.875rem"  # 14px
+    base: "1rem"    # 16px
+    lg: "1.125rem"  # 18px
+    xl: "1.25rem"   # 20px
+```
+
+### Phase 4: Atomic Component Building
+
+```bash
+# Build atom (base component)
+*build button
+
+# Uma will:
+# - Create component file (TypeScript + React)
+# - Define props interface
+# - Implement variants (primary, secondary, ghost)
+# - Add accessibility (ARIA labels, keyboard nav)
+# - Write unit tests
+# - Generate Storybook story
+# - Document usage
+
+# Compose molecule (combination of atoms)
+*compose form-field
+
+# Uma will:
+# - Combine atoms (Label + Input + ErrorMessage)
+# - Define molecule props
+# - Handle internal state
+# - Add validation logic
+# - Write integration tests
+# - Document composition pattern
+```
+
+**Atomic Design hierarchy**:
+
+<Tabs>
+  <Tab title="Atoms">
+    **Base components** (cannot be broken down further)
+    
+    Examples:
+    - Button
+    - Input
+    - Label
+    - Icon
+    - Badge
+    
+    **Characteristics**:
+    - Single responsibility
+    - Highly reusable
+    - Minimal props
+    - No business logic
+  </Tab>
+  
+  <Tab title="Molecules">
+    **Simple combinations** of atoms
+    
+    Examples:
+    - FormField (Label + Input + Error)
+    - SearchBox (Input + Icon + Button)
+    - Card (Image + Title + Description)
+    
+    **Characteristics**:
+    - Combines 2-4 atoms
+    - Reusable patterns
+    - Basic composition logic
+    - Minimal state
+  </Tab>
+  
+  <Tab title="Organisms">
+    **Complex UI sections** with business logic
+    
+    Examples:
+    - Header (Logo + Navigation + SearchBox)
+    - DataTable (filters + pagination + rows)
+    - UserProfile (Avatar + Info + Actions)
+    
+    **Characteristics**:
+    - Combines molecules and atoms
+    - Business logic included
+    - More specific to use case
+    - Stateful components
+  </Tab>
+  
+  <Tab title="Templates & Pages">
+    **Layout structures** and **specific instances**
+    
+    **Templates**: Page layouts without real content
+    **Pages**: Templates with actual data
+    
+    Examples:
+    - DashboardTemplate → DashboardPage
+    - ProfileTemplate → UserProfilePage
+  </Tab>
+</Tabs>
+
+### Phase 5: Documentation & Quality
+
+```bash
+# Generate pattern library documentation
+*document
+
+# Uma will:
+# - Create component catalog
+# - Document all atoms, molecules, organisms
+# - Add usage examples
+# - Include do's and don'ts
+# - Generate Storybook stories
+# - Create design system website
+
+# Run accessibility audit
+*a11y-check
+
+# Uma will:
+# - Check WCAG 2.1 compliance (AA or AAA)
+# - Test keyboard navigation
+# - Verify ARIA labels
+# - Check color contrast ratios
+# - Test screen reader compatibility
+# - Generate accessibility report
+
+# Calculate ROI
+*calculate-roi
+
+# Uma will:
+# - Calculate dev time saved
+# - Estimate maintenance reduction
+# - Compute cost savings
+# - Generate ROI report
+```
+
+**Accessibility checklist (WCAG AA)**:
+
+- ✅ Color contrast ≥ 4.5:1 for text
+- ✅ Keyboard navigation works for all interactions
+- ✅ Focus indicators visible
+- ✅ ARIA labels on interactive elements
+- ✅ Semantic HTML (headings, landmarks)
+- ✅ Alt text on images
+- ✅ Form labels associated with inputs
+- ✅ Error messages announced to screen readers
+
+## Tailwind CSS v4 Integration
+
+```bash
+# Plan and execute Tailwind v4 upgrade
+*upgrade-tailwind
+
+# Uma will:
+# 1. Audit current Tailwind usage
+# 2. Plan migration from v3 to v4
+# 3. Update configuration
+# 4. Migrate utility classes
+# 5. Test for breaking changes
+# 6. Document migration steps
+
+# Validate Tailwind configuration
+*audit-tailwind-config
+
+# Uma will:
+# - Check config structure
+# - Validate theme extensions
+# - Verify plugin compatibility
+# - Identify unused utilities
+# - Report configuration health
+```
+
+## W3C Design Tokens (DTCG)
+
+```bash
+# Export design tokens in W3C standard format
+*export-dtcg
+
+# Uma will:
+# - Convert tokens.yaml to DTCG JSON format
+# - Generate token bundles
+# - Create CSS custom properties
+# - Generate Tailwind config
+# - Support token references and aliases
+```
+
+**DTCG format example**:
+
+```json
+{
+  "colors": {
+    "primary": {
+      "$type": "color",
+      "$value": "#0ea5e9"
+    },
+    "semantic": {
+      "success": {
+        "$type": "color",
+        "$value": "{colors.primary}"
+      }
+    }
+  }
+}
+```
+
+## Shadcn/Radix Integration
+
+```bash
+# Bootstrap Shadcn component library
+*bootstrap-shadcn
+
+# Uma will:
+# - Install Shadcn CLI
+# - Configure component library
+# - Add Radix UI primitives
+# - Setup Tailwind integration
+# - Install core components (Button, Input, Dialog, etc.)
+# - Configure theming
+```
+
+## AI UI Tool Integration
+
+```bash
+# Generate prompts for AI UI tools
+*generate-ui-prompt
+
+# Uma will:
+# - Analyze user research and wireframes
+# - Generate detailed prompts for v0.dev or Lovable
+# - Include design token references
+# - Specify component structure
+# - Add accessibility requirements
+# - Document expected output
+```
+
+**Example AI prompt**:
+
+```markdown
+Create a user profile card component with:
+
+- Avatar (64px, circular, with fallback initials)
+- Name (typography.lg, semibold)
+- Role (typography.sm, muted)
+- Bio (typography.base, 2-line clamp)
+- Action buttons (Edit, Message)
+
+Design tokens:
+- Colors: primary.500, neutral.50-900
+- Spacing: md (16px) padding, sm (8px) gap
+- Border radius: lg (12px)
+
+Accessibility:
+- ARIA label on avatar
+- Keyboard navigation for buttons
+- Focus indicators visible
+```
+
+## Artifact Scanning
+
+```bash
+# Scan HTML/React artifact for patterns
+*scan ./output/landing-page.html
+
+# Uma will:
+# - Parse HTML/JSX structure
+# - Extract UI patterns
+# - Identify components to extract
+# - Map to atomic design hierarchy
+# - Suggest design tokens
+# - Generate extraction plan
+```
+
+## State Management
+
+**State file**: `outputs/ux-design/{project}/.state.yaml`
+
+```yaml
+current_phase: "build"  # research/audit/tokenize/build/quality
+workflow_type: "complete"  # greenfield/brownfield/complete
+
+user_research_complete: true
+wireframes_created:
+  - "dashboard-layout"
+  - "user-profile"
+  - "settings-page"
+
+audit_complete: true
+patterns_inventory:
+  buttons: 47
+  colors: 89
+  spacing: 31
+
+consolidation_complete: true
+tokens_extracted: true
+
+components_built:
+  atoms:
+    - "Button"
+    - "Input"
+    - "Label"
+  molecules:
+    - "FormField"
+    - "SearchBox"
+  organisms:
+    - "Header"
+    - "UserCard"
+
+accessibility_score: 94
+wcag_level: "AA"
+
+roi_calculated:
+  dev_time_saved: 340
+  cost_savings: 68000
+  roi_multiple: 34.6
+```
+
+## Collaboration
+
+### Receives Work From
+
+- **@architect (Aria)**: Frontend architecture requirements
+- **@pm (Morgan)**: User requirements from PRD
+
+### Provides Design To
+
+- **@dev (Dex)**: Design specs, components, and tokens for implementation
+
+### Works With
+
+- **@analyst (Atlas)**: User research planning and execution
+
+## Troubleshooting
+
+<AccordionGroup>
+  <Accordion title="Audit finding too many patterns" icon="magnifying-glass">
+    **Issue**: Codebase has extreme redundancy
+    
+    **Solutions**:
+    1. Start with most impactful patterns (buttons, colors)
+    2. Use consolidation algorithm to group similar patterns
+    3. Generate shock report to visualize chaos
+    4. Create phased migration plan
+  </Accordion>
+  
+  <Accordion title="Accessibility score low" icon="universal-access">
+    **Issue**: WCAG compliance below target
+    
+    **Solutions**:
+    ```bash
+    *a11y-check  # Get detailed report
+    
+    # Common fixes:
+    # - Improve color contrast (≥4.5:1)
+    # - Add ARIA labels to interactive elements
+    # - Add keyboard navigation support
+    # - Add alt text to images
+    # - Use semantic HTML
+    ```
+  </Accordion>
+  
+  <Accordion title="Component building slow" icon="clock">
+    **Issue**: Building components taking too long
+    
+    **Solutions**:
+    1. Use Shadcn for base components (`*bootstrap-shadcn`)
+    2. Start with atoms, compose molecules later
+    3. Use design tokens to avoid hardcoding
+    4. Leverage Storybook for isolated development
+  </Accordion>
+</AccordionGroup>
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Architecture" icon="building" href="/agents/architect">
+    Collaborate with Aria on frontend architecture
+  </Card>
+  
+  <Card title="Development" icon="code" href="/agents/dev">
+    Hand off design specs to Dex for implementation
+  </Card>
+  
+  <Card title="User Research" icon="users" href="/agents/analyst">
+    Work with Atlas on user research planning
+  </Card>
+  
+  <Card title="QA Testing" icon="check-circle" href="/agents/qa">
+    Ensure accessibility with Quinn's testing
+  </Card>
+</CardGroup>
+
+## Learn More
+
+- [Atomic Design Methodology](/design/atomic-design)
+- [Design Token Best Practices](/design/design-tokens)
+- [Accessibility Guidelines](/design/accessibility)
+- [Component Building Guide](/design/components)

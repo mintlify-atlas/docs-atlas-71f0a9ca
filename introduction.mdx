@@ -1,0 +1,200 @@
+---
+title: Introduction to Synkra AIOX
+description: Discover the AI-powered development framework that transforms how teams build software through specialized AI agents and story-driven workflows
+---
+
+# Welcome to Synkra AIOX
+
+Synkra AIOX is an **AI-Orchestrated System for Full Stack Development** that fundamentally changes how teams build software. By combining specialized AI agents with a story-driven workflow, AIOX enables development teams to maintain context, ensure quality, and ship features faster.
+
+<Note>
+**Version 4.4.6** | Built for Node.js >=18.0.0 | MIT Licensed
+</Note>
+
+## What is Synkra AIOX?
+
+At its core, AIOX is a **Universal AI Agent Framework** that brings together:
+
+- **11 specialized AI agents** (analyst, architect, dev, qa, and more)
+- **Story-driven development workflow** that maintains context across the entire lifecycle
+- **CLI-first architecture** where all intelligence and automation lives
+- **Cross-IDE support** for Claude Code, Cursor, Gemini CLI, Codex CLI, and GitHub Copilot
+- **Agent authority system** with clear roles and responsibilities
+
+## Why AIOX is Different
+
+### 🎯 Agent-Driven, Not Prompt-Driven
+
+Instead of writing one-off prompts, you activate specialized agents that understand their role, maintain context, and follow established workflows. Each agent has:
+
+- **Defined expertise** and responsibilities
+- **Structured commands** for common tasks
+- **Workflow awareness** of what comes before and after
+- **Quality gates** that ensure consistency
+
+### 📖 Story-Driven Development
+
+Every feature starts as a story that travels through your workflow:
+
+<Steps>
+  <Step title="Planning Phase">
+    The `@analyst`, `@pm`, and `@architect` agents collaborate to create detailed PRDs and architecture documents
+  </Step>
+  <Step title="Story Creation">
+    The `@sm` (Scrum Master) agent transforms plans into hyper-detailed development stories with full context
+  </Step>
+  <Step title="Implementation">
+    The `@dev` agent implements following the story's acceptance criteria and implementation notes
+  </Step>
+  <Step title="Quality Assurance">
+    The `@qa` agent validates against acceptance criteria and runs comprehensive tests
+  </Step>
+  <Step title="Deployment">
+    The `@devops` agent handles git operations, CI/CD, and release management
+  </Step>
+</Steps>
+
+### 🏗️ CLI First Architecture
+
+AIOX follows a clear priority hierarchy:
+
+```
+CLI First → Observability Second → UI Third
+```
+
+**Why CLI First?**
+- All intelligence and decision-making happens in the CLI
+- Agents execute commands, run workflows, and maintain state
+- The CLI is the source of truth
+- Dashboards and UIs only observe, never control
+
+## Key Features
+
+<CardGroup cols={2}>
+  <Card title="Agent Authority System" icon="shield-check">
+    Each agent has exclusive authorities (only `@devops` can push to git, only `@qa` can approve releases)
+  </Card>
+  <Card title="Story-Driven Workflow" icon="book">
+    No code without a story. Stories contain acceptance criteria, context, and implementation guidance
+  </Card>
+  <Card title="Quality Gates" icon="check-circle">
+    Automated gates ensure lint, typecheck, and tests pass before any merge
+  </Card>
+  <Card title="Cross-IDE Support" icon="laptop-code">
+    Works with Claude Code, Cursor, Gemini CLI, Codex CLI, and GitHub Copilot
+  </Card>
+  <Card title="Squad System" icon="users">
+    Extend AIOX beyond software development: creative writing, business strategy, education
+  </Card>
+  <Card title="Autonomous Development" icon="robot">
+    ADE (Autonomous Development Engine) transforms requirements into working code
+  </Card>
+</CardGroup>
+
+## The Two Key Innovations
+
+### 1. Agentic Planning
+
+Dedicated agents (`@analyst`, `@pm`, `@architect`) collaborate with you to create detailed, consistent PRD and Architecture documents. Through advanced prompt engineering and human-in-the-loop refinement, these planning agents produce comprehensive specifications that go far beyond generic AI task generation.
+
+### 2. Engineering-Contextualized Development
+
+The `@sm` (Scrum Master) agent transforms detailed plans into **hyper-detailed development stories** that contain everything the `@dev` agent needs:
+
+- Complete context from planning phase
+- Implementation details and technical guidance
+- Architectural decisions and patterns
+- Acceptance criteria and test requirements
+- File list tracking all changes
+
+This two-phase approach eliminates both **planning inconsistency** and **context loss** - the biggest problems in AI-assisted development.
+
+## Who Should Use AIOX?
+
+<CardGroup cols={2}>
+  <Card title="Solo Developers">
+    Get a full agile team of AI agents to help you plan, implement, and ship features faster
+  </Card>
+  <Card title="Development Teams">
+    Maintain consistency across team members with shared workflows and agent-driven standards
+  </Card>
+  <Card title="Engineering Managers">
+    Track progress through story files, ensure quality gates, and maintain architectural consistency
+  </Card>
+  <Card title="Product Teams">
+    Collaborate with AI agents to refine requirements and ensure implementation matches vision
+  </Card>
+</CardGroup>
+
+## What You Can Build
+
+While AIOX started as a software development framework, the **Squad system** extends it to any domain:
+
+- 💻 **Full-stack applications** (the core use case)
+- ✍️ **Creative writing** projects with specialized agents
+- 📊 **Business strategy** and analysis workflows
+- 🏥 **Healthcare** and wellness applications
+- 🎓 **Educational** content and curriculum development
+- 🎮 **Game development** with specialized game design agents
+
+<Warning>
+AIOX is **not a code generator**. It's a framework for agent-driven development where AI agents follow structured workflows, maintain context, and collaborate with you throughout the development lifecycle.
+</Warning>
+
+## Core Principles
+
+AIOX is built on six non-negotiable principles defined in the [Constitution](/home/daytona/workspace/source/.aiox-core/constitution.md):
+
+1. **CLI First** - All functionality works 100% via CLI before any UI
+2. **Agent Authority** - Each agent has exclusive authorities that cannot be violated
+3. **Story-Driven Development** - No code without a story
+4. **No Invention** - Specifications derive from requirements, never invent features
+5. **Quality First** - Multiple quality gates before any merge
+6. **Absolute Imports** - Use absolute imports to reduce coupling
+
+## Getting Started
+
+Ready to dive in? Here's what to do next:
+
+<CardGroup cols={2}>
+  <Card title="Quick Start" icon="rocket" href="/quickstart">
+    Get AIOX installed and activate your first agent in under 10 minutes
+  </Card>
+  <Card title="Installation Guide" icon="download" href="/installation">
+    Detailed setup instructions for new and existing projects
+  </Card>
+  <Card title="User Guide" icon="book-open" href="/guides/user-guide">
+    Complete walkthrough of the AIOX workflow from planning to deployment
+  </Card>
+  <Card title="Architecture" icon="sitemap" href="/architecture">
+    Deep dive into how AIOX works under the hood
+  </Card>
+</CardGroup>
+
+## Philosophy: Agent-Driven Agile
+
+AIOX implements what we call **Agent-Driven Agile Development**:
+
+- **Planning agents** help you define requirements and architecture
+- **Development agents** implement following structured workflows
+- **QA agents** validate against acceptance criteria
+- **DevOps agents** handle git operations and deployments
+
+Each agent maintains context through story files, ensuring nothing gets lost as work moves through the pipeline.
+
+<Note>
+**First-time users:** We recommend starting with the [Quickstart Guide](/quickstart) to get hands-on experience before diving into advanced concepts.
+</Note>
+
+## Community & Support
+
+- **GitHub Repository:** [SynkraAI/aiox-core](https://github.com/SynkraAI/aiox-core)
+- **Issue Tracker:** [Report bugs or request features](https://github.com/SynkraAI/aiox-core/issues)
+- **Contributing:** [Contribution guidelines](https://github.com/SynkraAI/aiox-core/blob/main/CONTRIBUTING.md)
+- **Documentation:** [Complete docs](https://synkra.ai)
+
+## What's Next?
+
+Now that you understand what AIOX is and why it's different, let's get you up and running:
+
+👉 **[Continue to Quickstart →](/quickstart)**

@@ -1,0 +1,536 @@
+---
+title: Workflow Intelligence
+description: Advanced workflow intelligence system with learning, pattern matching, and agent collaboration
+---
+
+# Workflow Intelligence System
+
+The Workflow Intelligence System (WIS) provides intelligent workflow suggestions, pattern matching, and learning capabilities to optimize agent collaboration and task execution.
+
+## Architecture
+
+WIS consists of three main subsystems:
+
+```
+workflow-intelligence/
+├── registry/               # Workflow pattern registry
+│   └── workflow-registry.js
+├── engine/                 # Intelligence engines
+│   ├── confidence-scorer.js
+│   ├── suggestion-engine.js
+│   ├── wave-analyzer.js
+│   └── output-formatter.js
+└── learning/               # Pattern learning
+    ├── pattern-capture.js
+    ├── pattern-validator.js
+    ├── pattern-store.js
+    ├── gotcha-registry.js
+    ├── qa-feedback.js
+    └── semantic-search.js
+```
+
+## Basic Usage
+
+### Getting Workflow Suggestions
+
+```javascript .aiox-core/workflow-intelligence/
+const wis = require('./.aiox-core/workflow-intelligence');
+
+// Get suggestions based on context
+const suggestions = wis.getSuggestions({
+  lastCommand: 'create-story',
+  lastCommands: ['create-epic', 'create-story'],
+  agentId: '@sm',
+  projectState: {
+    hasEpic: true,
+    hasStories: true,
+  },
+});
+
+// Suggestions are ranked by confidence
+suggestions.forEach((suggestion) => {
+  console.log(`${suggestion.command} (${suggestion.confidence})`);
+  console.log(`  ${suggestion.description}`);
+  console.log(`  Priority: ${suggestion.priority}`);
+});
+```
+
+### Matching Workflows
+
+```javascript
+// Match command history to workflow
+const match = wis.matchWorkflow(['create-epic', 'create-story']);
+
+if (match) {
+  console.log(`Workflow: ${match.name}`);
+  console.log(`Confidence: ${match.confidence}`);
+  console.log(`Agent sequence: ${match.workflow.agent_sequence.join(' → ')}`);
+}
+```
+
+### Getting Next Steps
+
+```javascript
+// Get next steps for current workflow state
+const nextSteps = wis.getNextSteps('epic_creation', 'stories_created');
+
+nextSteps.forEach((step) => {
+  console.log(`${step.command}: ${step.description}`);
+});
+```
+
+## Workflow Registry
+
+The registry manages workflow patterns loaded from YAML configuration.
+
+### WorkflowRegistry
+
+```javascript .aiox-core/workflow-intelligence/registry/workflow-registry.js
+const { WorkflowRegistry, createWorkflowRegistry } = require('./.aiox-core/workflow-intelligence');
+
+// Create custom registry
+const registry = createWorkflowRegistry({
+  patternsPath: '.aiox-core/data/workflow-patterns.yaml',
+  cacheTTL: 300000, // 5 minutes
+});
+
+// Load workflows
+const workflows = registry.loadWorkflows();
+
+// Get workflow names
+const names = registry.getWorkflowNames();
+console.log('Available workflows:', names);
+
+// Get workflow by name
+const workflow = registry.getWorkflow('epic_creation');
+
+// Get workflows by agent
+const devWorkflows = registry.getWorkflowsByAgent('@dev');
+
+// Get all transitions for a workflow
+const transitions = registry.getAllTransitions('epic_creation');
+
+// Invalidate cache
+registry.invalidateCache();
+
+// Get statistics
+const stats = registry.getStats();
+console.log(`Total workflows: ${stats.totalWorkflows}`);
+console.log(`Cache hits: ${stats.cacheHits}`);
+```
+
+## Confidence Scoring
+
+The confidence scorer calculates how likely a suggestion is relevant.
+
+### ConfidenceScorer
+
+```javascript .aiox-core/workflow-intelligence/engine/confidence-scorer.js
+const { ConfidenceScorer, createConfidenceScorer, SCORING_WEIGHTS } = require('./.aiox-core/workflow-intelligence');
+
+const scorer = createConfidenceScorer();
+
+// Score a suggestion
+const suggestion = {
+  command: 'develop',
+  workflow: 'story_development',
+  agentSequence: ['sm', 'dev', 'qa'],
+};
+
+const context = {
+  lastCommand: 'validate-story-draft',
+  lastCommands: ['create-story', 'validate-story-draft'],
+  agentId: '@sm',
+};
+
+const score = scorer.score(suggestion, context);
+console.log(`Confidence: ${score}`);
+
+// Scoring weights can be customized
+console.log(SCORING_WEIGHTS);
+// {
+//   agentMatch: 0.3,
+//   commandSequence: 0.4,
+//   projectState: 0.2,
+//   recency: 0.1,
+// }
+```
+
+## Wave Analysis
+
+Wave analysis identifies parallel execution opportunities in workflows.
+
+### WaveAnalyzer
+
+```javascript .aiox-core/workflow-intelligence/engine/wave-analyzer.js
+const { analyzeWaves, createWaveAnalyzer, CircularDependencyError } = require('./.aiox-core/workflow-intelligence');
+
+// Analyze workflow for parallel waves
+const analysis = analyzeWaves('story_development');
+
+console.log('Wave Analysis:');
+analysis.waves.forEach((wave, index) => {
+  console.log(`\nWave ${index + 1}:`);
+  wave.forEach((task) => {
+    console.log(`  - ${task.id}: ${task.name}`);
+    console.log(`    Duration: ${task.estimatedDuration}`);
+    console.log(`    Dependencies: ${task.dependencies.join(', ') || 'none'}`);
+  });
+});
+
+console.log(`\nCritical Path:`);
+analysis.criticalPath.forEach((task) => {
+  console.log(`  ${task.id} (${task.estimatedDuration})`);
+});
+
+console.log(`\nTotal Duration (sequential): ${analysis.totalDuration}`);
+console.log(`Optimal Duration (parallel): ${analysis.optimalDuration}`);
+console.log(`Time Savings: ${analysis.timeSavings}`);
+
+// Create custom analyzer
+const analyzer = createWaveAnalyzer({
+  defaultDuration: 30,
+  taskDurations: {
+    'write-code': 120,
+    'write-tests': 60,
+    'review': 30,
+  },
+});
+
+const customAnalysis = analyzer.analyze(workflow);
+
+// Handle circular dependencies
+try {
+  const badWorkflow = {
+    tasks: [
+      { id: 'A', dependencies: ['B'] },
+      { id: 'B', dependencies: ['A'] },
+    ],
+  };
+  analyzeWaves(badWorkflow);
+} catch (error) {
+  if (error instanceof CircularDependencyError) {
+    console.error('Circular dependency detected:', error.cycle);
+  }
+}
+```
+
+## Pattern Learning
+
+The learning module captures, validates, and stores workflow patterns from actual usage.
+
+### Pattern Capture
+
+```javascript .aiox-core/workflow-intelligence/learning/pattern-capture.js
+const { createPatternCapture } = require('./.aiox-core/workflow-intelligence').learning;
+
+const capture = createPatternCapture({
+  minSequenceLength: 3,
+  captureMetadata: true,
+});
+
+// Capture session pattern
+const result = capture.captureSession({
+  commands: ['validate-story-draft', 'develop', 'review-qa'],
+  agentSequence: ['po', 'dev', 'qa'],
+  success: true,
+  duration: 3600000, // 1 hour
+  timestamp: Date.now(),
+  projectId: 'my-project',
+});
+
+if (result.valid) {
+  console.log('Pattern captured:', result.pattern);
+} else {
+  console.log('Invalid pattern:', result.reason);
+}
+```
+
+### Pattern Validation
+
+```javascript .aiox-core/workflow-intelligence/learning/pattern-validator.js
+const { createPatternValidator } = require('./.aiox-core/workflow-intelligence').learning;
+
+const validator = createPatternValidator({
+  strictMode: true,
+  allowCustomCommands: false,
+});
+
+// Validate pattern
+const validation = validator.validate(pattern);
+
+if (!validation.valid) {
+  console.error('Validation errors:');
+  validation.errors.forEach((error) => {
+    console.error(`  - ${error.field}: ${error.message}`);
+  });
+}
+
+// Check for duplicates
+const existingPatterns = store.load().patterns;
+const duplicateCheck = validator.isDuplicate(pattern, existingPatterns);
+
+if (duplicateCheck.isDuplicate) {
+  console.log(`Similar to pattern: ${duplicateCheck.duplicateOf}`);
+  console.log(`Similarity: ${duplicateCheck.similarity}`);
+}
+```
+
+### Pattern Storage
+
+```javascript .aiox-core/workflow-intelligence/learning/pattern-store.js
+const { createPatternStore, PATTERN_STATUS } = require('./.aiox-core/workflow-intelligence').learning;
+
+const store = createPatternStore({
+  storagePath: '.aiox/learned-patterns.json',
+  maxPatterns: 1000,
+  pruneThreshold: 0.7,
+});
+
+// Save pattern
+const saveResult = store.save(pattern);
+console.log(`Action: ${saveResult.action}`); // 'created' | 'updated' | 'merged'
+
+// Load patterns
+const data = store.load();
+console.log(`Total patterns: ${data.patterns.length}`);
+
+// Get active patterns only
+const active = store.getActivePatterns();
+
+// Find similar patterns
+const similar = store.findSimilar(['create-epic', 'create-story']);
+
+// Update pattern status
+store.updateStatus(patternId, PATTERN_STATUS.PROMOTED);
+
+// Get statistics
+const stats = store.getStats();
+console.log('Pattern Statistics:');
+console.log(`  Total: ${stats.total}`);
+console.log(`  Active: ${stats.active}`);
+console.log(`  Deprecated: ${stats.deprecated}`);
+console.log(`  Average success rate: ${stats.avgSuccessRate}%`);
+```
+
+### Gotcha Registry
+
+Capture and prevent common pitfalls:
+
+```javascript .aiox-core/workflow-intelligence/learning/gotcha-registry.js
+const { GotchaRegistry } = require('./.aiox-core/workflow-intelligence').learning;
+
+const gotchaRegistry = new GotchaRegistry({
+  storagePath: '.aiox/gotchas.json',
+});
+
+// Record a gotcha
+gotchaRegistry.record({
+  pattern: 'skipped-validation',
+  context: {
+    workflow: 'story_development',
+    command: 'develop',
+    skippedStep: 'validate-story-draft',
+  },
+  consequence: 'Story rejected in QA - missing acceptance criteria',
+  severity: 'high',
+  prevention: 'Always run validate-story-draft before develop',
+});
+
+// Check for gotchas
+const gotchas = gotchaRegistry.checkContext({
+  workflow: 'story_development',
+  lastCommand: 'create-story',
+  nextCommand: 'develop',
+});
+
+if (gotchas.length > 0) {
+  console.warn('⚠️ Potential issues detected:');
+  gotchas.forEach((gotcha) => {
+    console.warn(`  - ${gotcha.consequence}`);
+    console.warn(`    Prevention: ${gotcha.prevention}`);
+  });
+}
+```
+
+### QA Feedback Processing
+
+```javascript .aiox-core/workflow-intelligence/learning/qa-feedback.js
+const { QAFeedbackProcessor } = require('./.aiox-core/workflow-intelligence').learning;
+
+const processor = new QAFeedbackProcessor();
+
+// Process QA feedback
+const feedback = {
+  storyId: 'PROJ-123',
+  status: 'rejected',
+  issues: [
+    { type: 'missing-tests', severity: 'high' },
+    { type: 'incomplete-docs', severity: 'medium' },
+  ],
+  workflow: 'story_development',
+  commandSequence: ['create-story', 'develop'],
+};
+
+processor.processFeedback(feedback);
+
+// Get improvement suggestions
+const suggestions = processor.getSuggestions('story_development');
+suggestions.forEach((suggestion) => {
+  console.log(`✓ ${suggestion.action}`);
+  console.log(`  Reason: ${suggestion.reason}`);
+});
+```
+
+### Semantic Search
+
+```javascript .aiox-core/workflow-intelligence/learning/semantic-search.js
+const { createSemanticSearch } = require('./.aiox-core/workflow-intelligence').learning;
+
+const search = createSemanticSearch();
+
+// Index patterns for search
+await search.indexPatterns(patterns);
+
+// Search by description
+const results = await search.search('create user authentication');
+
+results.forEach((result) => {
+  console.log(`${result.pattern.name} (score: ${result.score})`);
+  console.log(`  ${result.pattern.description}`);
+});
+```
+
+## High-Level Workflow API
+
+```javascript
+const wis = require('./.aiox-core/workflow-intelligence');
+const learning = wis.learning;
+
+// Complete workflow: capture and store
+const result = learning.captureAndStore({
+  commands: ['create-epic', 'create-story', 'develop', 'review-qa'],
+  agentSequence: ['pm', 'sm', 'dev', 'qa'],
+  success: true,
+  duration: 7200000,
+});
+
+if (result.success) {
+  console.log(`Pattern ${result.action}: ${result.pattern.id}`);
+}
+
+// Get learned patterns
+const patterns = learning.getLearnedPatterns({ activeOnly: true });
+
+// Find matching patterns
+const matches = learning.findMatchingPatterns(['create-story', 'develop']);
+
+// Get learning statistics
+const stats = learning.getStats();
+console.log(`Learned patterns: ${stats.total}`);
+console.log(`Average success rate: ${stats.avgSuccessRate}%`);
+```
+
+## Workflow Chain Patterns
+
+Common workflow patterns in AIOX:
+
+### Epic Creation Workflow
+
+```yaml
+workflow: epic_creation
+agent_sequence: [pm, architect, po]
+key_commands:
+  - create-epic
+  - create-architecture
+  - validate-epic
+
+transitions:
+  initial:
+    trigger: create-epic
+    next_steps:
+      - create-architecture
+      - shard-epic
+  
+  architecture_ready:
+    trigger: create-architecture
+    next_steps:
+      - validate-epic
+      - shard-epic
+```
+
+### Story Development Workflow
+
+```yaml
+workflow: story_development
+agent_sequence: [sm, dev, qa]
+key_commands:
+  - create-story
+  - validate-story-draft
+  - develop
+  - review-qa
+
+transitions:
+  story_created:
+    trigger: create-story
+    next_steps:
+      - validate-story-draft
+  
+  validated:
+    trigger: validate-story-draft
+    next_steps:
+      - develop
+  
+  developed:
+    trigger: develop
+    next_steps:
+      - review-qa
+      - iterate
+```
+
+## Performance Optimization
+
+- **Registry Caching**: 5-minute TTL (configurable)
+- **Pattern Storage**: Pruning at 70% threshold
+- **Confidence Scoring**: O(1) with cached weights
+- **Wave Analysis**: O(n log n) topological sort
+- **Semantic Search**: Indexed for O(log n) lookup
+
+## Constants and Configuration
+
+```javascript
+const wis = require('./.aiox-core/workflow-intelligence');
+
+// Registry constants
+console.log(wis.DEFAULT_CACHE_TTL);        // 300000 (5 min)
+console.log(wis.DEFAULT_PATTERNS_PATH);    // Path to patterns YAML
+
+// Scoring weights
+console.log(wis.SCORING_WEIGHTS);
+
+// Learning constants
+console.log(wis.learning.DEFAULT_MIN_SEQUENCE_LENGTH);  // 3
+console.log(wis.learning.DEFAULT_MAX_PATTERNS);         // 1000
+console.log(wis.learning.PATTERN_STATUS);
+// { EXPERIMENTAL: 'experimental', ACTIVE: 'active', ... }
+```
+
+## Testing
+
+Reset singletons for testing:
+
+```javascript
+const wis = require('./.aiox-core/workflow-intelligence');
+
+// Reset WIS
+wis.reset();
+
+// Reset learning module
+wis.learning.reset();
+```
+
+## Next Steps
+
+- [Quality Gates →](/advanced/quality-gates)
+- [Agent Collaboration →](/guides/agent-collaboration)
+- [Custom Workflows →](/customization/workflows)

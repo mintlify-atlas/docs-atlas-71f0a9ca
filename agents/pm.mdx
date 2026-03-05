@@ -1,0 +1,511 @@
+---
+title: "Morgan - Product Manager"
+description: "Investigative Product Strategist & Market-Savvy PM for PRD creation and strategic planning"
+icon: "clipboard"
+---
+
+# 📋 Morgan - Product Manager
+
+**Role**: Investigative Product Strategist & Market-Savvy PM  
+**Archetype**: Strategist ♑ Capricorn  
+**Persona**: Analytical, inquisitive, data-driven, user-focused, pragmatic
+
+## When to Use Morgan
+
+Activate `@pm` for:
+
+- 📝 PRD creation (greenfield and brownfield)
+- 🏷️ Epic creation and management
+- 🎯 Product strategy and vision
+- 📊 Feature prioritization (MoSCoW, RICE)
+- 🗺️ Roadmap planning
+- 💰 Business case development
+- ✅ Go/no-go decisions
+
+**NOT for**: Market research (use `@analyst`), Architecture (use `@architect`), Story creation (delegate to `@sm`)
+
+## Activation
+
+<CodeGroup>
+```bash Cursor IDE
+@pm
+```
+
+```bash Claude Desktop
+/pm
+```
+
+```bash Codex CLI
+@pm *create-prd
+```
+</CodeGroup>
+
+## Core Commands
+
+<AccordionGroup>
+  <Accordion title="Document Creation" icon="file-lines">
+    ```bash
+    *create-prd                  # Create product requirements document
+    *create-brownfield-prd       # PRD for existing projects
+    *create-epic                 # Create epic for brownfield
+    *create-story                # Create user story
+    ```
+  </Accordion>
+
+  <Accordion title="Strategic Analysis" icon="chart-line">
+    ```bash
+    *research {topic}            # Generate deep research prompt
+    ```
+  </Accordion>
+
+  <Accordion title="Epic Execution" icon="diagram-project">
+    ```bash
+    *execute-epic {path} [--mode=interactive]
+    # Execute epic plan with wave-based parallel development
+    ```
+  </Accordion>
+
+  <Accordion title="Spec Pipeline (ADE)" icon="clipboard-list">
+    ```bash
+    *gather-requirements         # Elicit and document requirements
+    *write-spec                  # Generate formal specification
+    ```
+  </Accordion>
+
+  <Accordion title="User Profile" icon="user">
+    ```bash
+    *toggle-profile              # Toggle between bob and advanced modes
+    ```
+  </Accordion>
+</AccordionGroup>
+
+## PRD Creation Workflow
+
+### Greenfield PRD
+
+```bash
+# 1. Activate Morgan
+@pm
+
+# 2. Create PRD
+*create-prd
+
+# Morgan will:
+# - Elicit project goals and vision
+# - Define target users and personas
+# - Document functional requirements
+# - Specify non-functional requirements
+# - Define success metrics
+# - Create product roadmap
+# - Embed CodeRabbit quality gates
+# - Predict specialized agent assignments
+```
+
+### Brownfield PRD
+
+```bash
+*create-brownfield-prd
+
+# For existing projects:
+# - Analyze current system
+# - Document technical constraints
+# - Define enhancement goals
+# - Plan migration strategy
+# - Create epic structure
+```
+
+## PRD Components
+
+<Tabs>
+  <Tab title="Product Vision">
+    **Defines**:
+    - Problem statement
+    - Target users
+    - Value proposition
+    - Success criteria
+    - Market positioning
+    
+    **Example**:
+    ```yaml
+    vision:
+      problem: "Developers waste 40% of time on boilerplate"
+      solution: "AI-powered code generation framework"
+      users:
+        - Solo developers
+        - Small engineering teams
+      value: "10x faster development, 80% less boilerplate"
+    ```
+  </Tab>
+  
+  <Tab title="Requirements">
+    **Functional Requirements**:
+    - Features and capabilities
+    - User workflows
+    - API contracts
+    - Integration points
+    
+    **Non-Functional Requirements**:
+    - Performance (response time, throughput)
+    - Security (authentication, authorization)
+    - Scalability (concurrent users, data volume)
+    - Reliability (uptime, error rates)
+    - Usability (accessibility, UX standards)
+    
+    **Example**:
+    ```yaml
+    nfrs:
+      performance:
+        api_response_time: "< 200ms p95"
+        page_load_time: "< 2s"
+      security:
+        auth: "OAuth 2.0 + JWT"
+        data_encryption: "AES-256 at rest"
+      scalability:
+        concurrent_users: "10,000"
+        requests_per_second: "1,000"
+    ```
+  </Tab>
+  
+  <Tab title="Success Metrics">
+    **Defines**:
+    - Key Performance Indicators (KPIs)
+    - Acceptance thresholds
+    - Measurement methods
+    - Reporting cadence
+    
+    **Example**:
+    ```yaml
+    metrics:
+      adoption:
+        - metric: "Weekly Active Users"
+          target: "1,000 in 3 months"
+        - metric: "Retention Rate"
+          target: "> 60% month-over-month"
+      engagement:
+        - metric: "Stories created per user"
+          target: "> 5 per week"
+      quality:
+        - metric: "Code review approval rate"
+          target: "> 90%"
+    ```
+  </Tab>
+  
+  <Tab title="Roadmap">
+    **Phases**:
+    1. **MVP** (Weeks 1-4): Core features
+    2. **Beta** (Weeks 5-8): Enhancements
+    3. **GA** (Weeks 9-12): Polish and scale
+    
+    **Example**:
+    ```yaml
+    roadmap:
+      mvp:
+        duration: "4 weeks"
+        features:
+          - "User authentication"
+          - "Story creation"
+          - "Code generation"
+      beta:
+        duration: "4 weeks"
+        features:
+          - "Team collaboration"
+          - "Advanced templates"
+      ga:
+        duration: "4 weeks"
+        features:
+          - "Performance optimization"
+          - "Mobile support"
+    ```
+  </Tab>
+</Tabs>
+
+## Epic Management
+
+### Create Epic
+
+```bash
+*create-epic
+
+# Morgan will:
+# 1. Define epic scope and goals
+# 2. Break down into story themes
+# 3. Predict required agents (dev, qa, data-engineer)
+# 4. Assign quality gates (CodeRabbit checkpoints)
+# 5. Create epic file in docs/epics/
+```
+
+**Epic Structure**:
+
+```yaml
+# docs/epics/epic-5-user-management.yaml
+id: epic-5
+title: "User Management System"
+goal: "Complete user lifecycle management"
+
+stories:
+  - id: story-5.1
+    title: "User Registration"
+    agents: [dev, qa]
+    quality_gates:
+      - CodeRabbit pre-commit
+      - Integration tests
+  
+  - id: story-5.2
+    title: "User Profile"
+    agents: [dev, ux-design-expert, qa]
+    quality_gates:
+      - Accessibility check (WCAG AA)
+      - CodeRabbit pre-commit
+
+predicted_agents:
+  - dev: "Primary implementation"
+  - qa: "Quality assurance"
+  - ux-design-expert: "UI/UX for profile page"
+  - data-engineer: "User schema design"
+```
+
+### Execute Epic
+
+```bash
+*execute-epic docs/epics/execution-plan-5.yaml
+
+# Wave-based parallel development:
+# - Analyzes story dependencies
+# - Groups independent stories into waves
+# - Executes waves in parallel
+# - Reports progress and blockers
+```
+
+**Execution Plan**:
+
+```yaml
+# docs/epics/execution-plan-5.yaml
+epic: epic-5
+mode: interactive  # or autonomous
+
+waves:
+  wave_1:  # No dependencies, run in parallel
+    - story-5.1-user-registration
+    - story-5.3-email-verification
+  
+  wave_2:  # Depends on Wave 1
+    - story-5.2-user-profile
+    - story-5.4-password-reset
+  
+  wave_3:  # Depends on Wave 2
+    - story-5.5-account-settings
+```
+
+## Quality-First Planning
+
+### Embedded Quality Gates
+
+Morgan embeds CodeRabbit integration in every epic:
+
+```yaml
+quality_planning:
+  coderabbit_integration:
+    enabled: true
+    checkpoints:
+      - "Pre-commit review for each story"
+      - "Pre-PR review before merge"
+    severity_thresholds:
+      CRITICAL: "Block story completion"
+      HIGH: "Document in story notes"
+```
+
+### Specialized Agent Assignment
+
+Morgan predicts which agents will be needed:
+
+```yaml
+story_5.2_user_profile:
+  predicted_agents:
+    - dev: "Core implementation"
+    - ux-design-expert: "UI wireframes and components"
+    - data-engineer: "Profile schema and queries"
+    - qa: "Accessibility and quality review"
+```
+
+## Spec Pipeline (ADE)
+
+### Requirements Gathering
+
+```bash
+*gather-requirements
+
+# Interactive elicitation:
+# - What problem are we solving?
+# - Who are the users?
+# - What are the constraints?
+# - What are the success criteria?
+```
+
+### Specification Writing
+
+```bash
+*write-spec
+
+# Generates formal spec from requirements:
+# - User stories (Given-When-Then)
+# - Acceptance criteria
+# - Technical constraints
+# - Dependencies
+```
+
+## User Profile Modes
+
+<Tabs>
+  <Tab title="Advanced Mode (Default)">
+    **For**: Experienced users who understand the agent system
+    
+    **Behavior**:
+    - Morgan operates as standard Product Manager
+    - No orchestration of other agents
+    - User manually activates agents as needed
+    
+    ```bash
+    # User workflow:
+    @pm *create-prd         # Morgan creates PRD
+    @architect *design      # User activates architect
+    @sm *draft              # User activates scrum master
+    ```
+  </Tab>
+  
+  <Tab title="Bob Mode (Assisted)">
+    **For**: Beginners, streamlined workflow
+    
+    **Behavior**:
+    - Morgan (as "Bob") orchestrates other agents
+    - Spawns agents in separate terminals
+    - Collects output and presents to user
+    - Manages workflow chains automatically
+    
+    ```bash
+    # User workflow:
+    @pm "Create a user management system"
+    
+    # Bob orchestrates:
+    # 1. @analyst for research
+    # 2. @pm creates PRD
+    # 3. @architect designs system
+    # 4. @sm creates stories
+    # 5. @dev implements
+    # All automatic!
+    ```
+    
+    **Toggle**:
+    ```bash
+    *toggle-profile  # Switch between bob and advanced
+    ```
+  </Tab>
+</Tabs>
+
+## Delegation Protocol
+
+### Morgan Delegates
+
+<Info>
+**Gate 1 Decision**: Morgan creates epic structure, then delegates story creation to @sm.
+</Info>
+
+**Delegation Table**:
+
+| Task | Delegate To | Command |
+|------|-------------|--------|
+| Story creation | @sm | `*draft` |
+| Course correction | @aiox-master | `*correct-course` |
+| Deep research | @analyst | `*research` |
+| Architecture | @architect | `*create-architecture` |
+
+### Morgan Receives From
+
+| From | For | Morgan's Action |
+|------|-----|----------------|
+| @analyst | Project brief ready | `*create-prd` |
+| @aiox-master | Framework modification | `*create-brownfield-prd` |
+
+## Collaboration
+
+### Collaborates With
+
+- **@po (Pax)**: Provides PRDs and strategic direction
+- **@sm (River)**: Coordinates sprint planning and story breakdown
+- **@architect (Aria)**: Technical architecture decisions
+
+### Delegates To
+
+- **@sm**: Story creation via `*draft`
+- **@aiox-master**: Course corrections
+- **@analyst**: Research and analysis
+
+## Troubleshooting
+
+<AccordionGroup>
+  <Accordion title="PRD too detailed" icon="file-circle-exclamation">
+    **Problem**: PRD becomes overwhelming, hard to maintain
+    
+    **Solution**:
+    ```bash
+    *shard-prd
+    
+    # Breaks PRD into smaller documents:
+    # - prd-vision.yaml
+    # - prd-requirements.yaml
+    # - prd-architecture.yaml
+    # - prd-roadmap.yaml
+    ```
+  </Accordion>
+  
+  <Accordion title="Epic too large" icon="diagram-project">
+    **Problem**: Epic has too many stories, hard to manage
+    
+    **Solution**:
+    - Break into sub-epics
+    - Use wave-based execution
+    - Prioritize MVP stories first
+  </Accordion>
+  
+  <Accordion title="Bob mode not working" icon="robot">
+    **Check**:
+    ```bash
+    # Verify user profile
+    cat .aiox/config.yaml | grep user_profile
+    
+    # Should show:
+    user_profile: bob
+    ```
+    
+    **If missing**:
+    ```bash
+    *toggle-profile
+    ```
+  </Accordion>
+</AccordionGroup>
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Story Creation" icon="wave" href="/agents/sm">
+    Delegate story drafting to River (SM)
+  </Card>
+  
+  <Card title="Architecture" icon="building" href="/agents/architect">
+    Collaborate with Aria on technical design
+  </Card>
+  
+  <Card title="Research" icon="search" href="/agents/analyst">
+    Get insights from Atlas (Analyst)
+  </Card>
+  
+  <Card title="Backlog" icon="target" href="/agents/po">
+    Coordinate with Pax (PO) on prioritization
+  </Card>
+</CardGroup>
+
+## Learn More
+
+- [PRD Template](/templates/prd)
+- [Epic Management](/workflows/epic-management)
+- [Wave-Based Execution](/workflows/wave-execution)
+- [Bob Mode](/features/bob-mode)

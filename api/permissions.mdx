@@ -1,0 +1,483 @@
+---
+title: "Permissions API"
+description: "Permission modes and access control for agent autonomy"
+icon: "shield-check"
+---
+
+## Overview
+
+The Permission Mode system controls agent autonomy levels with three modes: **explore** (read-only), **ask** (confirm changes), and **auto** (full autonomy). Inspired by Craft Agents OSS.
+
+## Class: PermissionMode
+
+### Constructor
+
+<ParamField path="projectRoot" type="string" default="process.cwd()">
+  Project root directory
+</ParamField>
+
+```javascript
+const { PermissionMode } = require('.aiox-core/core/permissions/permission-mode');
+
+const permissions = new PermissionMode();
+await permissions.load();
+```
+
+## Permission Modes
+
+### MODES
+
+Available permission modes with their configurations.
+
+```javascript
+const { PermissionMode } = require('.aiox-core/core/permissions/permission-mode');
+
+console.log(PermissionMode.MODES);
+```
+
+#### explore
+
+Read-only mode for safe exploration.
+
+```javascript
+{
+  name: 'Explore',
+  icon: '🔍',
+  color: 'blue',
+  description: 'Read-only mode - safe exploration',
+  shortDescription: 'Safe browsing',
+  permissions: {
+    read: true,
+    write: false,
+    execute: false,
+    delete: false
+  }
+}
+```
+
+#### ask
+
+Confirm before changes (default).
+
+```javascript
+{
+  name: 'Ask',
+  icon: '⚠️',
+  color: 'yellow',
+  description: 'Confirm before changes - balanced approach',
+  shortDescription: 'Confirm changes',
+  permissions: {
+    read: true,
+    write: 'confirm',
+    execute: 'confirm',
+    delete: 'confirm'
+  }
+}
+```
+
+#### auto
+
+Full autonomy mode (yolo mode).
+
+```javascript
+{
+  name: 'Auto',
+  icon: '⚡',
+  color: 'green',
+  description: 'Full autonomy - trust mode',
+  shortDescription: 'Full speed',
+  permissions: {
+    read: true,
+    write: true,
+    execute: true,
+    delete: true
+  }
+}
+```
+
+## Core Methods
+
+### load
+
+Load current permission mode from config.
+
+<ResponseField name="mode" type="string">
+  Current mode name ('explore', 'ask', or 'auto')
+</ResponseField>
+
+```javascript
+const permissions = new PermissionMode();
+const currentMode = await permissions.load();
+
+console.log('Current mode:', currentMode); // 'ask'
+```
+
+### setMode
+
+Change the permission mode.
+
+<ParamField path="mode" type="string" required>
+  Mode name ('explore', 'ask', 'auto') or alias ('yolo', 'safe', 'balanced')
+</ParamField>
+
+<ResponseField name="modeInfo" type="Object">
+  Complete mode information
+</ResponseField>
+
+```javascript
+const permissions = new PermissionMode();
+
+// Set to auto mode
+const info = await permissions.setMode('auto');
+console.log(`Switched to ${info.name} mode`);
+
+// Using alias
+await permissions.setMode('yolo');      // Same as 'auto'
+await permissions.setMode('safe');      // Same as 'explore'
+await permissions.setMode('balanced');  // Same as 'ask'
+```
+
+### cycleMode
+
+Cycle to the next mode (explore → ask → auto → explore).
+
+<ResponseField name="modeInfo" type="Object">
+  New mode information
+</ResponseField>
+
+```javascript
+const permissions = new PermissionMode();
+
+// Cycle through modes
+const next = await permissions.cycleMode();
+console.log('Cycled to:', next.name);
+```
+
+### getModeInfo
+
+Get current mode information.
+
+<ResponseField name="modeInfo" type="Object">
+  <ResponseField name="mode" type="string">
+    Mode name
+  </ResponseField>
+  <ResponseField name="name" type="string">
+    Display name
+  </ResponseField>
+  <ResponseField name="icon" type="string">
+    Mode icon
+  </ResponseField>
+  <ResponseField name="description" type="string">
+    Full description
+  </ResponseField>
+  <ResponseField name="permissions" type="Object">
+    Permission settings
+  </ResponseField>
+</ResponseField>
+
+```javascript
+const info = permissions.getModeInfo();
+
+console.log(info.mode);        // 'ask'
+console.log(info.name);        // 'Ask'
+console.log(info.icon);        // '⚠️'
+console.log(info.description); // 'Confirm before changes...'
+```
+
+### getBadge
+
+Get formatted badge for display in agent greeting.
+
+<ResponseField name="badge" type="string">
+  Formatted badge like "[⚠️ Ask]"
+</ResponseField>
+
+```javascript
+const badge = permissions.getBadge();
+console.log('Permission mode:', badge);
+// Output: Permission mode: [⚠️ Ask]
+```
+
+### canPerform
+
+Check if an operation is allowed.
+
+<ParamField path="operation" type="string" required>
+  Operation type ('read', 'write', 'execute', 'delete')
+</ParamField>
+
+<ResponseField name="result" type="Object">
+  <ResponseField name="allowed" type="boolean | 'confirm'">
+    Whether operation is allowed (true/false/'confirm')
+  </ResponseField>
+  <ResponseField name="reason" type="string">
+    Reason if blocked
+  </ResponseField>
+  <ResponseField name="message" type="string">
+    User-friendly message
+  </ResponseField>
+</ResponseField>
+
+```javascript
+const permissions = new PermissionMode();
+await permissions.setMode('explore');
+
+// Check write permission
+const result = permissions.canPerform('write');
+
+if (result.allowed === false) {
+  console.log('🔒 Blocked:', result.message);
+  // 🔒 Blocked: Operation "write" is blocked in Explore mode
+} else if (result.allowed === 'confirm') {
+  console.log('⚠️ Requires confirmation');
+} else {
+  console.log('✅ Allowed');
+}
+```
+
+### isAutonomous
+
+Check if current mode allows autonomous execution.
+
+<ResponseField name="autonomous" type="boolean">
+  True if mode is 'auto'
+</ResponseField>
+
+```javascript
+if (permissions.isAutonomous()) {
+  console.log('⚡ Running in autonomous mode');
+  // Execute without confirmation
+} else {
+  // Request confirmation
+}
+```
+
+### isReadOnly
+
+Check if current mode is read-only.
+
+<ResponseField name="readOnly" type="boolean">
+  True if mode is 'explore'
+</ResponseField>
+
+```javascript
+if (permissions.isReadOnly()) {
+  console.log('🔍 Read-only mode - no modifications allowed');
+}
+```
+
+## Static Methods
+
+### getHelp
+
+Get markdown-formatted help text for permission modes.
+
+<ResponseField name="help" type="string">
+  Markdown help text
+</ResponseField>
+
+```javascript
+const help = PermissionMode.getHelp();
+console.log(help);
+```
+
+Output:
+```markdown
+## Permission Modes
+
+| Mode | Icon | Description | Writes | Executes |
+|------|------|-------------|--------|----------|
+| explore | 🔍 | Safe browsing | ❌ | ❌ |
+| ask | ⚠️ | Confirm changes | ⚠️ | ⚠️ |
+| auto | ⚡ | Full speed | ✅ | ✅ |
+
+**Commands:**
+- `*mode` - Show current mode
+- `*mode explore` - Switch to read-only mode
+- `*mode ask` - Switch to confirm mode (default)
+- `*mode auto` - Switch to full autonomy
+- `*yolo` - Alias for `*mode auto`
+```
+
+## Permission Checks
+
+### Operation Types
+
+#### read
+
+Always allowed in all modes.
+
+```javascript
+const result = permissions.canPerform('read');
+// Always: { allowed: true }
+```
+
+#### write
+
+Write file operations.
+
+```javascript
+// explore mode
+const result = permissions.canPerform('write');
+// { allowed: false, reason: 'Blocked in Explore mode', message: '...' }
+
+// ask mode
+// { allowed: 'confirm', message: 'Requires confirmation' }
+
+// auto mode
+// { allowed: true }
+```
+
+#### execute
+
+Execute commands or scripts.
+
+```javascript
+const result = permissions.canPerform('execute');
+
+if (result.allowed === 'confirm') {
+  const confirmed = await askUserConfirmation('Execute command?');
+  if (confirmed) {
+    executeCommand();
+  }
+}
+```
+
+#### delete
+
+Delete operations.
+
+```javascript
+const result = permissions.canPerform('delete');
+
+if (result.allowed === false) {
+  throw new Error(result.message);
+}
+```
+
+## Complete Example
+
+```javascript
+const { PermissionMode } = require('.aiox-core/core/permissions/permission-mode');
+
+// Initialize
+const permissions = new PermissionMode();
+await permissions.load();
+
+// Display current mode with badge
+const badge = permissions.getBadge();
+console.log(`Current mode: ${badge}`);
+
+// Check if operation is allowed
+const operation = 'write';
+const check = permissions.canPerform(operation);
+
+if (check.allowed === false) {
+  console.error('❌', check.message);
+  process.exit(1);
+} else if (check.allowed === 'confirm') {
+  console.log('⚠️', check.message);
+  const confirmed = await confirmOperation(operation);
+  
+  if (!confirmed) {
+    console.log('Operation cancelled by user');
+    process.exit(0);
+  }
+}
+
+// Perform operation
+console.log('✅ Performing operation...');
+performOperation();
+```
+
+## Agent Integration
+
+### Greeting Badge
+
+Display permission mode in agent greeting:
+
+```javascript
+const { PermissionMode } = require('.aiox-core/core/permissions/permission-mode');
+
+const permissions = new PermissionMode();
+await permissions.load();
+
+const badge = permissions.getBadge();
+const greeting = `💻 Dex the Builder ready! ${badge}`;
+
+console.log(greeting);
+// 💻 Dex the Builder ready! [⚠️ Ask]
+```
+
+### Operation Gating
+
+Gate operations based on permission mode:
+
+```javascript
+const writeFile = async (path, content) => {
+  const check = permissions.canPerform('write');
+  
+  if (check.allowed === false) {
+    throw new Error(check.message);
+  }
+  
+  if (check.allowed === 'confirm') {
+    const confirmed = await askUser(`Write to ${path}?`);
+    if (!confirmed) {
+      throw new Error('User cancelled operation');
+    }
+  }
+  
+  // Perform write
+  await fs.writeFile(path, content);
+};
+```
+
+### Mode Switching
+
+Provide commands for mode switching:
+
+```javascript
+// User command: *mode auto
+const handleModeCommand = async (args) => {
+  const permissions = new PermissionMode();
+  
+  if (!args[0]) {
+    // Show current mode
+    const info = permissions.getModeInfo();
+    console.log(`Current mode: ${info.icon} ${info.name}`);
+    console.log(info.description);
+    return;
+  }
+  
+  // Change mode
+  try {
+    const newMode = await permissions.setMode(args[0]);
+    console.log(`✅ Switched to ${newMode.icon} ${newMode.name} mode`);
+    console.log(newMode.description);
+  } catch (error) {
+    console.error('❌', error.message);
+  }
+};
+```
+
+## Config Storage
+
+Permission mode is stored in `.aiox/config.yaml`:
+
+```yaml
+permissions:
+  mode: ask
+```
+
+The mode persists across agent sessions and can be changed at any time.
+
+## Best Practices
+
+1. **Default to Ask** - Use 'ask' mode by default for safety
+2. **Clear Feedback** - Always inform user when confirmation is required
+3. **Badge Display** - Show current mode in agent greeting
+4. **Quick Toggle** - Provide `*mode` command for easy switching
+5. **Respect Blocks** - Never bypass blocked operations
+6. **Audit Trail** - Log permission checks for security audits
+7. **User Control** - Let users choose their comfort level

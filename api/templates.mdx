@@ -1,0 +1,599 @@
+---
+title: "Templates API"
+description: "Template system for code and document generation"
+icon: "file-code"
+---
+
+## Overview
+
+The AIOX template system provides reusable templates for generating agents, tasks, documents, and code with variable substitution and conditional logic.
+
+## Template Locations
+
+Templates are stored in `.aiox-core/development/templates/`:
+
+```
+.aiox-core/development/templates/
+├── agent-handoff-tmpl.yaml
+├── aiox-doc-template.md
+├── research-prompt-tmpl.md
+├── ptc-qa-gate.md
+├── service-template/
+│   ├── README.md.hbs
+│   ├── client.ts.hbs
+│   └── __tests__/index.test.ts.hbs
+└── ...
+```
+
+## Template Formats
+
+### Markdown Templates
+
+Simple text-based templates with variable placeholders.
+
+```markdown
+# {{title}}
+
+**Author:** {{author}}
+**Date:** {{date}}
+
+## Overview
+
+{{description}}
+
+## Details
+
+{{#if includeDetails}}
+{{details}}
+{{/if}}
+```
+
+### YAML Templates
+
+Structured configuration templates.
+
+```yaml
+handoff:
+  version: "1.0"
+  timestamp: "{{timestamp}}"
+  from_agent: "{{fromAgent}}"
+  to_agent: "{{toAgent}}"
+  
+  story_context:
+    story_id: "{{storyId}}"
+    branch: "{{branch}}"
+  
+  decisions:
+    {{#each decisions}}
+    - "{{this}}"
+    {{/each}}
+```
+
+### Handlebars Templates (.hbs)
+
+Advanced templates with full Handlebars support.
+
+```typescript
+// client.ts.hbs
+import { {{serviceName}}Config } from './types';
+
+export class {{serviceName}}Client {
+  private config: {{serviceName}}Config;
+  
+  constructor(config: {{serviceName}}Config) {
+    this.config = config;
+  }
+  
+  {{#each methods}}
+  async {{name}}({{#each params}}{{name}}: {{type}}{{#unless @last}}, {{/unless}}{{/each}}): Promise<{{returnType}}> {
+    // Implementation
+  }
+  {{/each}}
+}
+```
+
+## Variable Substitution
+
+### Simple Variables
+
+Use double curly braces for variable replacement:
+
+```javascript
+const template = 'Hello, {{name}}!';
+const variables = { name: 'World' };
+const result = substituteVariables(template, variables);
+// Result: 'Hello, World!'
+```
+
+### Nested Variables
+
+Access nested object properties:
+
+```javascript
+const template = 'User: {{user.name}} ({{user.email}})';
+const variables = {
+  user: {
+    name: 'John Doe',
+    email: 'john@example.com'
+  }
+};
+// Result: 'User: John Doe (john@example.com)'
+```
+
+### Array Iteration
+
+Iterate over arrays:
+
+```javascript
+const template = `
+Files:
+{{#each files}}
+- {{this}}
+{{/each}}
+`;
+
+const variables = {
+  files: ['file1.ts', 'file2.ts', 'file3.ts']
+};
+
+// Result:
+// Files:
+// - file1.ts
+// - file2.ts
+// - file3.ts
+```
+
+### Conditional Blocks
+
+Conditional rendering:
+
+```javascript
+const template = `
+{{#if hasBlocekrs}}
+## Blockers
+{{#each blockers}}
+- {{this}}
+{{/each}}
+{{/if}}
+`;
+
+const variables = {
+  hasBlockers: true,
+  blockers: ['Issue 1', 'Issue 2']
+};
+```
+
+## Template Loading
+
+### Load Template
+
+```javascript
+const fs = require('fs-extra');
+const path = require('path');
+
+const loadTemplate = async (templateName) => {
+  const templatePath = path.join(
+    '.aiox-core/development/templates',
+    templateName
+  );
+  
+  return await fs.readFile(templatePath, 'utf-8');
+};
+
+// Usage
+const template = await loadTemplate('agent-handoff-tmpl.yaml');
+```
+
+### Load Template Directory
+
+```javascript
+const loadTemplateDir = async (dirName) => {
+  const templateDir = path.join(
+    '.aiox-core/development/templates',
+    dirName
+  );
+  
+  const files = await fs.readdir(templateDir);
+  const templates = {};
+  
+  for (const file of files) {
+    const filePath = path.join(templateDir, file);
+    const stat = await fs.stat(filePath);
+    
+    if (stat.isFile()) {
+      templates[file] = await fs.readFile(filePath, 'utf-8');
+    }
+  }
+  
+  return templates;
+};
+
+// Usage
+const serviceTemplates = await loadTemplateDir('service-template');
+console.log(Object.keys(serviceTemplates));
+// ['README.md.hbs', 'client.ts.hbs', 'index.test.ts.hbs']
+```
+
+## Template Processing
+
+### Simple Substitution
+
+```javascript
+const substituteVariables = (template, variables) => {
+  return template.replace(/{{(\w+)}}/g, (match, key) => {
+    return variables[key] || match;
+  });
+};
+
+// Usage
+const template = 'Agent: {{agentId}}, Title: {{title}}';
+const result = substituteVariables(template, {
+  agentId: 'dev',
+  title: 'Developer'
+});
+// Result: 'Agent: dev, Title: Developer'
+```
+
+### Handlebars Processing
+
+```javascript
+const Handlebars = require('handlebars');
+
+const processHandlebarsTemplate = (template, variables) => {
+  const compiled = Handlebars.compile(template);
+  return compiled(variables);
+};
+
+// Usage
+const template = `
+# {{title}}
+
+{{#each items}}
+- {{name}}: {{description}}
+{{/each}}
+`;
+
+const result = processHandlebarsTemplate(template, {
+  title: 'My Document',
+  items: [
+    { name: 'Item 1', description: 'Description 1' },
+    { name: 'Item 2', description: 'Description 2' }
+  ]
+});
+```
+
+### Custom Helpers
+
+```javascript
+// Register custom helpers
+Handlebars.registerHelper('uppercase', (str) => {
+  return str.toUpperCase();
+});
+
+Handlebars.registerHelper('kebabCase', (str) => {
+  return str.toLowerCase().replace(/\s+/g, '-');
+});
+
+Handlebars.registerHelper('timestamp', () => {
+  return new Date().toISOString();
+});
+
+// Use in template
+const template = `
+Agent ID: {{kebabCase title}}
+Agent Name: {{uppercase title}}
+Created: {{timestamp}}
+`;
+
+const result = processHandlebarsTemplate(template, {
+  title: 'Data Analyst'
+});
+// Result:
+// Agent ID: data-analyst
+// Agent Name: DATA ANALYST
+// Created: 2026-03-05T14:30:00.000Z
+```
+
+## Built-in Templates
+
+### Agent Handoff Template
+
+```yaml
+# agent-handoff-tmpl.yaml
+handoff:
+  version: "1.0"
+  timestamp: "{{timestamp}}"
+  from_agent: "{{fromAgent}}"
+  to_agent: "{{toAgent}}"
+  
+  story_context:
+    story_id: "{{storyId}}"
+    story_path: "{{storyPath}}"
+    story_status: "{{storyStatus}}"
+    current_task: "{{currentTask}}"
+    branch: "{{branch}}"
+  
+  decisions:
+    {{#each decisions}}
+    - "{{this}}"
+    {{/each}}
+  
+  files_modified:
+    {{#each filesModified}}
+    - "{{this}}"
+    {{/each}}
+  
+  blockers:
+    {{#each blockers}}
+    - "{{this}}"
+    {{/each}}
+  
+  next_action: "{{nextAction}}"
+```
+
+### Documentation Template
+
+```markdown
+# \{\{title\}\}
+
+**Author:** \{\{author\}\}
+**Date:** \{\{date\}\}
+**Version:** \{\{version\}\}
+
+## Overview
+
+\{\{overview\}\}
+
+## Features
+
+\{\{#each features\}\}
+- **\{\{name\}\}**: \{\{description\}\}
+\{\{/each\}\}
+
+## Usage
+
+\`\`\`\{\{language\}\}
+\{\{usageExample\}\}
+\`\`\`
+
+## API Reference
+
+\{\{#each apiMethods\}\}
+### \{\{name\}\}
+
+\{\{description\}\}
+
+**Parameters:**
+\{\{#each parameters\}\}
+- \`\{\{name\}\}\` (\{\{type\}\}): \{\{description\}\}
+\{\{/each\}\}
+
+**Returns:** \{\{returnType\}\}
+
+\{\{/each\}\}
+```
+
+### Service Template
+
+```typescript
+// service-template/client.ts.hbs
+import axios, { AxiosInstance } from 'axios';
+import { {{serviceName}}Config, {{#each types}}{{this}}{{#unless @last}}, {{/unless}}{{/each}} } from './types';
+
+export class {{serviceName}}Client {
+  private client: AxiosInstance;
+  private config: {{serviceName}}Config;
+  
+  constructor(config: {{serviceName}}Config) {
+    this.config = config;
+    this.client = axios.create({
+      baseURL: config.baseURL,
+      timeout: config.timeout || 5000,
+      headers: {
+        'Content-Type': 'application/json',
+        ...config.headers
+      }
+    });
+  }
+  
+  {{#each methods}}
+  /**
+   * {{description}}
+   {{#each params}}
+   * @param {{name}} - {{description}}
+   {{/each}}
+   * @returns {{returnDescription}}
+   */
+  async {{name}}(
+    {{#each params}}
+    {{name}}: {{type}}{{#unless @last}},{{/unless}}
+    {{/each}}
+  ): Promise<{{returnType}}> {
+    const response = await this.client.{{httpMethod}}(
+      '{{endpoint}}',
+      {{#if hasBody}}{ {{#each bodyParams}}{{name}}{{#unless @last}}, {{/unless}}{{/each}} }{{/if}}
+    );
+    
+    return response.data;
+  }
+  
+  {{/each}}
+}
+```
+
+## Template Generation
+
+### Generate from Template
+
+```javascript
+const generateFromTemplate = async (templateName, variables, outputPath) => {
+  // Load template
+  const template = await loadTemplate(templateName);
+  
+  // Process template
+  const content = processHandlebarsTemplate(template, variables);
+  
+  // Write output
+  await fs.ensureDir(path.dirname(outputPath));
+  await fs.writeFile(outputPath, content, 'utf-8');
+  
+  console.log(`✅ Generated: ${outputPath}`);
+};
+
+// Usage
+await generateFromTemplate(
+  'agent-handoff-tmpl.yaml',
+  {
+    timestamp: new Date().toISOString(),
+    fromAgent: 'dev',
+    toAgent: 'qa',
+    storyId: 'FEAT-123',
+    decisions: [
+      'Used JWT for authentication',
+      'Implemented rate limiting'
+    ]
+  },
+  '.aiox/handoffs/handoff-dev-to-qa.yaml'
+);
+```
+
+### Batch Generation
+
+```javascript
+const generateMultipleFiles = async (templateDir, variables, outputDir) => {
+  const templates = await loadTemplateDir(templateDir);
+  
+  for (const [filename, template] of Object.entries(templates)) {
+    // Remove .hbs extension
+    const outputFilename = filename.replace(/\.hbs$/, '');
+    const outputPath = path.join(outputDir, outputFilename);
+    
+    // Process template
+    const content = processHandlebarsTemplate(template, variables);
+    
+    // Write file
+    await fs.ensureDir(path.dirname(outputPath));
+    await fs.writeFile(outputPath, content, 'utf-8');
+    
+    console.log(`✅ Generated: ${outputPath}`);
+  }
+};
+
+// Usage: Generate service from template
+await generateMultipleFiles(
+  'service-template',
+  {
+    serviceName: 'User',
+    types: ['UserCreateRequest', 'UserUpdateRequest', 'UserResponse'],
+    methods: [
+      {
+        name: 'createUser',
+        description: 'Create a new user',
+        httpMethod: 'post',
+        endpoint: '/users',
+        hasBody: true,
+        params: [
+          { name: 'data', type: 'UserCreateRequest', description: 'User data' }
+        ],
+        bodyParams: ['data'],
+        returnType: 'UserResponse',
+        returnDescription: 'Created user'
+      }
+    ]
+  },
+  'src/services/user'
+);
+```
+
+## Complete Example
+
+```javascript
+const fs = require('fs-extra');
+const path = require('path');
+const Handlebars = require('handlebars');
+
+// Register helpers
+Handlebars.registerHelper('kebabCase', (str) => {
+  return str.toLowerCase().replace(/\s+/g, '-');
+});
+
+Handlebars.registerHelper('pascalCase', (str) => {
+  return str.replace(/\w+/g, (w) => 
+    w[0].toUpperCase() + w.slice(1).toLowerCase()
+  ).replace(/\s+/g, '');
+});
+
+Handlebars.registerHelper('timestamp', () => {
+  return new Date().toISOString();
+});
+
+// Template engine class
+class TemplateEngine {
+  constructor(templateRoot = '.aiox-core/development/templates') {
+    this.templateRoot = templateRoot;
+  }
+  
+  async load(templateName) {
+    const templatePath = path.join(this.templateRoot, templateName);
+    return await fs.readFile(templatePath, 'utf-8');
+  }
+  
+  process(template, variables) {
+    const compiled = Handlebars.compile(template);
+    return compiled(variables);
+  }
+  
+  async generate(templateName, variables, outputPath) {
+    const template = await this.load(templateName);
+    const content = this.process(template, variables);
+    
+    await fs.ensureDir(path.dirname(outputPath));
+    await fs.writeFile(outputPath, content, 'utf-8');
+    
+    return outputPath;
+  }
+}
+
+// Usage
+const engine = new TemplateEngine();
+
+// Generate handoff artifact
+await engine.generate(
+  'agent-handoff-tmpl.yaml',
+  {
+    timestamp: new Date().toISOString(),
+    fromAgent: 'dev',
+    toAgent: 'qa',
+    storyId: 'FEAT-123',
+    storyPath: 'docs/stories/feat-auth.md',
+    storyStatus: 'Implementation Complete',
+    currentTask: 'Integration tests',
+    branch: 'feat/user-auth',
+    decisions: [
+      'Used JWT tokens for sessions',
+      'Implemented OAuth2 with GitHub'
+    ],
+    filesModified: [
+      'src/auth/jwt-service.ts',
+      'src/auth/oauth-provider.ts'
+    ],
+    blockers: [
+      'OAuth callback URL needs production domain'
+    ],
+    nextAction: 'Run QA gate with focus on OAuth flows'
+  },
+  '.aiox/handoffs/handoff-dev-to-qa-123.yaml'
+);
+
+console.log('✅ Handoff artifact generated');
+```
+
+## Best Practices
+
+1. **Clear Variable Names** - Use descriptive variable names
+2. **Default Values** - Provide defaults for optional variables
+3. **Validation** - Validate variables before processing
+4. **Documentation** - Document required variables in template header
+5. **Reusability** - Design templates for multiple use cases
+6. **Versioning** - Include version field in templates
+7. **Testing** - Test templates with various input combinations

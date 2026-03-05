@@ -1,0 +1,532 @@
+---
+title: Creating Agents
+description: Complete guide to creating custom agents in Synkra AIOX
+icon: robot
+---
+
+# Creating Agents
+
+Learn how to create custom agents with specialized personas, commands, and workflows in Synkra AIOX.
+
+## Overview
+
+AIOX agents are specialized AI personas with:
+- **Identity** - Name, role, personality, and voice
+- **Commands** - Executable actions with `*` prefix
+- **Tasks** - Step-by-step workflows
+- **Dependencies** - Files, tools, and integrations
+- **Quality Gates** - Validation and completion criteria
+
+## Agent File Structure
+
+Agents are defined in Markdown files with embedded YAML configuration:
+
+```markdown
+# agent-name
+
+ACTIVATION-NOTICE: This file contains your full agent operating guidelines.
+
+```yaml
+activation-instructions:
+  - STEP 1: Read THIS ENTIRE FILE
+  - STEP 2: Adopt the persona defined below
+  - STEP 3: Display greeting
+  - STEP 4: HALT and await user input
+
+agent:
+  name: Agent Name
+  id: agent-id
+  title: Agent Title
+  icon: 🤖
+  whenToUse: 'Use when...'
+
+persona:
+  role: Expert role description
+  style: Communication style
+  identity: Core essence
+  focus: Primary objective
+
+core_principles:
+  - Principle 1
+  - Principle 2
+
+commands:
+  - name: help
+    visibility: [full, quick, key]
+    description: 'Show all available commands'
+  - name: custom-action
+    visibility: [full, quick]
+    description: 'Perform custom action'
+
+dependencies:
+  tasks:
+    - task-file.md
+  templates:
+    - template-file.md
+  checklists:
+    - checklist-file.md
+```
+```
+
+## Creating Your First Agent
+
+<Steps>
+<Step title="Define Agent Purpose">
+Start by clearly defining what your agent will do:
+
+```yaml
+agent:
+  name: DataFlow
+  id: data-flow
+  title: Data Pipeline Engineer
+  icon: 🔄
+  whenToUse: 'Use for data pipelines, ETL, and data transformations'
+```
+</Step>
+<Step title="Create Agent Persona">
+
+Define how your agent thinks and communicates:
+
+```yaml
+persona:
+  role: Expert Data Engineer specializing in scalable pipelines
+  style: Technical, precise, performance-focused
+  identity: Builder of efficient data flows
+  focus: Reliability, scalability, monitoring
+
+persona_profile:
+  archetype: Engineer
+  communication:
+    tone: technical
+    emoji_frequency: low
+    vocabulary:
+      - pipeline
+      - transform
+      - optimize
+      - monitor
+    greeting_levels:
+      minimal: '🔄 data-flow Agent ready'
+      named: '🔄 DataFlow ready to build pipelines!'
+      archetypal: '🔄 DataFlow the Engineer ready!'
+    signature_closing: '— DataFlow, optimizing data flows'
+```
+</Step>
+
+<Step title="Add Core Principles">
+
+Define the agent's operating philosophy:
+
+```yaml
+core_principles:
+  - Data quality over speed
+  - Monitor everything
+  - Design for failure
+  - Document transformations
+  - Test with real data
+```
+</Step>
+
+<Step title="Define Commands">
+
+Commands are actions users can invoke with `*` prefix:
+
+```yaml
+commands:
+  # Core commands (every agent needs these)
+  - name: help
+    visibility: [full, quick, key]
+    description: 'Show all available commands'
+  - name: guide
+    visibility: [full]
+    description: 'Show comprehensive usage guide'
+  - name: exit
+    visibility: [full, quick, key]
+    description: 'Exit agent mode'
+
+  # Custom commands
+  - name: create-pipeline
+    visibility: [full, quick, key]
+    description: 'Create new data pipeline'
+  - name: optimize-query
+    visibility: [full, quick]
+    description: 'Optimize SQL query performance'
+  - name: monitor-pipeline
+    visibility: [full]
+    description: 'Set up pipeline monitoring'
+```
+
+**Visibility Levels:**
+- `key` - Shown in activation greeting (3-5 most important)
+- `quick` - Shown in quick help
+- `full` - Shown in full help only
+</Step>
+
+<Step title="Create Task Files">
+
+For each operational command, create a task file:
+
+```markdown title=".aiox-core/development/tasks/data-flow-create-pipeline.md"
+# Task: Create Data Pipeline
+
+**Task ID:** data-flow-create-pipeline
+**Version:** 1.0
+**Purpose:** Create a new data pipeline with transformation logic
+
+## Inputs
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| source | string | Yes | Data source (database, API, file) |
+| target | string | Yes | Target destination |
+| transformations | array | No | List of transformations |
+
+## Steps
+
+### Step 1: Validate Source Connection
+
+**Actions:**
+- Test connectivity to source
+- Validate credentials
+- Check data schema
+
+### Step 2: Design Transformation Logic
+
+**Actions:**
+- Analyze source data structure
+- Define transformation steps
+- Identify data quality rules
+
+### Step 3: Implement Pipeline
+
+**Actions:**
+- Generate pipeline code
+- Add error handling
+- Implement retry logic
+- Add monitoring hooks
+
+### Step 4: Test Pipeline
+
+**Actions:**
+- Run with sample data
+- Validate output format
+- Check performance metrics
+
+## Validation Criteria
+
+- [ ] Pipeline runs successfully
+- [ ] All transformations applied correctly
+- [ ] Error handling tested
+- [ ] Monitoring configured
+- [ ] Documentation complete
+
+## Output
+
+Pipeline code, configuration, and documentation.
+```
+</Step>
+
+<Step title="Add Dependencies">
+
+Link tasks, templates, and tools:
+
+```yaml
+dependencies:
+  tasks:
+    - data-flow-create-pipeline.md
+    - data-flow-optimize-query.md
+    - execute-checklist.md
+  templates:
+    - pipeline-config-tmpl.yaml
+    - monitoring-setup-tmpl.md
+  checklists:
+    - pipeline-quality-gate.md
+  tools:
+    - git
+    - supabase
+    - context7
+```
+</Step>
+
+<Step title="Save Agent File">
+Save your agent to the appropriate location:
+
+```bash
+# For AIOX core agents
+.aiox-core/development/agents/data-flow.md
+
+# For squad-specific agents
+squads/{squad-name}/agents/data-flow.md
+```
+</Step>
+</Steps>
+
+## Advanced Features
+
+### Activation Instructions
+
+Customize what happens when your agent activates:
+
+```yaml
+activation-instructions:
+  - STEP 1: Read THIS ENTIRE FILE
+  - STEP 2: Adopt the persona defined in 'agent' and 'persona' sections
+  - STEP 3: |
+      Display greeting:
+      1. Show: "{icon} {greeting_level}"
+      2. Show: "**Role:** {persona.role}"
+      3. Show: "**Available Commands:**" (list key commands)
+      4. Show: "Type `*guide` for comprehensive usage instructions."
+  - STEP 4: Display the greeting
+  - STEP 5: HALT and await user input
+  - IMPORTANT: Do NOT improvise beyond specified greeting
+  - STAY IN CHARACTER!
+```
+
+### Permission Modes
+
+Control agent autonomy:
+
+```yaml
+permission_modes:
+  ask: 'Ask before each action (default)'
+  auto: 'Execute autonomously with logging'
+  explore: 'Read-only exploration mode'
+
+current_mode: ask
+
+mode_badges:
+  ask: '[⚠️ Ask]'
+  auto: '[🟢 Auto]'
+  explore: '[🔍 Explore]'
+```
+
+### Memory Integration
+
+Enable agent memory:
+
+```yaml
+memory:
+  enabled: true
+  context_files:
+    - '.aiox/memory/{agent-id}-context.json'
+  preferences_file: '.aiox/memory/{agent-id}-prefs.yaml'
+  remember:
+    - user_preferences
+    - common_patterns
+    - recent_decisions
+```
+
+### Git Restrictions
+
+Define allowed/blocked git operations:
+
+```yaml
+git_restrictions:
+  allowed_operations:
+    - git add
+    - git commit
+    - git status
+    - git diff
+  blocked_operations:
+    - git push  # Only @github-devops can push
+    - git push --force
+  workflow: |
+    When ready to push:
+    1. Mark work complete
+    2. Notify user: "Activate @github-devops to push changes"
+    3. DO NOT attempt git push
+```
+
+## Agent Quality Standards
+
+Your agent should meet these criteria:
+
+<AccordionGroup>
+
+<Accordion title="Structure Requirements">
+- **Lines:** Minimum 300 lines for full agent
+- **Sections:** All required sections present
+- **YAML:** Valid YAML block
+- **Commands:** At least 3 operational commands
+</Accordion>
+
+<Accordion title="Content Requirements">
+- **Persona:** Clear role and style
+- **Principles:** 5-10 core principles
+- **Commands:** Descriptions for all commands
+- **Dependencies:** All referenced files exist
+- **Examples:** Real usage examples
+</Accordion>
+
+<Accordion title="Voice Consistency">
+- **Vocabulary:** Consistent domain terms
+- **Tone:** Matches persona style
+- **Greetings:** Appropriate to character
+- **Signature:** Unique closing
+</Accordion>
+
+</AccordionGroup>
+
+## Testing Your Agent
+
+### Manual Testing
+
+```bash
+# Activate agent in Claude Code
+/data-flow
+
+# Or in Codex CLI
+/skills
+# Select aiox-data-flow
+
+# Test key commands
+*help
+*create-pipeline
+*exit
+```
+
+### Validation
+
+```bash
+# Validate agent file structure
+npm run validate:agent data-flow
+
+# Check quality score
+npm run quality:agent data-flow
+
+# Test in isolation
+npm run test:agent data-flow
+```
+
+## IDE Integration
+
+Your agent automatically syncs to configured IDEs:
+
+```bash
+# Sync to all IDEs
+npm run sync:ide
+
+# Sync to specific IDE
+npm run sync:ide:claude
+npm run sync:ide:gemini
+npm run sync:ide:codex
+
+# Verify sync
+npm run sync:ide:check
+```
+
+**Agent locations after sync:**
+- **Claude Code:** `.claude/commands/AIOX/agents/data-flow.md`
+- **Gemini CLI:** `.gemini/rules/AIOX/agents/data-flow.md`
+- **Codex CLI:** `.codex/agents/data-flow.md`
+
+## Examples from AIOX
+
+Study these production agents:
+
+### Developer Agent
+
+**Location:** `.aiox-core/development/agents/dev.md`
+
+**Key Features:**
+- Story-driven development workflow
+- Quality gates with CodeRabbit integration
+- Git restrictions (no push)
+- Autonomous build modes
+- Recovery system for stuck tasks
+
+**Commands:** `*develop`, `*run-tests`, `*apply-qa-fixes`, `*build`
+
+### Architect Agent
+
+**Location:** `.aiox-core/development/agents/architect.md`
+
+**Key Features:**
+- System design and architecture decisions
+- Impact analysis across layers
+- ADR (Architecture Decision Record) creation
+- Technology selection frameworks
+
+**Commands:** `*design`, `*analyze-impact`, `*create-adr`
+
+### QA Agent
+
+**Location:** `.aiox-core/development/agents/qa.md`
+
+**Key Features:**
+- Test plan generation
+- Automated test execution
+- Bug report creation
+- QA feedback loop
+
+**Commands:** `*review`, `*test-plan`, `*create-bug-report`
+
+## Agent Naming Conventions
+
+**File naming:**
+- Agent file: `agent-id.md` (kebab-case)
+- Task files: `agent-id-action.md` (prefixed with agent ID)
+- Shared tasks: `action.md` (no prefix)
+
+**ID format:**
+- Use kebab-case: `data-flow`, `ux-design-expert`
+- Keep short and memorable
+- Avoid generic names
+
+## Best Practices
+
+<CardGroup cols={2}>
+
+<Card title="Clear Purpose" icon="bullseye">
+Define a specific, focused purpose for your agent. Avoid "general purpose" agents.
+</Card>
+
+<Card title="Rich Persona" icon="theater-masks">
+Create a distinctive personality with consistent voice, vocabulary, and style.
+</Card>
+
+<Card title="Actionable Commands" icon="terminal">
+Provide commands that perform concrete actions, not just information retrieval.
+</Card>
+
+<Card title="Quality Gates" icon="shield-check">
+Define clear completion criteria and validation checklists.
+</Card>
+
+<Card title="Task-Driven" icon="list-check">
+Create detailed task files for each operational command.
+</Card>
+
+<Card title="Documentation" icon="book">
+Include usage examples and comprehensive guide section.
+</Card>
+
+</CardGroup>
+
+## Next Steps
+
+<CardGroup cols={2}>
+
+<Card title="Writing Tasks" icon="clipboard-list" href="/guides/writing-tasks">
+Learn how to create task files for your agent commands
+</Card>
+
+<Card title="Creating Squads" icon="users" href="/guides/creating-squads">
+Organize multiple agents into cohesive squads
+</Card>
+
+<Card title="Hooks & Lifecycle" icon="link" href="/guides/hooks-and-lifecycle">
+Add automation with lifecycle hooks
+</Card>
+
+<Card title="IDE Integration" icon="window" href="/guides/ide-integration">
+Deploy your agent across multiple IDEs
+</Card>
+
+</CardGroup>
+
+## Reference
+
+- [Agent Template](https://github.com/synkra-ai/aiox-core/blob/main/development/templates/agent-template.md)
+- [create-agent.md Task](https://github.com/synkra-ai/aiox-core/blob/main/development/tasks/create-agent.md)
+- [Agent Quality Standards](https://github.com/synkra-ai/aiox-core/blob/main/data/quality-dimensions-framework.md)

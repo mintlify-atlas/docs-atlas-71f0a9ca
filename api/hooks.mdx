@@ -1,0 +1,542 @@
+---
+title: "Hooks API"
+description: "Hook system for extending agent behavior and workflow"
+icon: "link"
+---
+
+## Overview
+
+The Hook system provides extension points throughout the AIOX framework, allowing custom code to execute at key lifecycle events. Hooks enable code intelligence injection, validation, logging, and workflow customization.
+
+## Hook Runtime
+
+The hook runtime provides code intelligence context for file operations.
+
+### resolveCodeIntel
+
+Resolve code intelligence context for a file being written or edited.
+
+<ParamField path="filePath" type="string" required>
+  Absolute or relative path to the target file
+</ParamField>
+
+<ParamField path="cwd" type="string" required>
+  Project root / working directory
+</ParamField>
+
+<ResponseField name="intel" type="Object">
+  <ResponseField name="entity" type="Object">
+    Entity definition (path, layer, purpose, type)
+  </ResponseField>
+  <ResponseField name="references" type="Array">
+    Files that reference this entity
+  </ResponseField>
+  <ResponseField name="dependencies" type="Object">
+    Dependency graph with nodes and edges
+  </ResponseField>
+</ResponseField>
+
+```javascript
+const { resolveCodeIntel } = require('.aiox-core/core/code-intel/hook-runtime');
+
+const intel = await resolveCodeIntel(
+  'src/services/UserService.ts',
+  process.cwd()
+);
+
+if (intel) {
+  console.log('Entity:', intel.entity?.file);
+  console.log('Purpose:', intel.entity?.context);
+  console.log('Referenced by:', intel.references?.length, 'files');
+  console.log('Dependencies:', intel.dependencies?.nodes?.length);
+}
+```
+
+### formatAsXml
+
+Format code intelligence data as XML for injection into AI context.
+
+<ParamField path="intel" type="Object" required>
+  Result from resolveCodeIntel()
+</ParamField>
+
+<ParamField path="filePath" type="string" required>
+  Target file path (for display)
+</ParamField>
+
+<ResponseField name="xml" type="string">
+  XML string or null if no data
+</ResponseField>
+
+```javascript
+const { resolveCodeIntel, formatAsXml } = require('.aiox-core/core/code-intel/hook-runtime');
+
+const intel = await resolveCodeIntel('src/services/UserService.ts', process.cwd());
+const xml = formatAsXml(intel, 'src/services/UserService.ts');
+
+if (xml) {
+  console.log(xml);
+}
+```
+
+**Example Output:**
+
+```xml
+<code-intel-context>
+  <target-file>src/services/UserService.ts</target-file>
+  <existing-entity>
+    <path>src/services/UserService.ts</path>
+    <purpose>User management service</purpose>
+  </existing-entity>
+  <referenced-by count="5">
+    <ref file="src/api/users.ts" context="API endpoint" />
+    <ref file="src/auth/auth-service.ts" context="Authentication" />
+    <ref file="tests/unit/user-service.test.ts" context="Unit tests" />
+  </referenced-by>
+  <dependencies count="3">
+    <dep name="UserRepository" layer="L2-DATA" />
+    <dep name="ValidationService" layer="L3-DOMAIN" />
+    <dep name="Logger" layer="L6-INFRA" />
+  </dependencies>
+</code-intel-context>
+```
+
+### escapeXml
+
+Escape special XML characters for safe injection.
+
+<ParamField path="str" type="string" required>
+  String to escape
+</ParamField>
+
+<ResponseField name="escaped" type="string">
+  XML-safe string
+</ResponseField>
+
+```javascript
+const { escapeXml } = require('.aiox-core/core/code-intel/hook-runtime');
+
+const safe = escapeXml('User & Admin <roles>');
+console.log(safe);
+// Output: User &amp; Admin &lt;roles&gt;
+```
+
+## Hook Types
+
+### Pre-Write Hook
+
+Executed before writing a file, provides code intelligence context.
+
+```javascript
+const preWriteHook = async (filePath, content, context) => {
+  // Resolve code intelligence
+  const intel = await resolveCodeIntel(filePath, context.cwd);
+  
+  if (intel) {
+    // Inject code intelligence into AI context
+    const xml = formatAsXml(intel, filePath);
+    
+    if (xml) {
+      context.additionalContext = xml;
+    }
+  }
+  
+  return { filePath, content, context };
+};
+```
+
+### Post-Write Hook
+
+Executed after writing a file, useful for logging and validation.
+
+```javascript
+const postWriteHook = async (filePath, content, result) => {
+  console.log(`✅ Wrote ${filePath} (${content.length} bytes)`);
+  
+  // Log to audit trail
+  await logFileChange({
+    action: 'write',
+    file: filePath,
+    timestamp: new Date().toISOString(),
+    size: content.length
+  });
+  
+  return result;
+};
+```
+
+### Pre-Command Hook
+
+Executed before running a command.
+
+```javascript
+const preCommandHook = async (command, args, context) => {
+  console.log(`🔄 Executing: ${command} ${args.join(' ')}`);
+  
+  // Validate permissions
+  const permissions = context.permissions;
+  const check = permissions.canPerform('execute');
+  
+  if (check.allowed === false) {
+    throw new Error(check.message);
+  }
+  
+  if (check.allowed === 'confirm') {
+    const confirmed = await confirmExecution(command, args);
+    if (!confirmed) {
+      throw new Error('User cancelled execution');
+    }
+  }
+  
+  return { command, args, context };
+};
+```
+
+### Post-Command Hook
+
+Executed after command completion.
+
+```javascript
+const postCommandHook = async (command, args, result, duration) => {
+  console.log(`✅ Completed: ${command} (${duration}ms)`);
+  
+  // Log command execution
+  await logCommandExecution({
+    command,
+    args,
+    success: result.success,
+    duration,
+    timestamp: new Date().toISOString()
+  });
+  
+  return result;
+};
+```
+
+### Validation Hook
+
+Validate data before processing.
+
+```javascript
+const validationHook = async (data, schema) => {
+  const errors = [];
+  
+  // Validate required fields
+  for (const field of schema.required || []) {
+    if (!data[field]) {
+      errors.push(`Missing required field: ${field}`);
+    }
+  }
+  
+  // Validate types
+  for (const [field, type] of Object.entries(schema.types || {})) {
+    if (data[field] && typeof data[field] !== type) {
+      errors.push(`Invalid type for ${field}: expected ${type}`);
+    }
+  }
+  
+  if (errors.length > 0) {
+    throw new Error(`Validation failed: ${errors.join(', ')}`);
+  }
+  
+  return data;
+};
+```
+
+## Hook Registration
+
+### Register Hook
+
+```javascript
+class HookRegistry {
+  constructor() {
+    this.hooks = {
+      preWrite: [],
+      postWrite: [],
+      preCommand: [],
+      postCommand: [],
+      validation: []
+    };
+  }
+  
+  register(hookType, hookFn) {
+    if (!this.hooks[hookType]) {
+      throw new Error(`Unknown hook type: ${hookType}`);
+    }
+    
+    this.hooks[hookType].push(hookFn);
+  }
+  
+  async execute(hookType, ...args) {
+    const hooks = this.hooks[hookType] || [];
+    
+    let result = args;
+    for (const hook of hooks) {
+      result = await hook(...result);
+    }
+    
+    return result;
+  }
+}
+
+// Usage
+const registry = new HookRegistry();
+
+// Register hooks
+registry.register('preWrite', preWriteHook);
+registry.register('postWrite', postWriteHook);
+registry.register('preCommand', preCommandHook);
+registry.register('postCommand', postCommandHook);
+
+// Execute hooks
+const result = await registry.execute('preWrite', filePath, content, context);
+```
+
+## Code Intelligence Integration
+
+Hooks integrate with the code intelligence system to provide rich context.
+
+### File Write Hook with Code Intel
+
+```javascript
+const { resolveCodeIntel, formatAsXml } = require('.aiox-core/core/code-intel/hook-runtime');
+
+const codeIntelWriteHook = async (filePath, content, context) => {
+  // Resolve code intelligence
+  const intel = await resolveCodeIntel(filePath, context.cwd);
+  
+  if (!intel) {
+    // No code intelligence available
+    return { filePath, content, context };
+  }
+  
+  // Build context message
+  const messages = [];
+  
+  if (intel.entity) {
+    messages.push(`📝 Editing existing entity: ${intel.entity.file}`);
+    if (intel.entity.context) {
+      messages.push(`   Purpose: ${intel.entity.context}`);
+    }
+  }
+  
+  if (intel.references && intel.references.length > 0) {
+    messages.push(`🔗 Referenced by ${intel.references.length} files:`);
+    intel.references.slice(0, 3).forEach(ref => {
+      messages.push(`   - ${ref.file}`);
+    });
+    if (intel.references.length > 3) {
+      messages.push(`   ...and ${intel.references.length - 3} more`);
+    }
+  }
+  
+  if (intel.dependencies?.nodes?.length > 1) {
+    const depCount = intel.dependencies.nodes.length - 1;
+    messages.push(`🔗 Depends on ${depCount} entities`);
+  }
+  
+  if (messages.length > 0) {
+    console.log(messages.join('\n'));
+  }
+  
+  // Inject XML context for AI
+  const xml = formatAsXml(intel, filePath);
+  if (xml) {
+    context.codeIntelContext = xml;
+  }
+  
+  return { filePath, content, context };
+};
+```
+
+## Security Hooks
+
+### Path Traversal Prevention
+
+```javascript
+const securityHook = async (filePath, content, context) => {
+  // Check for path traversal
+  if (filePath.includes('..')) {
+    throw new Error('Path traversal detected: ' + filePath);
+  }
+  
+  // Check for absolute paths outside project
+  if (path.isAbsolute(filePath)) {
+    const relative = path.relative(context.cwd, filePath);
+    if (relative.startsWith('..')) {
+      throw new Error('Attempt to write outside project: ' + filePath);
+    }
+  }
+  
+  // Check file extension whitelist
+  const allowedExtensions = ['.ts', '.js', '.md', '.yaml', '.json'];
+  const ext = path.extname(filePath);
+  if (!allowedExtensions.includes(ext)) {
+    throw new Error('File extension not allowed: ' + ext);
+  }
+  
+  return { filePath, content, context };
+};
+```
+
+### Content Validation Hook
+
+```javascript
+const contentValidationHook = async (filePath, content, context) => {
+  // Check for secrets
+  const secretPatterns = [
+    /api[_-]?key\s*=\s*['"][^'"]+['"]/i,
+    /password\s*=\s*['"][^'"]+['"]/i,
+    /token\s*=\s*['"][^'"]+['"]/i
+  ];
+  
+  for (const pattern of secretPatterns) {
+    if (pattern.test(content)) {
+      console.warn(`⚠️ Possible secret detected in ${filePath}`);
+      
+      const confirmed = await confirmWrite(
+        'File may contain secrets. Continue?'
+      );
+      
+      if (!confirmed) {
+        throw new Error('Write cancelled: file may contain secrets');
+      }
+    }
+  }
+  
+  return { filePath, content, context };
+};
+```
+
+## Complete Example
+
+```javascript
+const { resolveCodeIntel, formatAsXml } = require('.aiox-core/core/code-intel/hook-runtime');
+const path = require('path');
+
+// Hook registry
+class HookSystem {
+  constructor() {
+    this.hooks = {
+      preWrite: [],
+      postWrite: [],
+      preCommand: [],
+      postCommand: []
+    };
+  }
+  
+  register(hookType, hookFn, options = {}) {
+    if (!this.hooks[hookType]) {
+      throw new Error(`Unknown hook type: ${hookType}`);
+    }
+    
+    this.hooks[hookType].push({
+      fn: hookFn,
+      priority: options.priority || 0,
+      name: options.name || hookFn.name
+    });
+    
+    // Sort by priority (higher first)
+    this.hooks[hookType].sort((a, b) => b.priority - a.priority);
+  }
+  
+  async execute(hookType, ...args) {
+    const hooks = this.hooks[hookType] || [];
+    
+    let result = args;
+    for (const { fn, name } of hooks) {
+      try {
+        result = await fn(...result);
+      } catch (error) {
+        console.error(`Hook ${name} failed:`, error.message);
+        throw error;
+      }
+    }
+    
+    return result;
+  }
+  
+  list(hookType) {
+    return this.hooks[hookType]?.map(h => h.name) || [];
+  }
+}
+
+// Create hook system
+const hooks = new HookSystem();
+
+// Register hooks
+hooks.register('preWrite', async (filePath, content, context) => {
+  console.log(`📋 Writing: ${filePath}`);
+  return [filePath, content, context];
+}, { name: 'log-write', priority: 10 });
+
+hooks.register('preWrite', async (filePath, content, context) => {
+  // Security check
+  if (filePath.includes('..')) {
+    throw new Error('Path traversal not allowed');
+  }
+  return [filePath, content, context];
+}, { name: 'security-check', priority: 100 });
+
+hooks.register('preWrite', async (filePath, content, context) => {
+  // Code intelligence
+  const intel = await resolveCodeIntel(filePath, context.cwd);
+  if (intel) {
+    context.codeIntel = formatAsXml(intel, filePath);
+  }
+  return [filePath, content, context];
+}, { name: 'code-intel', priority: 50 });
+
+hooks.register('postWrite', async (filePath, content, result) => {
+  console.log(`✅ Wrote: ${filePath} (${content.length} bytes)`);
+  return result;
+}, { name: 'log-complete' });
+
+// Execute write with hooks
+const writeFileWithHooks = async (filePath, content) => {
+  const context = {
+    cwd: process.cwd(),
+    timestamp: new Date().toISOString()
+  };
+  
+  // Execute pre-write hooks
+  const [processedPath, processedContent, processedContext] = 
+    await hooks.execute('preWrite', filePath, content, context);
+  
+  // Perform write
+  const fs = require('fs-extra');
+  await fs.ensureDir(path.dirname(processedPath));
+  await fs.writeFile(processedPath, processedContent, 'utf-8');
+  
+  const result = { success: true, path: processedPath };
+  
+  // Execute post-write hooks
+  await hooks.execute('postWrite', processedPath, processedContent, result);
+  
+  return result;
+};
+
+// Usage
+try {
+  await writeFileWithHooks(
+    'src/services/UserService.ts',
+    'export class UserService { /* ... */ }'
+  );
+} catch (error) {
+  console.error('Write failed:', error.message);
+}
+
+// List registered hooks
+console.log('Pre-write hooks:', hooks.list('preWrite'));
+// Output: ['security-check', 'code-intel', 'log-write']
+```
+
+## Best Practices
+
+1. **Priority Order** - Use priorities to control hook execution order
+2. **Error Handling** - Handle errors gracefully, don't break the chain
+3. **Performance** - Keep hooks fast, avoid blocking operations
+4. **Idempotent** - Hooks should be safe to run multiple times
+5. **Logging** - Log hook execution for debugging
+6. **Security First** - Security hooks should have highest priority
+7. **Context Preservation** - Pass context through hook chain

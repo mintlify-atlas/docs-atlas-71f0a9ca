@@ -1,0 +1,817 @@
+---
+title: Hooks & Lifecycle
+description: Automate workflows with lifecycle hooks and event-driven agent execution
+icon: link
+---
+
+# Hooks & Lifecycle
+
+Hooks are automation scripts that run at key lifecycle events in your AI workflow. Learn how to use and write custom hooks.
+
+## What are Hooks?
+
+Hooks are **event-driven scripts** that execute automatically:
+
+- **Session Start** - When AI session begins
+- **Before Agent** - Before agent activation
+- **Before Tool** - Before tool execution (security, validation)
+- **After Tool** - After tool completes (logging, cleanup)
+- **Session End** - When session terminates
+- **Rewind** - When user rewinds conversation
+
+## Hook Types
+
+<CardGroup cols={2}>
+
+<Card title="Security Hooks" icon="shield">
+**Before Tool**
+
+Block dangerous operations, validate inputs, prevent secret leakage
+</Card>
+
+<Card title="Context Hooks" icon="database">
+**Session Start / Before Agent**
+
+Load project context, inject memory, configure environment
+</Card>
+
+<Card title="Audit Hooks" icon="file-lines">
+**After Tool**
+
+Log operations, track changes, generate reports
+</Card>
+
+<Card title="Cleanup Hooks" icon="broom">
+**Session End**
+
+Save state, clean temp files, finalize logs
+</Card>
+
+</CardGroup>
+
+## Hook Architecture
+
+### Unified Hook System
+
+AIOX uses a unified hook interface for cross-IDE compatibility:
+
+```
+┌─────────────────────────────────────────────────┐
+│            AIOX Unified Hook Interface             │
+│    .aiox-core/hooks/unified/hook-interface.js    │
+│                        │                          │
+│            ┌─────────────┬─────────────┐        │
+│            │             │             │        │
+│            ↓             ↓             ↓        │
+│      Claude Code    Gemini CLI    Codex CLI       │
+│      (PreToolUse)   (BeforeTool)  (N/A)           │
+└─────────────────────────────────────────────────┘
+```
+
+### Hook Event Mapping
+
+```javascript
+const EVENT_MAPPING = {
+  // AIOX Event -> { claude: ClaudeEvent, gemini: GeminiEvent }
+  sessionStart: { claude: null, gemini: 'SessionStart' },
+  beforeAgent: { claude: 'PreToolUse', gemini: 'BeforeAgent' },
+  beforeTool: { claude: 'PreToolUse', gemini: 'BeforeTool' },
+  afterTool: { claude: 'PostToolUse', gemini: 'AfterTool' },
+  sessionEnd: { claude: 'Stop', gemini: 'SessionEnd' },
+};
+```
+
+## Using Existing Hooks
+
+### Claude Code Hooks
+
+**Location:** `.claude/hooks/`
+
+```bash
+# Check hook permissions
+chmod +x .claude/hooks/*.py
+
+# Configure hooks in .claude/CLAUDE.md
+```
+
+**Example Configuration:**
+
+```yaml title=".claude/hooks/config.yaml"
+hooks:
+  PreToolUse:
+    - name: security-check
+      script: .claude/hooks/security-check.py
+      timeout: 5000
+  PostToolUse:
+    - name: audit-log
+      script: .claude/hooks/audit-log.py
+      timeout: 2000
+```
+
+### Gemini CLI Hooks
+
+**Location:** `.gemini/hooks/`
+
+```bash
+# Hooks are automatically configured
+cat .gemini/settings.json
+```
+
+**Available Hooks:**
+
+<Tabs>
+
+<Tab title="Session Start">
+
+```javascript title=".gemini/hooks/session-start.js"
+#!/usr/bin/env node
+/**
+ * Runs when Gemini CLI session starts
+ * Use for: Loading context, initializing state
+ */
+
+const fs = require('fs');
+const path = require('path');
+
+async function sessionStart() {
+  const projectDir = process.cwd();
+  
+  // Load project context
+  const contextPath = path.join(projectDir, '.aiox/context.json');
+  let context = {};
+  
+  if (fs.existsSync(contextPath)) {
+    context = JSON.parse(fs.readFileSync(contextPath, 'utf8'));
+  }
+
+  // Inject context into session
+  console.log(JSON.stringify({
+    status: 'success',
+    contextInjection: {
+      projectName: context.name || 'Unknown',
+      activeStory: context.activeStory,
+      lastAgent: context.lastAgent,
+      timestamp: new Date().toISOString()
+    }
+  }));
+  
+  process.exit(0);
+}
+
+sessionStart().catch(err => {
+  console.log(JSON.stringify({ status: 'error', message: err.message }));
+  process.exit(1);
+});
+```
+
+</Tab>
+
+<Tab title="Before Tool">
+
+```javascript title=".gemini/hooks/before-tool.js"
+#!/usr/bin/env node
+/**
+ * Runs before tool execution
+ * Use for: Security validation, input sanitization
+ * Exit 2 = block, Exit 0 = allow
+ */
+
+const BLOCKED_PATTERNS = [
+  /api[_-]?key\s*[:=]\s*['"][^'"]+['"]/i,
+  /password\s*[:=]\s*['"][^'"]+['"]/i,
+  /secret\s*[:=]\s*['"][^'"]+['"]/i,
+  /AKIA[0-9A-Z]{16}/i,      // AWS key
+  /ghp_[a-zA-Z0-9]{36}/,    // GitHub token
+  /sk-[a-zA-Z0-9]{48}/,     // OpenAI key
+];
+
+const DANGEROUS_COMMANDS = [
+  'rm -rf /',
+  'rm -rf ~',
+  'git push --force',
+  'DROP DATABASE',
+];
+
+async function beforeTool() {
+  const input = process.argv[2] ? JSON.parse(process.argv[2]) : {};
+  const toolName = input.tool || '';
+  const toolArgs = input.args || {};
+
+  // Check file writes for secrets
+  if (toolName === 'write_file' || toolName === 'replace') {
+    const content = toolArgs.content || toolArgs.new_content || '';
+    
+    for (const pattern of BLOCKED_PATTERNS) {
+      if (pattern.test(content)) {
+        console.log(JSON.stringify({
+          status: 'block',
+          message: 'Blocked: Potential secret detected in content'
+        }));
+        process.exit(2); // Exit 2 = block
+      }
+    }
+  }
+
+  // Check shell commands
+  if (toolName === 'shell' || toolName === 'bash') {
+    const command = toolArgs.command || '';
+    
+    for (const dangerous of DANGEROUS_COMMANDS) {
+      if (command.toLowerCase().includes(dangerous.toLowerCase())) {
+        console.log(JSON.stringify({
+          status: 'block',
+          message: `Blocked: Dangerous command detected: ${dangerous}`
+        }));
+        process.exit(2);
+      }
+    }
+  }
+
+  // Allow by default
+  console.log(JSON.stringify({ status: 'allow' }));
+  process.exit(0);
+}
+
+beforeTool();
+```
+
+</Tab>
+
+<Tab title="After Tool">
+
+```javascript title=".gemini/hooks/after-tool.js"
+#!/usr/bin/env node
+/**
+ * Runs after tool execution
+ * Use for: Audit logging, cleanup, notifications
+ */
+
+const fs = require('fs');
+const path = require('path');
+
+async function afterTool() {
+  const input = process.argv[2] ? JSON.parse(process.argv[2]) : {};
+  const toolName = input.tool || '';
+  const toolArgs = input.args || {};
+  const result = input.result || {};
+
+  // Log to audit trail
+  const projectDir = process.cwd();
+  const logDir = path.join(projectDir, '.aiox/logs');
+  
+  if (!fs.existsSync(logDir)) {
+    fs.mkdirSync(logDir, { recursive: true });
+  }
+
+  const logEntry = {
+    timestamp: new Date().toISOString(),
+    tool: toolName,
+    success: result.success !== false,
+    provider: 'gemini',
+    file: toolArgs.path || toolArgs.file_path,
+  };
+
+  const logPath = path.join(logDir, 'tool-audit.jsonl');
+  fs.appendFileSync(logPath, JSON.stringify(logEntry) + '\n');
+
+  console.log(JSON.stringify({ status: 'success' }));
+  process.exit(0);
+}
+
+afterTool().catch(err => {
+  console.log(JSON.stringify({ status: 'error', message: err.message }));
+  process.exit(1);
+});
+```
+
+</Tab>
+
+<Tab title="Session End">
+
+```javascript title=".gemini/hooks/session-end.js"
+#!/usr/bin/env node
+/**
+ * Runs when Gemini CLI session ends
+ * Use for: Save state, cleanup, finalize logs
+ */
+
+const fs = require('fs');
+const path = require('path');
+
+async function sessionEnd() {
+  const projectDir = process.cwd();
+  const stateDir = path.join(projectDir, '.aiox/state');
+  
+  if (!fs.existsSync(stateDir)) {
+    fs.mkdirSync(stateDir, { recursive: true });
+  }
+
+  // Save session metadata
+  const sessionData = {
+    endedAt: new Date().toISOString(),
+    duration: process.env.GEMINI_SESSION_DURATION || 'unknown',
+    toolsUsed: process.env.GEMINI_TOOLS_COUNT || 0,
+  };
+
+  const statePath = path.join(stateDir, 'last-session.json');
+  fs.writeFileSync(statePath, JSON.stringify(sessionData, null, 2));
+
+  console.log(JSON.stringify({ status: 'success' }));
+  process.exit(0);
+}
+
+sessionEnd();
+```
+
+</Tab>
+
+</Tabs>
+
+## Writing Custom Hooks
+
+<Steps>
+
+### Step 1: Choose Hook Type
+
+Decide which lifecycle event you need:
+
+- **Security** → `before-tool`
+- **Context Loading** → `session-start` or `before-agent`
+- **Audit Logging** → `after-tool`
+- **Cleanup** → `session-end`
+
+### Step 2: Create Hook File
+
+```bash
+# Create hook for your IDE
+touch .gemini/hooks/custom-hook.js
+chmod +x .gemini/hooks/custom-hook.js
+```
+
+### Step 3: Implement Hook Logic
+
+```javascript title=".gemini/hooks/custom-hook.js"
+#!/usr/bin/env node
+/**
+ * Custom Hook Description
+ * Lifecycle Event: before-tool
+ */
+
+async function customHook() {
+  // 1. Parse input
+  const input = process.argv[2] ? JSON.parse(process.argv[2]) : {};
+  
+  // 2. Perform validation/action
+  const result = await performAction(input);
+  
+  // 3. Return result
+  console.log(JSON.stringify(result));
+  
+  // 4. Exit with appropriate code
+  // Exit 0 = success/allow
+  // Exit 2 = block (for before-tool)
+  // Exit 1 = error
+  process.exit(result.status === 'block' ? 2 : 0);
+}
+
+async function performAction(input) {
+  // Your logic here
+  return { status: 'allow' };
+}
+
+customHook().catch(err => {
+  console.log(JSON.stringify({ status: 'error', message: err.message }));
+  process.exit(1);
+});
+```
+
+### Step 4: Configure Hook
+
+Add to hook registry:
+
+```json title=".gemini/settings.json"
+{
+  "hooks": {
+    "enabled": true,
+    "events": {
+      "BeforeTool": [
+        {
+          "name": "custom-hook",
+          "script": ".gemini/hooks/custom-hook.js",
+          "timeout": 5000
+        }
+      ]
+    }
+  }
+}
+```
+
+### Step 5: Test Hook
+
+```bash
+# Test hook directly
+node .gemini/hooks/custom-hook.js '{"tool":"write_file","args":{"path":"test.txt"}}'
+
+# Expected output
+{"status":"allow"}
+
+# Test blocking
+node .gemini/hooks/custom-hook.js '{"tool":"write_file","args":{"content":"api_key=secret"}}'
+
+# Expected
+{"status":"block","message":"..."}
+```
+
+</Steps>
+
+## Hook Patterns
+
+### Security Validation Hook
+
+```javascript
+const VALIDATION_RULES = {
+  write_file: [
+    { pattern: /api[_-]?key/i, message: 'API key detected' },
+    { pattern: /password/i, message: 'Password detected' },
+  ],
+  shell: [
+    { pattern: /rm -rf \//i, message: 'Dangerous rm command' },
+  ],
+};
+
+async function validateTool(toolName, toolArgs) {
+  const rules = VALIDATION_RULES[toolName] || [];
+  
+  for (const rule of rules) {
+    const content = JSON.stringify(toolArgs);
+    if (rule.pattern.test(content)) {
+      return {
+        status: 'block',
+        message: `Blocked: ${rule.message}`,
+      };
+    }
+  }
+  
+  return { status: 'allow' };
+}
+```
+
+### Context Injection Hook
+
+```javascript
+async function injectContext() {
+  const projectContext = await loadProjectContext();
+  const storyContext = await loadActiveStory();
+  const agentContext = await loadAgentHistory();
+  
+  return {
+    status: 'success',
+    contextInjection: {
+      project: projectContext,
+      story: storyContext,
+      agent: agentContext,
+      injectedAt: new Date().toISOString(),
+    },
+  };
+}
+```
+
+### Audit Logging Hook
+
+```javascript
+const LOG_LEVELS = {
+  write_file: 'info',
+  shell: 'warning',
+  delete_file: 'warning',
+};
+
+async function auditLog(toolName, toolArgs, result) {
+  const logEntry = {
+    timestamp: new Date().toISOString(),
+    level: LOG_LEVELS[toolName] || 'info',
+    tool: toolName,
+    args: sanitizeArgs(toolArgs),
+    success: result.success !== false,
+    duration: result.duration || 0,
+  };
+  
+  await appendToAuditLog(logEntry);
+  
+  return { status: 'success' };
+}
+
+function sanitizeArgs(args) {
+  // Remove sensitive data before logging
+  const sanitized = { ...args };
+  if (sanitized.content) {
+    sanitized.content = `[${sanitized.content.length} bytes]`;
+  }
+  return sanitized;
+}
+```
+
+### Rate Limiting Hook
+
+```javascript
+const RATE_LIMITS = {
+  shell: { max: 10, window: 60000 }, // 10 per minute
+  write_file: { max: 50, window: 60000 },
+};
+
+const callHistory = new Map();
+
+async function checkRateLimit(toolName) {
+  const limit = RATE_LIMITS[toolName];
+  if (!limit) return { status: 'allow' };
+  
+  const now = Date.now();
+  const history = callHistory.get(toolName) || [];
+  
+  // Remove old calls outside window
+  const recent = history.filter(t => now - t < limit.window);
+  
+  if (recent.length >= limit.max) {
+    return {
+      status: 'block',
+      message: `Rate limit exceeded: ${limit.max} calls per ${limit.window}ms`,
+    };
+  }
+  
+  recent.push(now);
+  callHistory.set(toolName, recent);
+  
+  return { status: 'allow' };
+}
+```
+
+## Hook Runtime
+
+### Code Intelligence Integration
+
+Hooks can access code intelligence via the hook runtime:
+
+```javascript title=".aiox-core/core/code-intel/hook-runtime.js"
+const { resolveCodeIntel, formatAsXml } = require('./hook-runtime');
+
+async function injectCodeContext(filePath) {
+  const projectRoot = process.cwd();
+  
+  // Resolve code intelligence
+  const intel = await resolveCodeIntel(filePath, projectRoot);
+  
+  if (intel) {
+    // Format as XML for Claude context
+    const xml = formatAsXml(intel, filePath);
+    
+    return {
+      status: 'success',
+      contextInjection: {
+        codeIntel: xml,
+      },
+    };
+  }
+  
+  return { status: 'success' };
+}
+```
+
+**Features:**
+- Entity definitions (path, layer, purpose)
+- File references (who uses this file)
+- Dependencies (what this file depends on)
+- Automatic XML formatting for Claude
+
+## Lifecycle Events
+
+### Event Flow Diagram
+
+```
+Session Start
+    ↓
+    [session-start hook]
+    ↓
+Agent Activation
+    ↓
+    [before-agent hook]
+    ↓
+User Request
+    ↓
+    [before-tool hook]
+    ↓
+Tool Execution
+    ↓
+    [after-tool hook]
+    ↓
+Response to User
+    ↓
+    (repeat for each tool use)
+    ↓
+Session End
+    ↓
+    [session-end hook]
+```
+
+### Event Context
+
+Each hook receives context about the event:
+
+```typescript
+interface HookContext {
+  projectDir: string;        // Project root directory
+  sessionId: string;         // Unique session ID
+  provider: string;          // 'claude' | 'gemini' | 'codex'
+  toolName?: string;         // Tool being executed (tool hooks)
+  toolArgs?: object;         // Tool arguments
+  toolResult?: object;       // Tool result (after hooks)
+  timestamp: string;         // ISO timestamp
+}
+```
+
+## Best Practices
+
+<AccordionGroup>
+
+<Accordion title="Keep Hooks Fast">
+**Hooks should execute in < 5 seconds**
+
+- Avoid expensive operations
+- Use async operations
+- Set appropriate timeouts
+- Cache when possible
+- Fail fast on errors
+</Accordion>
+
+<Accordion title="Handle Errors Gracefully">
+**Don't crash the entire workflow**
+
+```javascript
+try {
+  await performAction();
+} catch (error) {
+  // Log error but don't block
+  console.error('Hook failed:', error);
+  return { status: 'allow' }; // Allow by default on error
+}
+```
+</Accordion>
+
+<Accordion title="Use Exit Codes Correctly">
+**Exit codes have meaning**
+
+- `0` - Success / Allow
+- `2` - Block (for before-tool hooks)
+- `1` - Error (logged but doesn't block)
+</Accordion>
+
+<Accordion title="Sanitize Logs">
+**Never log secrets or sensitive data**
+
+```javascript
+function sanitize(obj) {
+  const clean = { ...obj };
+  if (clean.content) clean.content = '[REDACTED]';
+  if (clean.password) clean.password = '[REDACTED]';
+  return clean;
+}
+```
+</Accordion>
+
+<Accordion title="Test Thoroughly">
+**Test all code paths**
+
+- Test allow scenarios
+- Test block scenarios
+- Test error scenarios
+- Test timeouts
+- Test with real IDE
+</Accordion>
+
+</AccordionGroup>
+
+## Debugging Hooks
+
+### Enable Debug Logging
+
+```bash
+# Set debug environment variable
+export DEBUG=aiox:hooks
+
+# Run with verbose logging
+DEBUG=* npm run sync:ide
+```
+
+### Test Hook Directly
+
+```bash
+# Test with sample input
+node .gemini/hooks/before-tool.js '{
+  "tool": "write_file",
+  "args": {
+    "path": "test.txt",
+    "content": "test content"
+  }
+}'
+
+# Check exit code
+echo $?
+# 0 = allow, 2 = block
+```
+
+### View Hook Logs
+
+```bash
+# View audit logs
+tail -f .aiox/logs/tool-audit.jsonl
+
+# View session logs
+cat .aiox/state/last-session.json
+```
+
+## Hook Examples from AIOX
+
+### Pre-Commit Hook
+
+**Location:** `.aiox-core/hooks/ids-pre-push.js`
+
+**Purpose:** Validate code quality before git push
+
+**Features:**
+- Runs linting
+- Executes tests
+- Checks for secrets
+- Validates entity registry
+
+### Post-Commit Hook
+
+**Location:** `.aiox-core/hooks/ids-post-commit.js`
+
+**Purpose:** Update entity registry after commits
+
+**Features:**
+- Scans for new entities
+- Updates registry
+- Generates documentation
+- Notifies team
+
+## Cross-IDE Hook Compatibility
+
+Write hooks once, run everywhere:
+
+```javascript title=".aiox-core/hooks/unified/security-check.js"
+const { UnifiedHook } = require('./hook-interface');
+
+class SecurityCheckHook extends UnifiedHook {
+  constructor() {
+    super({
+      name: 'security-check',
+      event: 'beforeTool',
+      matcher: '*',
+    });
+  }
+
+  async execute(context) {
+    const { toolName, toolArgs } = context;
+    
+    // Validation logic (works on all IDEs)
+    if (await this.hasSecrets(toolArgs)) {
+      return {
+        status: 'block',
+        message: 'Potential secret detected',
+      };
+    }
+    
+    return { status: 'allow' };
+  }
+}
+
+module.exports = SecurityCheckHook;
+```
+
+## Next Steps
+
+<CardGroup cols={2}>
+
+<Card title="Creating Agents" icon="robot" href="/guides/creating-agents">
+Create agents that use lifecycle hooks
+</Card>
+
+<Card title="IDE Integration" icon="window" href="/guides/ide-integration">
+Deploy hooks across multiple IDEs
+</Card>
+
+<Card title="Writing Tasks" icon="clipboard-list" href="/guides/writing-tasks">
+Create tasks that trigger at lifecycle events
+</Card>
+
+<Card title="Creating Squads" icon="users" href="/guides/creating-squads">
+Orchestrate multi-agent workflows with hooks
+</Card>
+
+</CardGroup>
+
+## Reference
+
+- [Unified Hook Interface](https://github.com/synkra-ai/aiox-core/blob/main/hooks/unified/hook-interface.js)
+- [Hook Runtime](https://github.com/synkra-ai/aiox-core/blob/main/core/code-intel/hook-runtime.js)
+- [Gemini Hooks](https://github.com/synkra-ai/aiox-core/tree/main/hooks/gemini)
+- [Hook Examples](https://github.com/synkra-ai/aiox-core/tree/main/hooks)

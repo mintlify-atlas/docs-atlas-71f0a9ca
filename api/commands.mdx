@@ -1,0 +1,407 @@
+---
+title: "Commands API"
+description: "Command definition and execution system"
+icon: "terminal"
+---
+
+## Overview
+
+AIOX commands provide structured workflows for agents. Commands are defined in agent YAML configurations and map to executable tasks and templates.
+
+## Command Structure
+
+Commands are defined in the agent's YAML configuration:
+
+```yaml
+commands:
+  - command: '*command-name'
+    description: Command description
+    args: '{required} [optional]'
+    visibility: ['key']
+    dependencies:
+      tasks: ['task-file.md']
+      templates: ['template-file.md']
+      checklists: ['checklist-file.md']
+      data: ['data-file.yaml']
+```
+
+### Command Fields
+
+<ParamField path="command" type="string" required>
+  Command name starting with asterisk (e.g., '*create', '*test', '*deploy')
+</ParamField>
+
+<ParamField path="description" type="string" required>
+  Human-readable command description
+</ParamField>
+
+<ParamField path="args" type="string">
+  Argument specification using {required} [optional] syntax
+</ParamField>
+
+<ParamField path="visibility" type="string[]">
+  Visibility levels: ['key', 'all', 'hidden']
+</ParamField>
+
+<ParamField path="dependencies" type="Object">
+  Files required for command execution
+</ParamField>
+
+## Visibility Levels
+
+### key
+
+Displayed in agent greeting (primary commands).
+
+```yaml
+commands:
+  - command: '*create'
+    description: Create a new component
+    visibility: ['key']
+```
+
+### all
+
+Shown when user requests full command list.
+
+```yaml
+commands:
+  - command: '*advanced'
+    description: Advanced options
+    visibility: ['all']
+```
+
+### hidden
+
+Internal commands not displayed to users.
+
+```yaml
+commands:
+  - command: '*internal'
+    description: Internal utility
+    visibility: ['hidden']
+```
+
+## Argument Syntax
+
+### Required Arguments
+
+Use curly braces for required arguments:
+
+```yaml
+args: '{type}'
+# Usage: *create {type}
+# Example: *create agent
+```
+
+### Optional Arguments
+
+Use square brackets for optional arguments:
+
+```yaml
+args: '[name]'
+# Usage: *create [name]
+# Example: *create my-agent
+```
+
+### Multiple Arguments
+
+```yaml
+args: '{type} [name] [options]'
+# Usage: *create {type} [name] [options]
+# Example: *create agent my-agent --interactive
+```
+
+## Dependencies
+
+Commands can depend on various file types:
+
+### tasks
+
+Executable workflow files.
+
+```yaml
+dependencies:
+  tasks:
+    - create-agent.md
+    - validate-agent.md
+```
+
+Resolved to: `.aiox-core/development/tasks/`
+
+### templates
+
+Template files for generation.
+
+```yaml
+dependencies:
+  templates:
+    - agent-template.md
+    - agent-handoff-tmpl.yaml
+```
+
+Resolved to: `.aiox-core/development/templates/`
+
+### checklists
+
+Validation checklists.
+
+```yaml
+dependencies:
+  checklists:
+    - agent-quality-gate.md
+    - pre-commit-checklist.md
+```
+
+Resolved to: `.aiox-core/development/checklists/`
+
+### data
+
+Data files (YAML, JSON).
+
+```yaml
+dependencies:
+  data:
+    - workflow-chains.yaml
+    - agent-requirements.yaml
+```
+
+Resolved to: `.aiox-core/data/`
+
+## Orchestrator Commands
+
+Built-in orchestrator commands for pipeline control.
+
+### orchestrate
+
+Start full pipeline execution.
+
+<ParamField path="storyId" type="string" required>
+  Story ID to orchestrate
+</ParamField>
+
+<ParamField path="options" type="Object">
+  <ParamField path="epic" type="number">
+    Start from specific epic
+  </ParamField>
+  <ParamField path="dryRun" type="boolean">
+    Preview without execution
+  </ParamField>
+  <ParamField path="strict" type="boolean">
+    Enable strict gate mode
+  </ParamField>
+</ParamField>
+
+```javascript
+const { orchestrate } = require('.aiox-core/core/orchestration/cli-commands');
+
+const result = await orchestrate('STORY-123', {
+  epic: 3,
+  dryRun: false
+});
+
+if (result.success) {
+  console.log('✅ Orchestration complete');
+} else {
+  console.error('❌ Orchestration failed:', result.error);
+}
+```
+
+### orchestrate-status
+
+Show orchestration status.
+
+<ParamField path="storyId" type="string" required>
+  Story ID to check
+</ParamField>
+
+```javascript
+const { orchestrateStatus } = require('.aiox-core/core/orchestration/cli-commands');
+
+const result = await orchestrateStatus('STORY-123');
+
+if (result.success) {
+  console.log('Status:', result.state.status);
+  console.log('Progress:', result.state.currentEpic);
+}
+```
+
+### orchestrate-stop
+
+Stop running orchestration.
+
+<ParamField path="storyId" type="string" required>
+  Story ID to stop
+</ParamField>
+
+```javascript
+const { orchestrateStop } = require('.aiox-core/core/orchestration/cli-commands');
+
+await orchestrateStop('STORY-123');
+console.log('⛔ Orchestration stopped');
+```
+
+### orchestrate-resume
+
+Resume stopped orchestration.
+
+<ParamField path="storyId" type="string" required>
+  Story ID to resume
+</ParamField>
+
+```javascript
+const { orchestrateResume } = require('.aiox-core/core/orchestration/cli-commands');
+
+const result = await orchestrateResume('STORY-123');
+
+if (result.success) {
+  console.log('▶️ Orchestration resumed');
+}
+```
+
+## Command Execution Flow
+
+1. **Parse Command** - Extract command name and arguments
+2. **Validate Arguments** - Check required arguments present
+3. **Resolve Dependencies** - Load task/template files
+4. **Execute Workflow** - Run task instructions
+5. **Handle Result** - Process success/failure
+6. **Update State** - Save session state if needed
+
+```javascript
+// Example: Command execution
+const executeCommand = async (commandName, args, agent) => {
+  // 1. Find command definition
+  const cmd = agent.commands.find(c => c.command === commandName);
+  
+  if (!cmd) {
+    throw new Error(`Unknown command: ${commandName}`);
+  }
+  
+  // 2. Validate arguments
+  validateArgs(args, cmd.args);
+  
+  // 3. Load dependencies
+  const dependencies = await loadDependencies(cmd.dependencies);
+  
+  // 4. Execute task
+  const result = await executeTask(dependencies.tasks[0], args);
+  
+  // 5. Return result
+  return result;
+};
+```
+
+## Request Resolution
+
+Commands support flexible matching:
+
+```yaml
+REQUEST-RESOLUTION: Match user requests to commands flexibly
+```
+
+Examples:
+- "draft story" → `*create` → `create-next-story` task
+- "make a new prd" → `*create` → `create-doc` + `prd-tmpl.md`
+- "run tests" → `*test` → `run-tests` task
+
+## Complete Command Example
+
+```yaml
+commands:
+  - command: '*create'
+    description: Create a new component (agent, task, template, etc.)
+    args: '{type} [name]'
+    visibility: ['key']
+    dependencies:
+      tasks:
+        - create-agent.md
+        - create-task.md
+        - create-template.md
+      templates:
+        - agent-template.md
+        - task-template.md
+        - template-template.md
+      checklists:
+        - component-quality-gate.md
+  
+  - command: '*develop-story'
+    description: Implement story following acceptance criteria
+    args: '[story-id]'
+    visibility: ['key']
+    dependencies:
+      tasks:
+        - develop-story.md
+      checklists:
+        - dev-checklist.md
+        - pre-commit-checklist.md
+  
+  - command: '*test'
+    description: Run test suite
+    args: '[scope]'
+    visibility: ['key']
+    dependencies:
+      tasks:
+        - run-tests.md
+  
+  - command: '*guide'
+    description: Show comprehensive usage guide
+    visibility: ['key']
+    dependencies:
+      data:
+        - agent-guide.md
+  
+  - command: '*help'
+    description: Show available commands
+    visibility: ['all']
+```
+
+## Usage Examples
+
+### CLI Usage
+
+```bash
+# Activate agent
+*dev
+
+# Run key commands
+*create agent my-agent
+*develop-story STORY-123
+*test unit
+*guide
+
+# Orchestrator commands
+*orchestrate STORY-123 --dry-run
+*orchestrate-status STORY-123
+*orchestrate-stop STORY-123
+*orchestrate-resume STORY-123
+```
+
+### Programmatic Usage
+
+```javascript
+const { commands } = require('.aiox-core/core/orchestration/cli-commands');
+
+// Execute orchestrate command
+const result = await commands.orchestrate('STORY-123', {
+  epic: 3,
+  dryRun: false
+});
+
+console.log('Exit code:', result.exitCode);
+console.log('Success:', result.success);
+
+if (!result.success) {
+  console.error('Error:', result.error);
+}
+```
+
+## Best Practices
+
+1. **Clear Names** - Use descriptive command names (e.g., `*create-agent` not `*ca`)
+2. **Key Visibility** - Mark primary commands with 'key' visibility
+3. **Argument Validation** - Validate required arguments early
+4. **Dependency Isolation** - Keep dependencies minimal and focused
+5. **Error Handling** - Provide clear error messages
+6. **Idempotency** - Commands should be safe to retry
+7. **Documentation** - Document complex commands in guide

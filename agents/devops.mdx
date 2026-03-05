@@ -1,0 +1,638 @@
+---
+title: "Gage - DevOps Agent"
+description: "GitHub Repository Manager & DevOps Specialist with exclusive push authority"
+icon: "rocket"
+---
+
+# ⚡ Gage - DevOps Specialist
+
+**Role**: GitHub Repository Guardian & Release Manager  
+**Archetype**: Operator ♈ Aries  
+**Persona**: Systematic, quality-focused, security-conscious, detail-oriented
+
+## When to Use Gage
+
+Activate `@devops` for:
+
+- 🚀 **Git push to remote** (EXCLUSIVE AUTHORITY)
+- 📦 Pull request creation and management
+- 🏷️ Semantic versioning and release management
+- ⚙️ CI/CD pipeline configuration (GitHub Actions)
+- 🧹 Repository cleanup (stale branches)
+- 👥 GitHub Issues triage and resolution
+- 🔧 Environment health diagnostics
+
+**NOT for**: Code implementation (use `@dev`), Story creation (use `@sm`), Architecture design (use `@architect`)
+
+<Warning>
+**CRITICAL**: Gage is the **ONLY** agent authorized to execute `git push` to remote repository.
+
+All other agents must delegate push operations to DevOps.
+</Warning>
+
+## Activation
+
+<CodeGroup>
+```bash Cursor IDE
+@devops
+```
+
+```bash Claude Desktop
+/devops
+```
+
+```bash Codex CLI
+@devops *push
+```
+</CodeGroup>
+
+## Core Commands
+
+<AccordionGroup>
+  <Accordion title="Repository Management" icon="code-branch">
+    ```bash
+    *detect-repo                # Detect repository context
+    *cleanup                    # Remove stale branches/files
+    ```
+  </Accordion>
+
+  <Accordion title="GitHub Issues" icon="circle-exclamation">
+    ```bash
+    *triage-issues              # Analyze and prioritize open issues
+    *resolve-issue {number}     # Investigate and resolve issue end-to-end
+    ```
+  </Accordion>
+
+  <Accordion title="Quality & Push" icon="shield-check">
+    ```bash
+    *pre-push                   # Run all quality gates
+    *push                       # Push changes after quality gates
+    *version-check              # Analyze and recommend next version
+    *health-check               # Run unified health diagnostic
+    *sync-registry              # Sync entity registry (incremental/full/heal)
+    ```
+  </Accordion>
+
+  <Accordion title="GitHub Operations" icon="github">
+    ```bash
+    *create-pr                  # Create pull request
+    *release                    # Create versioned release with changelog
+    ```
+  </Accordion>
+
+  <Accordion title="CI/CD & Setup" icon="gear">
+    ```bash
+    *configure-ci               # Setup/update GitHub Actions
+    *setup-github               # Configure DevOps infrastructure
+    *environment-bootstrap      # Complete environment setup
+    ```
+  </Accordion>
+
+  <Accordion title="Worktree Management" icon="folder-tree">
+    ```bash
+    *create-worktree {story}    # Create isolated worktree
+    *list-worktrees             # List active worktrees
+    *merge-worktree {story}     # Merge worktree to base
+    *cleanup-worktrees          # Remove stale worktrees
+    ```
+  </Accordion>
+</AccordionGroup>
+
+## Git Push Workflow
+
+### Standard Push Process
+
+```bash
+# 1. Story is complete and QA approved
+# Status: "Ready for Review"
+
+# 2. Activate Gage
+@devops
+
+# 3. Run pre-push quality gates
+*pre-push
+
+# Gage will run:
+# - CodeRabbit review (--base main)
+# - npm run lint
+# - npm test
+# - npm run typecheck
+# - npm run build
+# - Story status check
+# - Uncommitted changes check
+# - Merge conflict check
+
+# 4. If ALL PASS, Gage presents summary
+# 5. User confirms
+# 6. Gage executes: git push
+
+# 7. If on feature branch, Gage offers:
+*create-pr
+```
+
+### Quality Gate Summary
+
+```yaml
+Pre-Push Quality Gates:
+
+  ✅ CodeRabbit Review:
+     - CRITICAL issues: 0
+     - HIGH issues: 0
+     - MEDIUM issues: 2
+  
+  ✅ Linting: PASS
+  ✅ Type Checking: PASS
+  ✅ Tests: PASS (47/47)
+  ✅ Build: PASS
+  ✅ Story Status: "Ready for Review"
+  ✅ No uncommitted changes
+  ✅ No merge conflicts
+
+All checks passed! Ready to push?
+[y/N]
+```
+
+### CodeRabbit Pre-PR Gate
+
+```bash
+*create-pr
+
+# Gage will:
+# 1. Run CodeRabbit against main branch
+# 2. Check for CRITICAL issues
+# 3. If CRITICAL found: BLOCK PR creation
+# 4. If HIGH found: WARN user, allow override
+# 5. If clean or approved: Create PR
+```
+
+**Severity handling**:
+
+<Tabs>
+  <Tab title="CRITICAL">
+    **Action**: Block PR creation, must fix immediately
+    
+    **Examples**:
+    - Security vulnerabilities
+    - Breaking changes without migration
+    - Data loss risks
+    
+    **Response**:
+    ```
+    ❌ Cannot create PR - CRITICAL issues found:
+    
+    1. SQL injection risk in api/src/routes/users.js:45
+    2. Hardcoded API key in config.js:12
+    
+    Fix these issues and run *pre-push again.
+    ```
+  </Tab>
+  
+  <Tab title="HIGH">
+    **Action**: Warn user, recommend fix before merge
+    
+    **Examples**:
+    - Performance issues
+    - Missing tests
+    - Accessibility violations
+    
+    **Response**:
+    ```
+    ⚠️ HIGH priority issues found:
+    
+    1. Missing index on users.email (performance impact)
+    2. Component missing accessibility labels
+    
+    Proceed with PR creation? (not recommended)
+    [y/N]
+    ```
+  </Tab>
+  
+  <Tab title="MEDIUM/LOW">
+    **Action**: Document in PR description, create follow-up
+    
+    **Response**:
+    ```
+    ✅ Quality checks passed!
+    
+    Note: 2 MEDIUM issues documented in PR description.
+    Creating PR...
+    ```
+  </Tab>
+</Tabs>
+
+## Exclusive Git Authority
+
+<Info>
+**Enforcement Mechanism**:
+
+Git pre-push hook installed at `.git/hooks/pre-push`:
+- Checks `$AIOX_ACTIVE_AGENT` environment variable
+- Blocks push if agent != "github-devops"
+- Displays helpful message redirecting to @devops
+- Works in ANY repository using AIOX
+</Info>
+
+**Allowed operations** (DevOps only):
+```bash
+git push
+git push --force         # With extreme caution
+git push origin --delete # Branch cleanup
+gh pr create
+gh pr merge
+gh release create
+```
+
+**Standard operations** (all agents):
+```bash
+git status
+git log
+git diff
+git tag
+git branch -a
+```
+
+## Semantic Versioning
+
+### Version Check
+
+```bash
+*version-check
+
+# Gage analyzes:
+# - Last tag (e.g., v4.31.0)
+# - Git diff since last tag
+# - Breaking change keywords
+# - Feature additions
+# - Bug fixes only
+
+# Recommends:
+Current version: v4.31.0
+Changes since last tag:
+  - 3 features added
+  - 7 bug fixes
+  - 0 breaking changes
+
+Recommended: v4.32.0 (MINOR bump)
+Reason: New features added, backward compatible
+
+Confirm version bump to v4.32.0?
+[y/N]
+```
+
+### Versioning Rules
+
+<CardGroup cols={3}>
+  <Card title="MAJOR" icon="triangle-exclamation" color="#ef4444">
+    **Breaking changes**
+    
+    Examples:
+    - API redesign
+    - Removed features
+    - Database migration required
+    
+    `v4.31.0` → `v5.0.0`
+  </Card>
+  
+  <Card title="MINOR" icon="plus" color="#10b981">
+    **New features**
+    
+    Examples:
+    - New API endpoints
+    - New components
+    - Backward compatible
+    
+    `v4.31.0` → `v4.32.0`
+  </Card>
+  
+  <Card title="PATCH" icon="wrench" color="#3b82f6">
+    **Bug fixes only**
+    
+    Examples:
+    - Bug fixes
+    - Performance improvements
+    - Documentation updates
+    
+    `v4.31.0` → `v4.31.1`
+  </Card>
+</CardGroup>
+
+## Release Management
+
+```bash
+*release
+
+# Gage will:
+# 1. Run version-check
+# 2. User confirms version
+# 3. Run pre-push quality gates
+# 4. Generate changelog from commits
+# 5. Create git tag (e.g., v4.32.0)
+# 6. Push tag to remote
+# 7. Create GitHub release with notes
+```
+
+**Changelog generation**:
+
+```markdown
+# Release v4.32.0
+
+## Features
+- Add OAuth authentication (#123)
+- Implement user profile page (#124)
+- Add email notifications (#125)
+
+## Bug Fixes
+- Fix login redirect loop (#126)
+- Resolve memory leak in WebSocket (#127)
+- Correct timezone handling (#128)
+
+## Performance
+- Optimize database queries (#129)
+- Add caching layer (#130)
+```
+
+## GitHub Issues Management
+
+### Issue Triage
+
+```bash
+*triage-issues
+
+# Gage will:
+# 1. Fetch all open issues via gh cli
+# 2. Classify by type (bug, feature, enhancement)
+# 3. Prioritize by severity and age
+# 4. Recommend next issue to address
+```
+
+**Output**:
+
+```yaml
+Issue Triage Report:
+
+Bugs (P0 - Critical): 2
+  #145: App crashes on login [7 days old]
+  #142: Data loss on form submit [3 days old]
+
+Bugs (P1 - High): 5
+Feature Requests: 12
+Enhancements: 8
+
+Recommended Next:
+  Issue #145: App crashes on login
+  Reason: Critical bug, affecting users, 7 days old
+  
+Resolve this issue?
+[y/N]
+```
+
+### Issue Resolution
+
+```bash
+*resolve-issue 145
+
+# Gage orchestrates:
+# 1. Fetch issue details
+# 2. Create feature branch
+# 3. Delegate to @dev for implementation
+# 4. After @dev completes, run pre-push
+# 5. Push and create PR
+# 6. Link PR to issue
+# 7. Close issue when PR merged
+```
+
+## Health Diagnostics
+
+### Unified Health Check
+
+```bash
+*health-check
+
+# Runs 15 diagnostic checks:
+# 1. Git repository status
+# 2. Node.js and npm versions
+# 3. Package dependencies
+# 4. Environment variables
+# 5. Database connectivity
+# 6. CodeRabbit authentication
+# 7. GitHub CLI authentication
+# 8. CI/CD pipeline status
+# 9. Test suite health
+# 10. Build configuration
+# 11. Story validation
+# 12. Worktree status
+# 13. Migration status
+# 14. Registry sync status
+# 15. Documentation links
+```
+
+**Report**:
+
+```yaml
+Health Diagnostic Report:
+
+✅ Git: Repository clean, on branch main
+✅ Node.js: v20.11.0 (LTS)
+✅ Dependencies: All packages up to date
+⚠️ Environment: Missing SUPABASE_SERVICE_ROLE_KEY
+✅ Database: Connected to Supabase
+✅ CodeRabbit: Authenticated
+✅ GitHub CLI: Authenticated as user
+✅ CI/CD: All workflows passing
+✅ Tests: 47/47 passing
+✅ Build: Successful
+✅ Stories: 3 in progress, 0 blocked
+✅ Worktrees: 1 active, 0 stale
+✅ Migrations: Up to date
+✅ Registry: Synced
+⚠️ Documentation: 2 broken links found
+
+Overall Status: HEALTHY (2 warnings)
+```
+
+### Entity Registry Sync
+
+```bash
+# Incremental sync (default)
+*sync-registry
+
+# Full rebuild
+*sync-registry --full
+
+# Integrity check and heal
+*sync-registry --heal
+```
+
+**Registry tracks**:
+- Stories (ID, status, epic, assignee)
+- Epics (ID, stories, progress)
+- Agents (active, permissions, history)
+- Commands (usage, success rate)
+- Worktrees (active, stale, branches)
+
+## Repository Detection
+
+### Dynamic Context
+
+```bash
+*detect-repo
+
+# Gage detects:
+# - Git remote URL
+# - Repository name
+# - Installation mode:
+#   - framework-development (.aiox-core is source)
+#   - project-development (.aiox-core is dependency)
+# - Branch protection rules
+# - CI/CD configuration
+```
+
+**Never assumes** a specific repository - always detects dynamically.
+
+## Worktree Management
+
+### Create Isolated Environment
+
+```bash
+*create-worktree story-1.2.3
+
+# Gage will:
+# 1. Create worktree at .worktrees/story-1.2.3/
+# 2. Create feature branch: feature/1.2-story-name
+# 3. Set up isolated environment
+# 4. Track in worktree registry
+```
+
+**Benefits**:
+- Work on multiple stories simultaneously
+- Clean separation of changes
+- Easy rollback per story
+- No branch switching conflicts
+
+### Merge and Cleanup
+
+```bash
+# Merge worktree back to main
+*merge-worktree story-1.2.3
+
+# List active worktrees
+*list-worktrees
+
+# Remove stale worktrees (>30 days)
+*cleanup-worktrees
+```
+
+## CI/CD Configuration
+
+### Setup GitHub Actions
+
+```bash
+*configure-ci
+
+# Gage creates:
+# - .github/workflows/ci.yml (lint, test, build)
+# - .github/workflows/cd.yml (deploy)
+# - .github/workflows/pr-automation.yml (PR checks)
+```
+
+**PR Automation** (Story 3.3-3.4):
+- Required status checks
+- Coverage report comments
+- Quality summary comment
+- CodeRabbit integration verification
+- Performance target: < 3 minutes
+
+### Environment Bootstrap
+
+```bash
+*environment-bootstrap
+
+# Complete setup for new projects:
+# 1. Initialize git repository
+# 2. Configure GitHub remote
+# 3. Install CI/CD workflows
+# 4. Set up CodeRabbit
+# 5. Configure branch protection
+# 6. Set up secrets
+# 7. Initialize entity registry
+```
+
+## Collaboration
+
+### Receives Delegation From
+
+- **@dev (Dex)**: Push after story completion
+- **@sm (River)**: Push during sprint workflow
+- **@architect (Aria)**: Repository operations
+
+### Delegates To
+
+- **@dev (Dex)**: Issue implementation
+- **@qa (Quinn)**: Quality review before push
+
+## Troubleshooting
+
+<AccordionGroup>
+  <Accordion title="Git push blocked" icon="ban">
+    **Error**: "git push must be executed by @devops agent"
+    
+    **Cause**: Pre-push hook enforcing DevOps authority
+    
+    **Solution**:
+    ```bash
+    @devops *push
+    ```
+  </Accordion>
+  
+  <Accordion title="CodeRabbit blocking PR" icon="shield-exclamation">
+    **Cause**: CRITICAL issues found in pre-PR review
+    
+    **Resolution**:
+    1. Review CodeRabbit report
+    2. Fix CRITICAL issues
+    3. Run `*pre-push` to verify
+    4. Retry `*create-pr`
+  </Accordion>
+  
+  <Accordion title="Health check warnings" icon="triangle-exclamation">
+    **Common warnings**:
+    - Missing environment variables
+    - Broken documentation links
+    - Stale worktrees
+    
+    **Action**: Address warnings before release
+  </Accordion>
+  
+  <Accordion title="Merge conflicts in worktree" icon="code-merge">
+    **Resolution**:
+    ```bash
+    # 1. Update worktree from main
+    cd .worktrees/story-1.2.3/
+    git pull origin main
+    
+    # 2. Resolve conflicts
+    # 3. Test thoroughly
+    # 4. Merge back
+    @devops *merge-worktree story-1.2.3
+    ```
+  </Accordion>
+</AccordionGroup>
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Quality Review" icon="check-circle" href="/agents/qa">
+    Before push, ensure Quinn has approved
+  </Card>
+  
+  <Card title="Story Management" icon="wave" href="/agents/sm">
+    Coordinate with River for sprint workflow
+  </Card>
+</CardGroup>
+
+## Learn More
+
+- [Git Authority Matrix](/workflows/git-authority)
+- [Semantic Versioning](/workflows/versioning)
+- [CI/CD Pipeline](/deployment/cicd)
+- [Quality Gates](/workflows/quality-gates)

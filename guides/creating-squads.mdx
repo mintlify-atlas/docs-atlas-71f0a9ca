@@ -1,0 +1,697 @@
+---
+title: Creating Squads
+description: Organize multiple agents into cohesive squads for complex workflows
+icon: users
+---
+
+# Creating Squads
+
+Squads are collections of specialized agents organized around a domain or workflow. Learn how to create and orchestrate multi-agent squads.
+
+## What is a Squad?
+
+A squad is a **structured team of agents** that work together:
+
+- **Domain-focused** - Organized around a specific area (e.g., copywriting, data engineering, cloud ops)
+- **Tiered architecture** - Routing agents direct work to specialists
+- **Shared resources** - Common tasks, templates, and data
+- **Coordinated handoffs** - Agents know when to collaborate or escalate
+
+## Squad Structure
+
+```
+squads/{squad-name}/
+├── config.yaml              # Squad configuration
+├── README.md                # Squad documentation
+├── agents/                  # Agent definitions
+│   ├── squad-chief.md       # Tier 0: Routing agent
+│   ├── specialist-1.md      # Tier 1: Core specialists
+│   └── specialist-2.md
+├── tasks/                   # Shared task workflows
+│   ├── task-1.md
+│   └── task-2.md
+├── templates/               # Output templates
+│   ├── template-1.md
+│   └── template-2.md
+├── checklists/              # Quality gates
+│   └── checklist-1.md
+├── data/                    # Shared data files
+│   └── reference-data.yaml
+└── workflows/               # Multi-agent workflows
+    └── workflow-1.yaml
+```
+
+## Creating a Squad
+
+<Steps>
+<Step title="Define Squad Purpose">
+
+Start with a clear domain and philosophy:
+
+```yaml title="squads/data-engineering/config.yaml"
+squad:
+  name: data-engineering
+  display_name: "Data Engineering Squad"
+  version: "1.0.0"
+  domain: "Data Pipelines, ETL, Analytics"
+  description: |
+    Specialized squad for building scalable data pipelines,
+    ETL workflows, and analytics infrastructure.
+
+  philosophy: |
+    "Data quality over speed. Design for failure. Monitor everything."
+    Each agent specializes in a specific aspect of data engineering
+    with proven frameworks and battle-tested patterns.
+
+  keywords:
+    - data-engineering
+    - etl
+    - pipelines
+    - analytics
+    - data-quality
+    - monitoring
+
+  entry_agent: data-chief
+  created_by: "squad-creator"
+  created_at: "2026-03-05"
+```
+</Step>
+
+<Step title="Design Tier Architecture">
+
+Organize agents into tiers:
+
+```yaml
+tiers:
+  tier_0:
+    name: "Routing & Triage"
+    agents:
+      - data-chief
+    purpose: "Analyze requests, route to specialists, maintain coherence"
+
+  tier_1:
+    name: "Core Specialists"
+    agents:
+      - pipeline-architect
+      - etl-engineer
+      - analytics-expert
+    purpose: "Deep expertise in specific data engineering domains"
+
+  tier_2:
+    name: "Support & Quality"
+    agents:
+      - data-quality-auditor
+      - performance-optimizer
+    purpose: "Cross-cutting concerns: quality, performance, monitoring"
+```
+
+**Tier Guidelines:**
+
+- **Tier 0:** 1 routing agent (required)
+- **Tier 1:** 3-7 core specialists
+- **Tier 2:** 2-5 support agents (optional)
+- **Tools Tier:** Utility agents (optional)
+
+</Step>
+
+<Step title="Create Agent Registry">
+
+Define all agents in the squad:
+
+```yaml
+agents:
+  data-chief:
+    file: agents/data-chief.md
+    tier: 0
+    based_on: "Original (Orchestrator)"
+    icon: "🎯"
+    focus: "Triage, routing, squad coordination"
+
+  pipeline-architect:
+    file: agents/pipeline-architect.md
+    tier: 1
+    based_on: "Martin Kleppmann (Designing Data-Intensive Applications)"
+    icon: "🏗️"
+    focus: "Pipeline design, architecture, scalability"
+
+  etl-engineer:
+    file: agents/etl-engineer.md
+    tier: 1
+    based_on: "Ralph Kimball (Data Warehousing)"
+    icon: "⚙️"
+    focus: "ETL implementation, transformations, data quality"
+
+  analytics-expert:
+    file: agents/analytics-expert.md
+    tier: 1
+    based_on: "Claudia Perlich (ML Engineering)"
+    icon: "📊"
+    focus: "Analytics queries, OLAP, visualization"
+
+  data-quality-auditor:
+    file: agents/data-quality-auditor.md
+    tier: 2
+    based_on: "Tom Redman (Data Quality)"
+    icon: "✅"
+    focus: "Data validation, quality rules, monitoring"
+
+  performance-optimizer:
+    file: agents/performance-optimizer.md
+    tier: 2
+    based_on: "Brendan Gregg (Systems Performance)"
+    icon: "⚡"
+    focus: "Query optimization, indexing, performance tuning"
+```
+
+</Step>
+
+<Step title="Define Handoff Matrix">
+
+Specify how agents collaborate:
+
+```yaml
+handoffs:
+  data-chief:
+    routes_to:
+      - pipeline-architect      # For architecture questions
+      - etl-engineer           # For ETL implementation
+      - analytics-expert       # For analytics queries
+      - data-quality-auditor   # For quality issues
+      - performance-optimizer  # For performance problems
+
+  pipeline-architect:
+    collaborates_with:
+      - etl-engineer           # Design → Implementation
+      - performance-optimizer  # Architecture → Performance
+    escalates_to:
+      - data-chief             # Complex multi-domain issues
+
+  etl-engineer:
+    collaborates_with:
+      - data-quality-auditor   # Implement quality checks
+      - performance-optimizer  # Optimize transformations
+    escalates_to:
+      - data-chief             # Architectural changes needed
+
+  analytics-expert:
+    collaborates_with:
+      - performance-optimizer  # Query optimization
+    escalates_to:
+      - data-chief             # Pipeline changes needed
+
+  data-quality-auditor:
+    collaborates_with:
+      - etl-engineer           # Quality implementation
+    escalates_to:
+      - data-chief             # Quality policy decisions
+
+  performance-optimizer:
+    collaborates_with:
+      - pipeline-architect     # Architecture review
+      - etl-engineer           # Transformation optimization
+      - analytics-expert       # Query optimization
+    escalates_to:
+      - data-chief             # Infrastructure changes needed
+```
+
+</Step>
+
+<Step title="Add Cross-Cutting Concerns">
+
+Define shared resources and standards:
+
+```yaml
+cross_cutting:
+  shared_context:
+    description: "Files all agents should understand"
+    files:
+      - "data/data-quality-framework.yaml"
+      - "data/pipeline-patterns.yaml"
+      - "data/performance-benchmarks.yaml"
+
+  quality_standards:
+    min_score: 7.0
+    smoke_tests: 3
+    voice_dna_required: true
+    thinking_dna_required: true
+
+  monitoring:
+    enabled: true
+    tools:
+      - prometheus
+      - grafana
+      - datadog
+
+  update_knowledge:
+    description: "Refresh squad knowledge from latest sources"
+    command: "*update-knowledge"
+    sources:
+      - "https://dataintensive.net"
+      - "https://www.kimballgroup.com"
+```
+
+</Step>
+
+<Step title="Configure Settings">
+
+Set squad-level preferences:
+
+```yaml
+settings:
+  greeting:
+    level: archetypal          # minimal | named | archetypal
+    show_project_status: true
+    show_squad_context: true
+
+  activation:
+    prefix: "data-engineering"
+    example: "@data-engineering:pipeline-architect"
+
+  permissions:
+    default_mode: ask          # ask | auto | explore
+    allow_external_tools: true
+    require_approval_for:
+      - database_changes
+      - schema_migrations
+      - production_deployments
+```
+
+</Step>
+
+<Step title="Create the Routing Agent">
+
+The Tier 0 agent routes requests to specialists:
+
+```markdown title="squads/data-engineering/agents/data-chief.md"
+# data-chief
+
+ACTIVATION-NOTICE: This file contains your full agent operating guidelines.
+
+```yaml
+agent:
+  name: DataChief
+  id: data-chief
+  title: Data Engineering Squad Chief
+  icon: 🎯
+  whenToUse: 'Entry point for all data engineering requests'
+
+persona:
+  role: Squad orchestrator and technical triage specialist
+  style: Analytical, decisive, coordination-focused
+  identity: Router who understands the full data engineering landscape
+  focus: Match requests to the right specialist
+
+core_principles:
+  - Understand request context before routing
+  - Route to the most qualified specialist
+  - Coordinate multi-agent workflows
+  - Track handoffs and outcomes
+  - Escalate when domain boundaries crossed
+
+commands:
+  - name: help
+    visibility: [full, quick, key]
+    description: 'Show available commands and specialists'
+  - name: route
+    visibility: [full, quick, key]
+    description: 'Analyze request and route to specialist'
+  - name: squad-status
+    visibility: [full, quick]
+    description: 'Show squad member availability and specialties'
+  - name: exit
+    visibility: [full, quick, key]
+    description: 'Exit squad chief mode'
+
+routing_logic:
+  keywords_to_agent:
+    pipeline_design: pipeline-architect
+    architecture: pipeline-architect
+    scalability: pipeline-architect
+    
+    etl: etl-engineer
+    transformation: etl-engineer
+    data_cleaning: etl-engineer
+    
+    analytics: analytics-expert
+    query: analytics-expert
+    visualization: analytics-expert
+    
+    quality: data-quality-auditor
+    validation: data-quality-auditor
+    
+    performance: performance-optimizer
+    optimization: performance-optimizer
+    slow_query: performance-optimizer
+
+  default_routing:
+    ambiguous: 'Ask clarifying questions'
+    multi_domain: 'Coordinate workflow across specialists'
+    unknown: 'Search squad knowledge base'
+
+dependencies:
+  tasks:
+    - squad-chief-route-request.md
+    - squad-chief-coordinate-workflow.md
+  data:
+    - ../data/routing-keywords.yaml
+    - ../data/specialist-capabilities.yaml
+```
+```
+
+</Step>
+
+<Step title="Create README">
+
+Document the squad for users:
+
+```markdown title="squads/data-engineering/README.md"
+# Data Engineering Squad
+
+**Domain:** Data Pipelines, ETL, Analytics
+**Version:** 1.0.0
+
+## Overview
+
+Specialized squad for building scalable data pipelines, ETL workflows, and analytics infrastructure.
+
+## When to Use This Squad
+
+- Building data pipelines
+- Designing ETL workflows
+- Optimizing data queries
+- Implementing data quality checks
+- Performance tuning data systems
+
+## Squad Members
+
+### Tier 0: Routing
+- **🎯 DataChief** - Entry point, routes to specialists
+
+### Tier 1: Core Specialists
+- **🏗️ Pipeline Architect** - Pipeline design and architecture
+- **⚙️ ETL Engineer** - ETL implementation and transformations
+- **📊 Analytics Expert** - Analytics queries and visualization
+
+### Tier 2: Support
+- **✅ Data Quality Auditor** - Quality validation and monitoring
+- **⚡ Performance Optimizer** - Query and pipeline optimization
+
+## Quick Start
+
+```bash
+# Activate squad chief
+@data-engineering:data-chief
+
+# Or activate specific specialist
+@data-engineering:pipeline-architect
+@data-engineering:etl-engineer
+```
+
+## Example Workflows
+
+### Building a New Pipeline
+1. **DataChief** - Triage request
+2. **Pipeline Architect** - Design architecture
+3. **ETL Engineer** - Implement transformations
+4. **Data Quality Auditor** - Add validation rules
+5. **Performance Optimizer** - Tune performance
+
+### Optimizing Query Performance
+1. **DataChief** - Route to optimizer
+2. **Performance Optimizer** - Analyze query
+3. **Analytics Expert** - Rewrite query if needed
+4. **Pipeline Architect** - Suggest index changes
+```
+</Step>
+</Steps>
+
+## Using the Squad Creator Agent
+
+AIOX provides a specialized agent for creating squads:
+
+```bash
+# Activate squad creator
+@squad-creator
+
+# Create new squad interactively
+*create-squad
+
+# Or provide details upfront
+*create-squad data-engineering \
+  --domain "Data Pipelines & ETL" \
+  --agents "pipeline-architect,etl-engineer,analytics-expert"
+```
+
+**Squad Creator Workflow:**
+
+1. **Elicit squad details** - Domain, philosophy, agents
+2. **Design tier structure** - Organize agents by role
+3. **Generate config.yaml** - Squad configuration
+4. **Create routing agent** - Tier 0 orchestrator
+5. **Set up shared resources** - Tasks, templates, data
+6. **Generate README** - Documentation
+7. **Validate structure** - Quality checks
+
+## Squad Examples from AIOX
+
+### Claude Code Mastery Squad
+
+**Location:** `squads/claude-code-mastery/`
+
+**Domain:** Claude Code - Full Spectrum Expertise
+
+**Agents:**
+- 🧠 Claude Mastery Chief (Tier 0)
+- 🪝 Hooks Architect (Tier 1) - Based on @disler
+- 🔌 MCP Integrator (Tier 1) - Based on @steipete
+- 🐝 Swarm Orchestrator (Tier 1) - Multi-agent coordination
+- ⚙️ Config Engineer (Tier 1) - Settings and permissions
+- 🛠️ Skill Craftsman (Tier 2) - Skills and plugins
+- 📦 Project Integrator (Tier 2) - Project setup
+- 🔭 Roadmap Sentinel (Tier 2) - Feature tracking
+
+**Key Features:**
+- Comprehensive Claude Code expertise
+- Elite mind-based agents
+- Cross-cutting AIOX awareness
+- Knowledge update commands
+
+## Multi-Agent Workflows
+
+Define complex workflows that span multiple agents:
+
+```yaml title="squads/data-engineering/workflows/build-pipeline.yaml"
+workflow:
+  name: build-data-pipeline
+  description: End-to-end pipeline creation workflow
+  version: 1.0
+
+phases:
+  - phase: 1
+    name: "Requirements"
+    agent: data-chief
+    tasks:
+      - route-request.md
+      - gather-requirements.md
+    output: requirements-doc.md
+
+  - phase: 2
+    name: "Design"
+    agent: pipeline-architect
+    tasks:
+      - design-architecture.md
+      - select-technologies.md
+    output: architecture-doc.md
+    requires:
+      - phase: 1
+
+  - phase: 3
+    name: "Implementation"
+    agent: etl-engineer
+    tasks:
+      - implement-pipeline.md
+      - add-transformations.md
+    parallel_tasks:
+      - agent: data-quality-auditor
+        tasks:
+          - implement-quality-checks.md
+    output: pipeline-code/
+    requires:
+      - phase: 2
+
+  - phase: 4
+    name: "Optimization"
+    agent: performance-optimizer
+    tasks:
+      - profile-performance.md
+      - optimize-queries.md
+    output: performance-report.md
+    requires:
+      - phase: 3
+
+  - phase: 5
+    name: "Validation"
+    agent: data-chief
+    tasks:
+      - validate-pipeline.md
+      - generate-documentation.md
+    output:
+      - validation-report.md
+      - pipeline-docs/
+    requires:
+      - phase: 4
+
+handoffs:
+  architect_to_engineer:
+    trigger: "Architecture approved"
+    context_files:
+      - architecture-doc.md
+      - technology-decisions.md
+    handoff_message: "Architecture approved. Implement pipeline per spec."
+
+  engineer_to_optimizer:
+    trigger: "Implementation complete"
+    context_files:
+      - pipeline-code/
+      - performance-baseline.json
+    handoff_message: "Pipeline implemented. Optimize for production scale."
+```
+
+## Squad Activation
+
+### Via Entry Agent
+
+```bash
+# Activate squad chief (routes automatically)
+@data-engineering
+
+# Or explicit
+@data-engineering:data-chief
+```
+
+### Direct to Specialist
+
+```bash
+# Skip routing, go directly to specialist
+@data-engineering:pipeline-architect
+@data-engineering:etl-engineer
+```
+
+### Squad-Wide Commands
+
+Commands available across the squad:
+
+```bash
+*squad-status        # Show all agent availability
+*squad-help          # List all capabilities
+*update-knowledge    # Refresh squad knowledge
+*show-workflows      # List multi-agent workflows
+```
+
+## Squad Quality Standards
+
+<AccordionGroup>
+
+<Accordion title="Configuration Completeness">
+- Valid config.yaml with all required sections
+- All agents referenced in config exist
+- Handoff matrix covers all collaboration paths
+- Tier architecture is logical
+</Accordion>
+
+<Accordion title="Agent Quality">
+- All agents meet individual quality standards (300+ lines, voice DNA, etc.)
+- Consistent voice across squad
+- No overlapping responsibilities
+- Clear specialization boundaries
+</Accordion>
+
+<Accordion title="Shared Resources">
+- Common tasks in tasks/ directory
+- Reusable templates
+- Shared data files
+- Cross-cutting checklists
+</Accordion>
+
+<Accordion title="Documentation">
+- Comprehensive README
+- Example workflows
+- Quick start guide
+- Agent capability matrix
+</Accordion>
+
+</AccordionGroup>
+
+## Best Practices
+
+<CardGroup cols={2}>
+
+<Card title="Clear Domain" icon="bullseye">
+Squads should have a well-defined domain. Avoid "general purpose" squads.
+</Card>
+
+<Card title="Right-Sized" icon="users">
+3-7 agents is optimal. Too few lacks specialization, too many causes confusion.
+</Card>
+
+<Card title="Routing Agent" icon="route">
+Always include a Tier 0 routing agent to triage requests intelligently.
+</Card>
+
+<Card title="Elite Minds" icon="brain">
+Base specialists on real experts with documented methodologies.
+</Card>
+
+<Card title="Handoff Clarity" icon="hand">
+Explicitly define when agents collaborate, escalate, or hand off work.
+</Card>
+
+<Card title="Shared Standards" icon="ruler">
+Establish squad-wide quality standards and voice consistency.
+</Card>
+
+</CardGroup>
+
+## Testing Your Squad
+
+```bash
+# Validate squad structure
+npm run validate:squad data-engineering
+
+# Test routing logic
+npm run test:squad:routing data-engineering
+
+# Simulate workflow
+npm run test:workflow build-data-pipeline
+
+# Check agent compatibility
+npm run test:squad:agents data-engineering
+```
+
+## Next Steps
+
+<CardGroup cols={2}>
+
+<Card title="Creating Agents" icon="robot" href="/guides/creating-agents">
+Learn how to create the specialist agents for your squad
+</Card>
+
+<Card title="Writing Tasks" icon="clipboard-list" href="/guides/writing-tasks">
+Create shared task workflows for your squad
+</Card>
+
+<Card title="IDE Integration" icon="window" href="/guides/ide-integration">
+Deploy your squad across multiple IDEs
+</Card>
+
+<Card title="Hooks & Lifecycle" icon="link" href="/guides/hooks-and-lifecycle">
+Automate squad workflows with hooks
+</Card>
+
+</CardGroup>
+
+## Reference
+
+- [Squad Template](https://github.com/synkra-ai/aiox-core/tree/main/squads/_example)
+- [squad-creator Agent](https://github.com/synkra-ai/aiox-core/blob/main/development/agents/squad-creator.md)
+- [Claude Code Mastery Squad](https://github.com/synkra-ai/aiox-core/tree/main/squads/claude-code-mastery)

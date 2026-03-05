@@ -1,0 +1,330 @@
+---
+title: "Config Loader API"
+description: "Intelligent configuration loading with lazy loading and caching"
+icon: "gear"
+---
+
+## Overview
+
+The Config Loader provides intelligent configuration management with lazy loading capabilities, significantly reducing memory footprint and load times by only loading configuration sections that each agent needs.
+
+<Warning>
+  **Deprecated:** This module is deprecated since v4.0.0. Use `config-resolver.js` for config resolution and `agent-config-loader.js` for agent configs.
+</Warning>
+
+## Core Functions
+
+### loadAgentConfig
+
+Loads configuration for a specific agent with lazy loading optimization.
+
+<ParamField path="agentId" type="string" required>
+  Agent identifier (e.g., 'dev', 'qa', 'po', 'architect')
+</ParamField>
+
+<ResponseField name="config" type="Object">
+  Configuration object containing only the sections required by the specified agent
+</ResponseField>
+
+```javascript
+const { loadAgentConfig } = require('.aiox-core/core/config/config-loader');
+
+// Load config for dev agent
+const config = await loadAgentConfig('dev');
+console.log(`Loaded ${Object.keys(config).length} config sections`);
+// Output: Loaded 7 sections (frameworkDocsLocation, projectDocsLocation, etc.)
+```
+
+### loadConfigSections
+
+Loads specific configuration sections on demand.
+
+<ParamField path="sections" type="string[]" required>
+  Array of section names to load
+</ParamField>
+
+<ResponseField name="config" type="Object">
+  Configuration object containing requested sections
+</ResponseField>
+
+```javascript
+const { loadConfigSections } = require('.aiox-core/core/config/config-loader');
+
+// Load specific sections
+const config = await loadConfigSections([
+  'toolConfigurations',
+  'lazyLoading',
+  'registry'
+]);
+```
+
+### loadMinimalConfig
+
+Loads always-loaded sections (minimal configuration).
+
+<ResponseField name="config" type="Object">
+  Minimal config with essential sections: frameworkDocsLocation, projectDocsLocation, devLoadAlwaysFiles, lazyLoading
+</ResponseField>
+
+```javascript
+const { loadMinimalConfig } = require('.aiox-core/core/config/config-loader');
+
+const minimalConfig = await loadMinimalConfig();
+```
+
+### preloadConfig
+
+Preloads full configuration into cache for startup optimization.
+
+```javascript
+const { preloadConfig } = require('.aiox-core/core/config/config-loader');
+
+// During application startup
+await preloadConfig();
+console.log('✅ Config preloaded into cache');
+```
+
+### clearCache
+
+Clears the configuration cache, forcing a reload on next access.
+
+```javascript
+const { clearCache } = require('.aiox-core/core/config/config-loader');
+
+clearCache();
+console.log('🗑️ Config cache cleared');
+```
+
+### getPerformanceMetrics
+
+Retrieves performance statistics for config loading operations.
+
+<ResponseField name="metrics" type="Object">
+  <ResponseField name="loads" type="number">
+    Total number of load operations
+  </ResponseField>
+  <ResponseField name="cacheHits" type="number">
+    Number of successful cache hits
+  </ResponseField>
+  <ResponseField name="cacheMisses" type="number">
+    Number of cache misses
+  </ResponseField>
+  <ResponseField name="cacheHitRate" type="string">
+    Cache hit rate as percentage
+  </ResponseField>
+  <ResponseField name="avgLoadTimeMs" type="number">
+    Average load time in milliseconds
+  </ResponseField>
+</ResponseField>
+
+```javascript
+const { getPerformanceMetrics } = require('.aiox-core/core/config/config-loader');
+
+const metrics = getPerformanceMetrics();
+console.log(`Cache hit rate: ${metrics.cacheHitRate}`);
+console.log(`Avg load time: ${metrics.avgLoadTimeMs}ms`);
+```
+
+### validateAgentConfig
+
+Validates that all required configuration sections exist for an agent.
+
+<ParamField path="agentId" type="string" required>
+  Agent identifier to validate
+</ParamField>
+
+<ResponseField name="validation" type="Object">
+  <ResponseField name="valid" type="boolean">
+    Whether all required sections are present
+  </ResponseField>
+  <ResponseField name="missingSections" type="string[]">
+    Array of missing section names
+  </ResponseField>
+  <ResponseField name="requiredSections" type="string[]">
+    Array of required section names
+  </ResponseField>
+</ResponseField>
+
+```javascript
+const { validateAgentConfig } = require('.aiox-core/core/config/config-loader');
+
+const validation = await validateAgentConfig('dev');
+if (!validation.valid) {
+  console.error('Missing sections:', validation.missingSections);
+}
+```
+
+## Config Cache API
+
+The `ConfigCache` class provides TTL-based caching with automatic expiration.
+
+### Constructor
+
+<ParamField path="ttl" type="number" default="300000">
+  Time-to-live in milliseconds (default: 5 minutes)
+</ParamField>
+
+```javascript
+const { ConfigCache } = require('.aiox-core/core/config/config-cache');
+
+const cache = new ConfigCache(10 * 60 * 1000); // 10 minutes TTL
+```
+
+### get
+
+Retrieve a value from cache.
+
+<ParamField path="key" type="string" required>
+  Cache key
+</ParamField>
+
+<ResponseField name="value" type="any">
+  Cached value or null if not found/expired
+</ResponseField>
+
+```javascript
+const value = cache.get('agent-config-dev');
+if (value) {
+  console.log('Cache hit!');
+}
+```
+
+### set
+
+Store a value in cache.
+
+<ParamField path="key" type="string" required>
+  Cache key
+</ParamField>
+
+<ParamField path="value" type="any" required>
+  Value to cache
+</ParamField>
+
+```javascript
+cache.set('agent-config-dev', configData);
+```
+
+### has
+
+Check if a key exists and is not expired.
+
+<ParamField path="key" type="string" required>
+  Cache key
+</ParamField>
+
+<ResponseField name="exists" type="boolean">
+  True if key exists and is valid
+</ResponseField>
+
+```javascript
+if (cache.has('agent-config-dev')) {
+  // Key exists and is not expired
+}
+```
+
+### getStats
+
+Get cache statistics.
+
+<ResponseField name="stats" type="Object">
+  <ResponseField name="size" type="number">
+    Number of entries in cache
+  </ResponseField>
+  <ResponseField name="hits" type="number">
+    Total cache hits
+  </ResponseField>
+  <ResponseField name="misses" type="number">
+    Total cache misses
+  </ResponseField>
+  <ResponseField name="hitRate" type="string">
+    Hit rate as percentage
+  </ResponseField>
+</ResponseField>
+
+```javascript
+const stats = cache.getStats();
+console.log(`Cache size: ${stats.size} entries`);
+console.log(`Hit rate: ${stats.hitRate}`);
+```
+
+## Agent Requirements
+
+Each agent has predefined configuration requirements:
+
+```javascript
+const { agentRequirements } = require('.aiox-core/core/config/config-loader');
+
+// Check what sections 'dev' agent needs
+console.log(agentRequirements.dev);
+// Output: ['frameworkDocsLocation', 'projectDocsLocation', 'devLoadAlwaysFiles', ...]
+```
+
+### Available Agents
+
+- `dev` - Developer agent
+- `qa` - Quality assurance agent
+- `po` - Product owner agent
+- `pm` - Project manager agent
+- `sm` - Scrum master agent
+- `architect` - Software architect agent
+- `analyst` - Business analyst agent
+- `data-engineer` - Data engineering agent
+- `devops` - DevOps agent
+- `aiox-master` - Master orchestrator agent
+- `ux-expert` - UX design expert
+- `db-sage` - Database specialist
+- `security` - Security specialist
+
+## Always-Loaded Sections
+
+These sections are loaded by default for all agents:
+
+```javascript
+const { ALWAYS_LOADED } = require('.aiox-core/core/config/config-loader');
+
+console.log(ALWAYS_LOADED);
+// Output: ['frameworkDocsLocation', 'projectDocsLocation', 'devLoadAlwaysFiles', 'lazyLoading']
+```
+
+## Performance Optimization
+
+The config loader uses several optimization strategies:
+
+1. **Lazy Loading** - Only loads sections needed by each agent
+2. **Caching** - 5-minute TTL cache with automatic expiration
+3. **Performance Tracking** - Monitors load times and cache efficiency
+4. **Preloading** - Optional startup preloading for frequently accessed configs
+
+```javascript
+// Example: Startup optimization
+const { preloadConfig, loadAgentConfig } = require('.aiox-core/core/config/config-loader');
+
+// Preload during app startup
+await preloadConfig();
+
+// Later loads are instant (from cache)
+const devConfig = await loadAgentConfig('dev'); // ~0ms (cache hit)
+const qaConfig = await loadAgentConfig('qa');   // ~0ms (cache hit)
+```
+
+## Migration Guide
+
+<Note>
+  For new code, use the recommended replacements:
+</Note>
+
+```javascript
+// Old (deprecated)
+const { loadAgentConfig } = require('./config-loader');
+const config = await loadAgentConfig('dev');
+
+// New (recommended)
+const { resolveConfig } = require('./config-resolver');
+const config = await resolveConfig(projectRoot);
+
+// For agent-specific configs
+const { AgentConfigLoader } = require('./agent-config-loader');
+const loader = new AgentConfigLoader('dev');
+const config = await loader.load(coreConfig);
+```

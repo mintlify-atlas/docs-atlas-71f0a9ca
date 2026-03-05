@@ -1,0 +1,438 @@
+---
+title: Core Modules
+description: Deep dive into AIOX core module architecture, APIs, and usage patterns
+---
+
+# Core Modules
+
+The Core module contains the foundational runtime components that all other AIOX modules depend on. It provides configuration management, session handling, elicitation workflows, code intelligence, and essential utilities.
+
+## Architecture Overview
+
+The core module follows a modular architecture with clear separation of concerns:
+
+```
+core/
+├── config/                 # Configuration management
+├── session/                # Session context management
+├── elicitation/            # Interactive prompting system
+├── code-intel/             # Code intelligence integration
+├── quality-gates/          # Quality gate pipeline
+├── mcp/                    # MCP configuration
+├── registry/               # Service registry
+├── health-check/           # Health check system
+└── utils/                  # Utility functions
+```
+
+## Configuration System
+
+The configuration system provides lazy-loading, caching, and TTL support for optimal performance.
+
+### ConfigCache
+
+Global configuration cache with time-to-live support:
+
+```javascript .aiox-core/core/config/config-cache.js
+const { globalConfigCache } = require('./.aiox-core/core');
+
+// Store configuration with 5-minute TTL
+globalConfigCache.set('my-key', { value: 42 }, 300000);
+
+// Retrieve configuration
+const config = globalConfigCache.get('my-key');
+
+// Check if key exists
+if (globalConfigCache.has('my-key')) {
+  console.log('Config found');
+}
+
+// Clear specific key
+globalConfigCache.delete('my-key');
+
+// Clear all cache
+globalConfigCache.clear();
+```
+
+### Configuration Loader
+
+Lazy-loading configuration system for agents and sections:
+
+```javascript .aiox-core/core/config/config-loader.js
+const { loadAgentConfig, loadConfigSections } = require('./.aiox-core/core');
+
+// Load agent configuration
+const agentConfig = await loadAgentConfig('dev');
+console.log(agentConfig.persona);
+console.log(agentConfig.commands);
+
+// Load specific sections
+const config = await loadConfigSections(['persona', 'commands']);
+
+// Load minimal config (fast)
+const minimal = await loadMinimalConfig();
+
+// Load full config (slower, comprehensive)
+const full = await loadFullConfig();
+
+// Preload configuration for performance
+await preloadConfig(['agents', 'workflows']);
+
+// Get performance metrics
+const metrics = getConfigPerformanceMetrics();
+console.log(`Cache hits: ${metrics.hits}`);
+console.log(`Cache misses: ${metrics.misses}`);
+console.log(`Hit rate: ${metrics.hitRate}%`);
+```
+
+## Session Management
+
+Session management provides context detection and loading for different execution environments.
+
+### ContextDetector
+
+Detects IDE, terminal, and environment context:
+
+```javascript .aiox-core/core/session/context-detector.js
+const { ContextDetector } = require('./.aiox-core/core');
+
+const detector = new ContextDetector();
+const context = detector.detectContext();
+
+console.log(`Environment: ${context.environment}`); // 'vscode' | 'cursor' | 'terminal'
+console.log(`Platform: ${context.platform}`);       // 'win32' | 'linux' | 'darwin'
+console.log(`Shell: ${context.shell}`);             // 'bash' | 'zsh' | 'powershell'
+console.log(`Working directory: ${context.cwd}`);
+```
+
+### SessionContextLoader
+
+Manages session context loading and updates:
+
+```javascript .aiox-core/core/session/context-loader.js
+const { SessionContextLoader } = require('./.aiox-core/core');
+
+const loader = new SessionContextLoader();
+
+// Load session context
+const context = await loader.loadContext(sessionId);
+console.log(context.agentId);
+console.log(context.projectState);
+console.log(context.commandHistory);
+
+// Update context
+await loader.updateContext(sessionId, {
+  lastCommand: 'create-story',
+  agentId: '@sm',
+});
+
+// Save context
+await loader.saveContext(sessionId, context);
+```
+
+## Elicitation System
+
+The elicitation system provides interactive prompting workflows for creating agents, tasks, and workflows.
+
+### ElicitationEngine
+
+Core engine for interactive prompting:
+
+```javascript .aiox-core/core/elicitation/elicitation-engine.js
+const { ElicitationEngine } = require('./.aiox-core/core');
+
+const engine = new ElicitationEngine();
+
+// Start elicitation session
+const session = await engine.startSession('create-agent');
+console.log(`Session ID: ${session.id}`);
+console.log(`Prompt: ${session.currentPrompt}`);
+
+// Process user input
+const response = await engine.processStep(session.id, userInput);
+
+if (response.complete) {
+  console.log('Elicitation complete');
+  console.log(response.result);
+} else {
+  console.log(`Next prompt: ${response.nextPrompt}`);
+}
+
+// Get session state
+const state = engine.getSessionState(session.id);
+console.log(`Progress: ${state.currentStep}/${state.totalSteps}`);
+```
+
+### ElicitationSessionManager
+
+Manages elicitation session state:
+
+```javascript .aiox-core/core/elicitation/session-manager.js
+const { ElicitationSessionManager } = require('./.aiox-core/core');
+
+const manager = new ElicitationSessionManager();
+
+// Create session
+const sessionId = manager.createSession('create-agent');
+
+// Update session data
+manager.updateSession(sessionId, {
+  agentName: 'custom-agent',
+  persona: 'Expert developer',
+});
+
+// Get session
+const session = manager.getSession(sessionId);
+
+// Complete session
+manager.completeSession(sessionId, result);
+
+// Clean up old sessions
+manager.cleanupSessions();
+```
+
+### Pre-defined Elicitation Steps
+
+Three built-in elicitation workflows:
+
+```javascript
+const {
+  agentElicitationSteps,
+  taskElicitationSteps,
+  workflowElicitationSteps,
+} = require('./.aiox-core/core');
+
+// Agent creation steps
+console.log(agentElicitationSteps);
+// { steps: [...], validation: {...} }
+
+// Task creation steps
+console.log(taskElicitationSteps);
+
+// Workflow creation steps
+console.log(workflowElicitationSteps);
+```
+
+## Code Intelligence
+
+Code intelligence integration provides symbol resolution, impact analysis, and project insights.
+
+### CodeIntelClient
+
+Singleton client for code intelligence operations:
+
+```javascript .aiox-core/core/code-intel/code-intel-client.js
+const { getClient, isCodeIntelAvailable } = require('./.aiox-core/core/code-intel');
+
+// Check if code intelligence is available
+if (isCodeIntelAvailable()) {
+  const client = getClient();
+  
+  // Query capabilities
+  const capabilities = client.getCapabilities();
+  console.log(capabilities); // ['symbols', 'references', 'diagnostics', ...]
+  
+  // Find symbol definition
+  const definition = await client.findDefinition('MyClass', 'src/index.js');
+  
+  // Get references
+  const refs = await client.findReferences('myFunction');
+  
+  // Get diagnostics
+  const issues = await client.getDiagnostics('src/');
+}
+```
+
+### CodeIntelEnricher
+
+Enrich results with code intelligence:
+
+```javascript .aiox-core/core/code-intel/code-intel-enricher.js
+const { getEnricher, enrichWithCodeIntel } = require('./.aiox-core/core/code-intel');
+
+const enricher = getEnricher();
+
+// Assess impact of changes
+const impact = await enricher.assessImpact(['src/core.js', 'src/utils.js']);
+console.log(impact.affectedFiles);
+console.log(impact.testCoverage);
+
+// Detect duplicate code
+const duplicates = await enricher.detectDuplicates('Implement authentication');
+
+// Find tests for a symbol
+const tests = await enricher.findTests('UserService');
+
+// Get project conventions
+const conventions = await enricher.getConventions('.');
+console.log(conventions.namingPatterns);
+console.log(conventions.fileStructure);
+
+// Enrich base result
+const baseResult = { message: 'Story created' };
+const enriched = await enrichWithCodeIntel(baseResult, {
+  capabilities: ['assessImpact', 'detectDuplicates'],
+  files: ['src/auth.js'],
+  timeout: 5000,
+});
+```
+
+## Service Registry
+
+Centralized service registry for dependency injection:
+
+```javascript .aiox-core/core/registry/registry-loader.js
+const { ServiceRegistry, getRegistry } = require('./.aiox-core/core');
+
+const registry = getRegistry();
+
+// Register service
+registry.register('logger', {
+  log: (msg) => console.log(msg),
+  error: (msg) => console.error(msg),
+});
+
+// Get service
+const logger = registry.get('logger');
+logger.log('Hello from service');
+
+// Check if service exists
+if (registry.has('logger')) {
+  console.log('Logger available');
+}
+
+// Unregister service
+registry.unregister('logger');
+```
+
+## Health Check System
+
+Comprehensive health check framework:
+
+```javascript .aiox-core/core/health-check/
+const { HealthCheck, HealthCheckEngine, CheckSeverity } = require('./.aiox-core/core');
+
+// Create health check
+const check = new HealthCheck({
+  id: 'config-check',
+  name: 'Configuration Health',
+  severity: CheckSeverity.CRITICAL,
+  check: async () => {
+    const config = loadConfig();
+    return config ? { status: 'healthy' } : { status: 'unhealthy', error: 'Config missing' };
+  },
+});
+
+// Run health check engine
+const engine = new HealthCheckEngine();
+engine.registerCheck(check);
+
+const results = await engine.runChecks();
+console.log(results.overallStatus); // 'healthy' | 'degraded' | 'unhealthy'
+console.log(results.checks);
+```
+
+## Utilities
+
+### YAMLValidator
+
+Validates YAML content with type-specific rules:
+
+```javascript .aiox-core/core/utils/yaml-validator.js
+const { YAMLValidator, validateYAML } = require('./.aiox-core/core');
+
+// Quick validation
+const result = await validateYAML(yamlContent, 'agent');
+
+if (!result.valid) {
+  console.error('Validation errors:', result.errors);
+}
+
+// Full validator
+const validator = new YAMLValidator();
+const validation = await validator.validateFile('agent.yaml', 'agent');
+
+if (validation.valid) {
+  console.log('YAML is valid');
+} else {
+  validation.errors.forEach((error) => {
+    console.error(`${error.field}: ${error.message}`);
+  });
+}
+```
+
+### PersonalizedOutputFormatter
+
+Formats agent output with personalization:
+
+```javascript .aiox-core/core/utils/output-formatter.js
+const { PersonalizedOutputFormatter } = require('./.aiox-core/core');
+
+const formatter = new PersonalizedOutputFormatter(agent, task, result);
+const output = formatter.format();
+
+console.log(output); // Formatted with agent persona, emojis, etc.
+```
+
+## Complete API Reference
+
+| Export | Type | Description |
+|--------|------|-------------|
+| `ConfigCache` | Class | Configuration cache class |
+| `globalConfigCache` | Instance | Global cache singleton |
+| `loadAgentConfig` | Function | Load agent configuration |
+| `loadConfigSections` | Function | Load config sections |
+| `loadMinimalConfig` | Function | Load minimal configuration |
+| `loadFullConfig` | Function | Load complete configuration |
+| `preloadConfig` | Function | Preload configuration |
+| `clearConfigCache` | Function | Clear configuration cache |
+| `getConfigPerformanceMetrics` | Function | Get cache performance stats |
+| `ContextDetector` | Class | Context detection |
+| `SessionContextLoader` | Class | Session context management |
+| `ElicitationEngine` | Class | Elicitation workflow engine |
+| `ElicitationSessionManager` | Class | Session state management |
+| `agentElicitationSteps` | Object | Agent creation steps |
+| `taskElicitationSteps` | Object | Task creation steps |
+| `workflowElicitationSteps` | Object | Workflow creation steps |
+| `PersonalizedOutputFormatter` | Class | Output formatting |
+| `YAMLValidator` | Class | YAML validation |
+| `validateYAML` | Function | Quick YAML validation |
+| `ServiceRegistry` | Class | Service registry |
+| `getRegistry` | Function | Get registry singleton |
+| `HealthCheck` | Class | Health check definition |
+| `HealthCheckEngine` | Class | Health check orchestrator |
+| `version` | String | Module version (2.0.0) |
+| `moduleName` | String | Module name ('core') |
+
+## Testing
+
+Run core module tests:
+
+```bash
+npm run test:core
+```
+
+Regression test coverage:
+
+| Test ID | Name | Priority | Description |
+|---------|------|----------|-------------|
+| CORE-01 | Config Loading | P0 | Verifies config system loads |
+| CORE-02 | Config Caching | P1 | Verifies cache operations |
+| CORE-03 | Session Management | P0 | Verifies session loader |
+| CORE-04 | Elicitation Engine | P0 | Verifies elicitation system |
+| CORE-05 | YAML Validation | P1 | Verifies YAML validator |
+| CORE-06 | Output Formatting | P1 | Verifies output formatter |
+| CORE-07 | Package Exports | P0 | Verifies all exports |
+
+## Performance Considerations
+
+- **Configuration**: Lazy-loaded with TTL caching (default 5 min)
+- **Session Context**: Loaded on-demand, persisted to disk
+- **Elicitation**: Stateful sessions with automatic cleanup
+- **Code Intelligence**: Graceful degradation if unavailable
+- **Health Checks**: Async with timeout support
+
+## Next Steps
+
+- [Workflow Intelligence →](/advanced/workflow-intelligence)
+- [Quality Gates →](/advanced/quality-gates)
+- [MCP Integration →](/advanced/mcp-integration)

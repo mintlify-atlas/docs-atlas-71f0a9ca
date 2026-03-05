@@ -1,0 +1,360 @@
+---
+title: "Pax - Product Owner"
+description: "Technical Product Owner & Process Steward for backlog management and story validation"
+icon: "target"
+---
+
+# 🎯 Pax - Product Owner
+
+**Role**: Technical Product Owner & Process Steward  
+**Archetype**: Balancer ♎ Libra  
+**Persona**: Meticulous, analytical, detail-oriented, systematic, collaborative
+
+## When to Use Pax
+
+Activate `@po` for:
+
+- 📋 Backlog management and prioritization
+- ✅ Story validation and completeness checking
+- 🎯 Acceptance criteria refinement
+- 🔄 Sprint planning coordination
+- 🔗 Story syncing with PM tools (ClickUp, GitHub, Jira)
+- 🏁 Closing completed stories
+
+**NOT for**: Story creation (delegate to `@sm`), Epic creation (delegate to `@pm`), Code implementation (use `@dev`)
+
+## Activation
+
+<CodeGroup>
+```bash Cursor IDE
+@po
+```
+
+```bash Claude Desktop
+/po
+```
+
+```bash Codex CLI
+@po *validate-story-draft story-1.2.3
+```
+</CodeGroup>
+
+## Core Commands
+
+<AccordionGroup>
+  <Accordion title="Backlog Management" icon="list-check">
+    ```bash
+    *backlog-add {story} {type} {priority} {title}
+    *backlog-review              # Sprint planning review
+    *backlog-summary             # Quick status
+    *backlog-prioritize {item}   # Re-prioritize item
+    *backlog-schedule {item} {sprint}  # Assign to sprint
+    *stories-index               # Regenerate story index
+    ```
+  </Accordion>
+
+  <Accordion title="Story Lifecycle" icon="rotate">
+    ```bash
+    *validate-story-draft {story}  # START of lifecycle
+    *close-story {story}           # END of lifecycle
+    *sync-story {story}            # Sync to PM tool
+    *pull-story {story}            # Pull updates from PM tool
+    ```
+  </Accordion>
+
+  <Accordion title="Quality & Process" icon="shield-check">
+    ```bash
+    *execute-checklist-po          # Run PO master checklist
+    ```
+  </Accordion>
+</AccordionGroup>
+
+## Story Lifecycle
+
+### Story Validation (START)
+
+```bash
+*validate-story-draft story-1.2.3
+
+# Pax checks:
+# 1. Story structure completeness
+# 2. Acceptance criteria clarity
+# 3. Technical feasibility
+# 4. Dependencies identified
+# 5. Test scenarios defined
+# 6. Quality gates embedded
+# 7. Estimated effort reasonable
+```
+
+**Validation Checklist**:
+
+<Accordion title="Story Completeness" icon="clipboard-check">
+  - [ ] Title is clear and actionable
+  - [ ] Description explains the "why"
+  - [ ] User value articulated
+  - [ ] Acceptance criteria defined (Given-When-Then)
+  - [ ] Tasks and subtasks listed
+  - [ ] Dependencies documented
+  - [ ] Technical notes present
+  - [ ] Test scenarios outlined
+  - [ ] Quality gates defined
+  - [ ] CodeRabbit integration configured
+</Accordion>
+
+### Story Closing (END)
+
+```bash
+*close-story story-1.2.3
+
+# Pax will:
+# 1. Verify PR merged
+# 2. Update story status to "Done"
+# 3. Update epic progress
+# 4. Add to completed backlog
+# 5. Suggest next story from backlog
+# 6. Sync to PM tool
+```
+
+**Output**:
+
+```yaml
+Story Closed: story-1.2.3
+
+Epic Progress:
+  Epic 5 (User Management): 3/7 stories complete (43%)
+
+Next Suggested Story:
+  story-5.4: Password Reset Flow
+  Priority: HIGH
+  Reason: Blocks epic completion, highest business value
+
+Proceed with story-5.4?
+[y/N]
+```
+
+## Backlog Management
+
+### Backlog Review
+
+```bash
+*backlog-review
+
+# Generates sprint planning report:
+# - Stories by priority
+# - Epic progress
+# - Technical debt items
+# - Blocked stories
+# - Capacity planning
+```
+
+**Report**:
+
+```markdown
+# Backlog Review - Sprint 12
+
+## Ready for Development (Priority: HIGH)
+1. story-5.4: Password Reset Flow [8 points]
+2. story-5.5: Account Settings Page [5 points]
+3. story-6.1: Email Notifications [13 points]
+
+## Technical Debt (Accumulated: 3 items)
+1. Refactor auth middleware [5 points]
+2. Optimize database queries [8 points]
+3. Add integration tests for API [13 points]
+
+## Blocked Stories (Require action)
+1. story-7.2: Blocked by third-party API approval
+2. story-8.1: Waiting for design mockups from @ux
+
+## Capacity Planning
+- Available capacity: 40 points
+- Recommended stories: 5.4, 5.5, 6.1 (26 points)
+- Buffer for tech debt: 14 points
+```
+
+### Add Backlog Item
+
+```bash
+*backlog-add story-5.3 tech-debt HIGH "Refactor auth middleware"
+
+# Types:
+# - follow-up: Story follow-up task
+# - tech-debt: Technical debt item
+# - enhancement: Future improvement
+
+# Priorities:
+# - CRITICAL: Blocks progress
+# - HIGH: Important for sprint
+# - MEDIUM: Nice to have
+# - LOW: Future consideration
+```
+
+## PM Tool Integration
+
+<Info>
+**Tool-Agnostic**: Pax works with ANY PM tool:
+- ClickUp
+- GitHub Projects
+- Jira
+- Local-only (YAML files as source of truth)
+</Info>
+
+### Sync Story to PM Tool
+
+```bash
+*sync-story story-1.2.3
+
+# Syncs to configured tool:
+```
+
+<Tabs>
+  <Tab title="ClickUp">
+    ```yaml
+    # Syncs to ClickUp task
+    - Title, description, status
+    - Custom fields (story ID, epic)
+    - Assignees
+    - Due dates
+    - Checklist items
+    ```
+  </Tab>
+  
+  <Tab title="GitHub Projects">
+    ```yaml
+    # Syncs to GitHub issue
+    - Title, body, labels
+    - Milestone (epic)
+    - Assignees
+    - Project board column
+    ```
+  </Tab>
+  
+  <Tab title="Jira">
+    ```yaml
+    # Syncs to Jira issue
+    - Summary, description, status
+    - Epic link
+    - Story points
+    - Assignee
+    - Sprint
+    ```
+  </Tab>
+  
+  <Tab title="Local">
+    ```yaml
+    # Validates YAML structure
+    # No external sync
+    # Story file is source of truth
+    ```
+  </Tab>
+</Tabs>
+
+### Pull Story Updates
+
+```bash
+*pull-story story-1.2.3
+
+# Pulls changes from PM tool:
+# - Status changes
+# - Comments
+# - Assignee updates
+# - Priority changes
+# - Merges into local story file
+```
+
+## Story File Permissions
+
+<Warning>
+**CRITICAL**: Pax is ONLY authorized to update:
+
+**Allowed sections**:
+- ✅ Story metadata (priority, status, assignee)
+- ✅ Acceptance criteria (refinement only)
+- ✅ Backlog items
+
+**DO NOT modify**:
+- ❌ Tasks/Subtasks (Dev owns)
+- ❌ Dev Agent Record (Dev owns)
+- ❌ QA Results (QA owns)
+- ❌ Change Log (Dev owns)
+</Warning>
+
+## Quality Gate Validation
+
+### PO Master Checklist
+
+```bash
+*execute-checklist-po
+
+# Validates:
+```
+
+<Accordion title="Story Quality Gates" icon="shield-check">
+  **Pre-Development**:
+  - [ ] CodeRabbit integration configured
+  - [ ] Quality thresholds defined
+  - [ ] Specialized agents predicted
+  - [ ] Test strategy outlined
+  
+  **During Development**:
+  - [ ] Tasks completed and checked
+  - [ ] Dev notes updated
+  - [ ] File list maintained
+  
+  **Pre-Review**:
+  - [ ] All acceptance criteria met
+  - [ ] Tests passing
+  - [ ] CodeRabbit pre-commit passed
+  
+  **Pre-Close**:
+  - [ ] QA approval received
+  - [ ] PR merged
+  - [ ] Documentation updated
+</Accordion>
+
+## Collaboration
+
+### Collaborates With
+
+- **@sm (River)**: Coordinates backlog prioritization and sprint planning
+- **@pm (Morgan)**: Receives strategic direction and PRDs
+
+### Delegates To
+
+- **@sm**: Story creation via `*draft`
+- **@pm**: Epic creation via `*create-epic`
+- **@aiox-master**: Course corrections
+
+## Delegation Protocol
+
+<Info>
+**Authority Matrix**:
+
+| Task | Owner |
+|------|-------|
+| Create epic | @pm |
+| Create story | @sm |
+| Validate story | @po |
+| Implement story | @dev |
+| Review story | @qa |
+| Push & PR | @devops |
+</Info>
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Story Creation" icon="wave" href="/agents/sm">
+    Delegate to River for drafting
+  </Card>
+  
+  <Card title="Sprint Planning" icon="clipboard" href="/agents/pm">
+    Coordinate with Morgan on roadmap
+  </Card>
+</CardGroup>
+
+## Learn More
+
+- [Story Lifecycle](/workflows/story-lifecycle)
+- [Backlog Management](/workflows/backlog)
+- [PM Tool Integration](/integrations/pm-tools)
+- [Quality Gates](/workflows/quality-gates)

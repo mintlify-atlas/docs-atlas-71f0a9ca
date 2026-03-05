@@ -1,0 +1,391 @@
+---
+title: "Handoffs API"
+description: "Agent handoff context and artifact system"
+icon: "hand-holding-hand"
+---
+
+## Overview
+
+The Handoff system enables efficient context transfer between agents with compact artifacts that preserve essential information while minimizing token usage. Inspired by OpenAI Swarm handoff patterns.
+
+## Handoff Artifact Structure
+
+Handoffs use YAML artifacts with strict token limits (≤500 tokens).
+
+### Template Location
+
+`.aiox-core/development/templates/agent-handoff-tmpl.yaml`
+
+### Artifact Schema
+
+```yaml
+handoff:
+  version: "1.0"
+  timestamp: ""           # ISO 8601 (e.g., 2026-02-23T17:00:00Z)
+  from_agent: ""          # Agent ID of outgoing agent (e.g., dev, qa, sm)
+  to_agent: ""            # Agent ID of incoming agent (e.g., qa, devops)
+
+  # What story/task is being worked on
+  story_context:
+    story_id: ""          # e.g., TOK-4A
+    story_path: ""        # e.g., docs/stories/epics/epic-token-optimization/story-TOK-4A.md
+    story_status: ""      # e.g., In Progress, Ready for Review
+    current_task: ""      # e.g., Task 3: Integration point & limits
+    branch: ""            # e.g., feat/epic-token-optimization
+
+  # Key decisions made by outgoing agent (max 5)
+  decisions:
+    - ""                  # e.g., "Used CLAUDE.md instructions for compaction"
+
+  # Files created or modified by outgoing agent (max 10)
+  files_modified:
+    - ""                  # e.g., ".aiox-core/development/templates/agent-handoff-tmpl.yaml"
+
+  # Active blockers or issues (max 3)
+  blockers:
+    - ""                  # e.g., "NOG-18 not Done — Phase 2 SYNAPSE integration deferred"
+
+  # What the incoming agent should do next (max 2 sentences)
+  next_action: ""         # e.g., "Run QA gate on TOK-4A. Verify handoff preserves story context."
+```
+
+## Compaction Limits
+
+Strict limits ensure token efficiency:
+
+<ParamField path="max_artifact_size" type="number" default="500">
+  Maximum artifact size in tokens (~375 words)
+</ParamField>
+
+<ParamField path="max_retained_summaries" type="number" default="3">
+  Maximum handoff summaries retained (oldest discarded on 4th switch)
+</ParamField>
+
+<ParamField path="max_decisions" type="number" default="5">
+  Maximum key decisions to include
+</ParamField>
+
+<ParamField path="max_files_modified" type="number" default="10">
+  Maximum modified files to list
+</ParamField>
+
+<ParamField path="max_blockers" type="number" default="3">
+  Maximum blockers to report
+</ParamField>
+
+## Creating Handoff Artifacts
+
+### On Agent Switch
+
+When switching agents (e.g., `@qa` command), the outgoing agent creates a handoff artifact:
+
+```javascript
+const createHandoffArtifact = async (fromAgent, toAgent, context) => {
+  const handoff = {
+    version: '1.0',
+    timestamp: new Date().toISOString(),
+    from_agent: fromAgent,
+    to_agent: toAgent,
+    story_context: {
+      story_id: context.storyId,
+      story_path: context.storyPath,
+      story_status: context.status,
+      current_task: context.currentTask,
+      branch: context.branch
+    },
+    decisions: context.decisions.slice(0, 5), // Max 5
+    files_modified: context.filesModified.slice(0, 10), // Max 10
+    blockers: context.blockers.slice(0, 3), // Max 3
+    next_action: context.nextAction
+  };
+  
+  // Save to .aiox/handoffs/
+  const filename = `handoff-${fromAgent}-to-${toAgent}-${Date.now()}.yaml`;
+  await saveHandoff(filename, handoff);
+  
+  return handoff;
+};
+```
+
+### Example: Dev to QA Handoff
+
+```yaml
+handoff:
+  version: "1.0"
+  timestamp: "2026-03-05T14:30:00Z"
+  from_agent: "dev"
+  to_agent: "qa"
+
+  story_context:
+    story_id: "FEAT-123"
+    story_path: "docs/stories/feat-user-auth.md"
+    story_status: "Implementation Complete"
+    current_task: "Task 4: Integration tests"
+    branch: "feat/user-authentication"
+
+  decisions:
+    - "Used JWT tokens for session management"
+    - "Implemented OAuth2 integration with GitHub and Google"
+    - "Added rate limiting (100 req/min per user)"
+    - "Created Redis cache for session storage"
+    - "Deferred SAML integration to next sprint"
+
+  files_modified:
+    - "src/auth/jwt-service.ts"
+    - "src/auth/oauth-provider.ts"
+    - "src/middleware/rate-limiter.ts"
+    - "src/cache/redis-client.ts"
+    - "tests/integration/auth.test.ts"
+    - "docs/api/authentication.md"
+
+  blockers:
+    - "OAuth callback URL needs production domain configuration"
+    - "Redis connection string not set in staging environment"
+
+  next_action: "Run QA gate with focus on OAuth flows and rate limiting. Verify Redis session persistence across restarts."
+```
+
+## Consuming Handoff Artifacts
+
+### On Agent Activation
+
+Incoming agent receives:
+1. Own full profile
+2. Handoff artifact (not previous agent's full persona)
+
+```javascript
+const consumeHandoff = async (toAgent) => {
+  // Find most recent unconsumed handoff
+  const handoffs = await listHandoffs('.aiox/handoffs/');
+  const unconsumed = handoffs.find(h => 
+    h.to_agent === toAgent && !h.consumed
+  );
+  
+  if (!unconsumed) {
+    return null;
+  }
+  
+  // Load handoff data
+  const handoff = await loadHandoff(unconsumed.path);
+  
+  // Mark as consumed
+  handoff.consumed = true;
+  handoff.consumed_at = new Date().toISOString();
+  await saveHandoff(unconsumed.path, handoff);
+  
+  return handoff;
+};
+```
+
+### Display in Greeting
+
+```javascript
+const displayHandoffInfo = (handoff) => {
+  if (!handoff) return;
+  
+  console.log(`🤝 Handoff from @${handoff.from_agent}`);
+  console.log(`📝 Story: ${handoff.story_context.story_id}`);
+  console.log(`🎯 Next action: ${handoff.next_action}`);
+  
+  if (handoff.blockers.length > 0) {
+    console.log(`⚠️ Blockers:`);
+    handoff.blockers.forEach(b => console.log(`  - ${b}`));
+  }
+};
+```
+
+## Workflow Chain Integration
+
+Handoffs integrate with workflow chains defined in `.aiox-core/data/workflow-chains.yaml`:
+
+```yaml
+workflow_chains:
+  - from_agent: dev
+    last_command: '*develop-story'
+    next_steps:
+      - command: '*qa-gate'
+        agent: qa
+        description: 'Run quality gate validation'
+      - command: '*code-review'
+        agent: architect
+        description: 'Request architecture review'
+```
+
+### Suggested Next Command
+
+```javascript
+const suggestNextCommand = (handoff, workflowChains) => {
+  const chain = workflowChains.find(c => 
+    c.from_agent === handoff.from_agent &&
+    c.last_command === handoff.last_command
+  );
+  
+  if (!chain) return null;
+  
+  const nextSteps = chain.next_steps.filter(s => 
+    s.agent === handoff.to_agent
+  );
+  
+  if (nextSteps.length === 0) return null;
+  
+  return {
+    primary: nextSteps[0],
+    alternatives: nextSteps.slice(1)
+  };
+};
+```
+
+## Retention Policy
+
+Oldest handoff summaries are discarded when limit is reached:
+
+```javascript
+const enforceRetentionPolicy = async (agentId, maxRetained = 3) => {
+  const handoffs = await listHandoffsForAgent(agentId);
+  
+  // Sort by timestamp (oldest first)
+  handoffs.sort((a, b) => 
+    new Date(a.timestamp) - new Date(b.timestamp)
+  );
+  
+  // Delete oldest if over limit
+  if (handoffs.length > maxRetained) {
+    const toDelete = handoffs.slice(0, handoffs.length - maxRetained);
+    
+    for (const handoff of toDelete) {
+      await deleteHandoff(handoff.path);
+      console.log(`🗑️ Deleted old handoff: ${handoff.path}`);
+    }
+  }
+};
+```
+
+## Complete Example
+
+```javascript
+const fs = require('fs-extra');
+const yaml = require('js-yaml');
+const path = require('path');
+
+// Create handoff on agent switch
+const switchAgent = async (fromAgent, toAgent, context) => {
+  // 1. Create handoff artifact
+  const handoff = {
+    version: '1.0',
+    timestamp: new Date().toISOString(),
+    from_agent: fromAgent,
+    to_agent: toAgent,
+    story_context: {
+      story_id: context.storyId,
+      story_path: context.storyPath,
+      story_status: 'Implementation Complete',
+      current_task: context.currentTask,
+      branch: context.branch
+    },
+    decisions: context.keyDecisions.slice(0, 5),
+    files_modified: context.modifiedFiles.slice(0, 10),
+    blockers: context.blockers.slice(0, 3),
+    next_action: context.suggestedNextAction
+  };
+  
+  // 2. Save handoff
+  const handoffDir = '.aiox/handoffs';
+  await fs.ensureDir(handoffDir);
+  
+  const filename = `handoff-${fromAgent}-to-${toAgent}-${Date.now()}.yaml`;
+  const handoffPath = path.join(handoffDir, filename);
+  
+  await fs.writeFile(
+    handoffPath,
+    yaml.dump(handoff, { indent: 2 }),
+    'utf-8'
+  );
+  
+  // 3. Enforce retention policy
+  await enforceRetentionPolicy(toAgent, 3);
+  
+  console.log(`✅ Handoff created: ${filename}`);
+  
+  return handoff;
+};
+
+// Consume handoff on agent activation
+const activateAgent = async (agentId) => {
+  // 1. Find unconsumed handoff
+  const handoffDir = '.aiox/handoffs';
+  const files = await fs.readdir(handoffDir);
+  
+  let handoff = null;
+  
+  for (const file of files) {
+    const handoffPath = path.join(handoffDir, file);
+    const data = yaml.load(await fs.readFile(handoffPath, 'utf-8'));
+    
+    if (data.to_agent === agentId && !data.consumed) {
+      handoff = data;
+      
+      // Mark as consumed
+      data.consumed = true;
+      data.consumed_at = new Date().toISOString();
+      await fs.writeFile(
+        handoffPath,
+        yaml.dump(data, { indent: 2 }),
+        'utf-8'
+      );
+      
+      break;
+    }
+  }
+  
+  // 2. Display handoff info in greeting
+  if (handoff) {
+    console.log(`🤝 Handoff from @${handoff.from_agent}`);
+    console.log(`📝 ${handoff.story_context.story_id}: ${handoff.story_context.story_status}`);
+    console.log(`🎯 Next: ${handoff.next_action}`);
+    
+    if (handoff.blockers.length > 0) {
+      console.log(`⚠️ Blockers: ${handoff.blockers.length}`);
+    }
+  }
+  
+  return handoff;
+};
+
+// Usage
+const context = {
+  storyId: 'FEAT-123',
+  storyPath: 'docs/stories/feat-user-auth.md',
+  currentTask: 'Implementation complete',
+  branch: 'feat/user-authentication',
+  keyDecisions: [
+    'Used JWT for session management',
+    'Implemented OAuth2 with GitHub/Google',
+    'Added rate limiting (100 req/min)'
+  ],
+  modifiedFiles: [
+    'src/auth/jwt-service.ts',
+    'src/auth/oauth-provider.ts',
+    'tests/integration/auth.test.ts'
+  ],
+  blockers: [
+    'OAuth callback URL needs production domain'
+  ],
+  suggestedNextAction: 'Run QA gate with focus on OAuth flows'
+};
+
+// Switch from dev to qa
+await switchAgent('dev', 'qa', context);
+
+// Later: Activate QA agent
+await activateAgent('qa');
+```
+
+## Best Practices
+
+1. **Stay Within Limits** - Respect max token counts (500 tokens)
+2. **Prioritize Information** - Include only essential decisions and blockers
+3. **Clear Next Actions** - Be specific about what incoming agent should do
+4. **File Context** - List most important modified files first
+5. **Active Blockers Only** - Don't include resolved issues
+6. **Timestamp Everything** - Use ISO 8601 timestamps
+7. **Enforce Retention** - Clean up old handoffs automatically

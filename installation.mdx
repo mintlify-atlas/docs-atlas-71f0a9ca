@@ -1,0 +1,858 @@
+---
+title: Installation Guide
+description: Detailed installation instructions for Synkra AIOX in new and existing projects, with IDE-specific setup and troubleshooting
+---
+
+# Installation Guide
+
+This guide covers everything you need to install and configure Synkra AIOX for your development environment.
+
+<Note>
+**Already completed the Quickstart?** This guide provides detailed information about installation options, IDE-specific configuration, and troubleshooting.
+</Note>
+
+## Prerequisites
+
+Before installing AIOX, ensure your system meets these requirements:
+
+### Required Software
+
+<CodeGroup>
+
+```bash Check Node.js Version
+node --version
+# Should output v18.0.0 or higher (v20+ recommended)
+```
+
+```bash Check npm Version
+npm --version
+# Should output 9.0.0 or higher
+```
+
+```bash Check Git Version
+git --version
+# Should output 2.30 or higher
+```
+
+</CodeGroup>
+
+### System Requirements
+
+| Requirement | Minimum | Recommended |
+|-------------|---------|-------------|
+| **Node.js** | 18.0.0 | 20.0.0+ |
+| **npm** | 9.0.0 | 10.0.0+ |
+| **Git** | 2.30.0 | 2.40.0+ |
+| **Disk Space** | 100 MB | 500 MB |
+| **RAM** | 2 GB | 4 GB+ |
+
+### Supported Platforms
+
+<CardGroup cols={3}>
+  <Card title="macOS" icon="apple">
+    ✅ macOS 12+ (Monterey, Ventura, Sonoma)
+  </Card>
+  <Card title="Windows" icon="windows">
+    ✅ Windows 10/11 with PowerShell or WSL2
+  </Card>
+  <Card title="Linux" icon="linux">
+    ✅ Ubuntu 20.04+, Debian 11+, Fedora 36+
+  </Card>
+</CardGroup>
+
+### Installing Prerequisites
+
+<AccordionGroup>
+  <Accordion title="Install Node.js">
+    **macOS (Homebrew):**
+    ```bash
+    brew install node@20
+    ```
+    
+    **Windows (Chocolatey):**
+    ```powershell
+    choco install nodejs-lts
+    ```
+    
+    **Linux (nvm - recommended):**
+    ```bash
+    curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.0/install.sh | bash
+    nvm install 20
+    nvm use 20
+    ```
+    
+    **Or download from:** https://nodejs.org
+  </Accordion>
+  
+  <Accordion title="Install Git">
+    **macOS:**
+    ```bash
+    brew install git
+    ```
+    
+    **Windows:**
+    Download from https://git-scm.com/download/win
+    
+    **Linux:**
+    ```bash
+    # Ubuntu/Debian
+    sudo apt update && sudo apt install git
+    
+    # Fedora
+    sudo dnf install git
+    ```
+  </Accordion>
+  
+  <Accordion title="Install GitHub CLI (Optional)">
+    The GitHub CLI (`gh`) is optional but recommended for team collaboration.
+    
+    **macOS:**
+    ```bash
+    brew install gh
+    ```
+    
+    **Windows:**
+    ```powershell
+    choco install gh
+    ```
+    
+    **Linux:**
+    ```bash
+    # See: https://cli.github.com/manual/installation
+    ```
+  </Accordion>
+</AccordionGroup>
+
+## Installation Methods
+
+### Method 1: NPX Installation (Recommended)
+
+The fastest way to install AIOX using npx:
+
+<Steps>
+
+<Step title="Create New Project or Navigate to Existing">
+
+**New project:**
+```bash
+npx aiox-core init my-project
+cd my-project
+```
+
+**Existing project:**
+```bash
+cd your-existing-project
+```
+
+</Step>
+
+<Step title="Run Interactive Installer">
+
+```bash
+npx aiox-core install
+```
+
+The wizard will guide you through:
+- Project name confirmation
+- Component selection (Core, Agents, Squads, Examples)
+- Package manager choice (npm, yarn, pnpm)
+- Git initialization
+- Dependency installation
+
+</Step>
+
+<Step title="Verify Installation">
+
+```bash
+npx aiox-core doctor
+```
+
+You should see:
+```
+🏥 AIOX System Diagnostics
+
+✔ Node.js version: v20.10.0
+✔ npm version: 10.2.3
+✔ Git installed: version 2.43.0
+✔ Synkra AIOX: v4.4.6
+✔ .aiox-core/ directory exists
+✔ Agent files: 11 found
+
+✅ All checks passed!
+```
+
+</Step>
+
+</Steps>
+
+### Method 2: Install with Specific Options
+
+Customize the installation with command-line flags:
+
+<CodeGroup>
+
+```bash Force Reinstall
+# Overwrite existing installation
+npx aiox-core install --force
+```
+
+```bash Silent Mode (CI/CD)
+# No prompts, use defaults
+npx aiox-core install --quiet --force
+```
+
+```bash Dry Run
+# Preview what would be installed
+npx aiox-core install --dry-run
+```
+
+```bash Merge Mode (Brownfield)
+# Merge with existing configs
+npx aiox-core install --merge
+```
+
+</CodeGroup>
+
+### Method 3: Clone and Build (Advanced)
+
+For contributors or users who want to modify the source:
+
+```bash
+# Clone repository
+git clone https://github.com/SynkraAI/aiox-core.git
+cd aiox-core
+
+# Install dependencies
+npm install
+
+# Run installer
+npm run install:aiox
+```
+
+## IDE-Specific Setup
+
+AIOX integrates differently with each IDE. Follow the setup for your environment:
+
+### Claude Code (Full Support)
+
+<Steps>
+
+<Step title="Automatic Configuration">
+
+✅ **No manual setup required!** 
+
+Claude Code automatically loads `.claude/CLAUDE.md` and agent rules.
+
+</Step>
+
+<Step title="Verify Integration">
+
+```bash
+npm run sync:ide:claude
+npm run validate:claude-sync
+npm run validate:claude-integration
+```
+
+All commands should pass without errors.
+
+</Step>
+
+<Step title="Activate an Agent">
+
+In Claude Code chat:
+```
+/dev
+```
+
+You should see:
+```
+💻 Dex the Builder ready to innovate!
+
+**Role:** Expert Senior Software Engineer
+...
+```
+
+</Step>
+
+</Steps>
+
+**Agent Activation Pattern:**
+- `/dev` - Developer agent
+- `/qa` - Quality assurance agent
+- `/architect` - Architecture agent
+- `/analyst` - Business analyst agent
+- `/sm` - Scrum master agent
+- `/pm` - Product manager agent
+- `/po` - Product owner agent
+- `/devops` - DevOps agent
+
+**Hook Support:** ✅ Complete (reference implementation)
+
+---
+
+### Gemini CLI (High Support)
+
+<Steps>
+
+<Step title="Sync Configuration">
+
+Generate Gemini-specific configurations:
+
+```bash
+npm run sync:ide:gemini
+```
+
+This creates:
+- `.gemini/rules.md` - Main rules file
+- `.gemini/rules/AIOX/agents/*.md` - Agent definitions
+- `.gemini/commands/*.toml` - Slash command definitions
+- `.gemini/hooks/` - Lifecycle hooks
+- `.gemini/settings.json` - Gemini settings
+
+</Step>
+
+<Step title="Verify Integration">
+
+```bash
+npm run validate:gemini-sync
+npm run validate:gemini-integration
+```
+
+</Step>
+
+<Step title="Activate an Agent">
+
+In Gemini CLI:
+```
+/aiox-menu      # Show all agents
+/aiox-dev       # Activate dev agent
+/aiox-qa        # Activate qa agent
+```
+
+</Step>
+
+</Steps>
+
+**Agent Activation Pattern:**
+- `/aiox-menu` - Show agent menu
+- `/aiox-dev` - Developer agent
+- `/aiox-qa` - QA agent
+- `/aiox-architect` - Architect agent
+- `/aiox-analyst` - Analyst agent
+
+**Hook Support:** ✅ High (native events)
+
+---
+
+### Codex CLI (Partial Support)
+
+<Steps>
+
+<Step title="Generate Local Skills">
+
+Codex uses a skills-based system:
+
+```bash
+npm run sync:skills:codex
+```
+
+This creates `.codex/skills/` with agent skills.
+
+<Note>
+This project uses **local-first skills**. Skills are versioned in the repository.
+</Note>
+
+</Step>
+
+<Step title="Verify Integration">
+
+```bash
+npm run validate:codex-sync
+npm run validate:codex-integration
+npm run validate:codex-skills
+```
+
+</Step>
+
+<Step title="Activate an Agent">
+
+In Codex CLI:
+```
+/skills
+# Select: aiox-dev
+```
+
+Or use shortcuts:
+```
+@dev
+/dev
+/dev.md
+```
+
+</Step>
+
+</Steps>
+
+**Agent Activation Pattern:**
+- `/skills` → select `aiox-dev`
+- `@dev`, `/dev`, `/dev.md` (shortcuts)
+- Same for other agents: `@qa`, `@architect`, etc.
+
+**Hook Support:** ⚠️ Partial (depends on `AGENTS.md`, `/skills`, MCP)
+
+---
+
+### Cursor (Limited Support)
+
+<Steps>
+
+<Step title="Manual Configuration Required">
+
+1. Open **Cursor Settings** (Cmd+, or Ctrl+,)
+2. Navigate to **Features** → **User Rules**
+3. Copy content from `.cursor/global-rules.md`
+4. Paste into User Rules section
+5. Click **Save**
+6. Restart Cursor
+
+</Step>
+
+<Step title="Verify Rules">
+
+Activate an agent:
+```
+@dev
+```
+
+You should see the greeting.
+
+</Step>
+
+</Steps>
+
+**Agent Activation Pattern:**
+- `@dev` - Developer agent
+- `@qa` - QA agent
+- `@architect` - Architect agent
+
+**Hook Support:** ❌ None (no lifecycle hooks)
+
+<Warning>
+**Limitations in Cursor:**
+- No pre/post tool automation
+- No lifecycle hooks
+- Limited session management
+- Focus on agent rules and MCP integration
+</Warning>
+
+---
+
+### GitHub Copilot (Limited Support)
+
+<Steps>
+
+<Step title="Automatic Configuration">
+
+GitHub Copilot automatically loads repository instructions from `AGENTS.md` in VS Code.
+
+</Step>
+
+<Step title="Activate an Agent">
+
+In GitHub Copilot Chat:
+```
+@dev
+```
+
+Note: Agent responses depend on how Copilot interprets `AGENTS.md`.
+
+</Step>
+
+</Steps>
+
+**Agent Activation Pattern:**
+- `@dev`, `@qa`, `@architect` (via chat)
+
+**Hook Support:** ❌ None (no lifecycle hooks)
+
+<Warning>
+**Limitations in GitHub Copilot:**
+- No lifecycle hooks
+- Limited AIOX automation
+- Depends on repository instructions
+- MCP support in VS Code only
+</Warning>
+
+---
+
+### AntiGravity (Workflow-Based)
+
+AntiGravity uses workflows instead of hooks.
+
+```bash
+npm run sync:ide:antigravity
+```
+
+**Hook Support:** ⚠️ Workflow-based (not hook-based)
+
+---
+
+## Multi-IDE Validation
+
+To check parity across all IDEs:
+
+```bash
+npm run validate:parity
+```
+
+This runs:
+- Claude sync validation
+- Gemini sync validation
+- Codex sync validation
+- GitHub Copilot sync validation
+- Cursor sync validation
+
+## Post-Installation Configuration
+
+### 1. Configure Git (Recommended)
+
+If you haven't already:
+
+```bash
+git config --global user.name "Your Name"
+git config --global user.email "your.email@example.com"
+```
+
+### 2. Initialize Git Repository (Optional)
+
+For new projects:
+
+```bash
+git init
+git add .
+git commit -m "Initial commit with AIOX"
+```
+
+### 3. Create GitHub Repository (Optional)
+
+For team collaboration:
+
+```bash
+gh repo create my-project --public --source=. --remote=origin
+git push -u origin main
+```
+
+### 4. Set Up CI/CD (Optional)
+
+AIOX includes GitHub Actions workflows in `.github/workflows/`:
+
+- `ci.yml` - Run tests on push/PR
+- `release.yml` - Semantic releases
+
+These activate automatically when you push to GitHub.
+
+## Verification Steps
+
+### Run System Diagnostics
+
+```bash
+npx aiox-core doctor
+```
+
+**Expected output:**
+```
+🏥 AIOX System Diagnostics
+
+✔ Node.js version: v20.10.0 (meets requirement: >=18.0.0)
+✔ npm version: 10.2.3
+✔ Git installed: version 2.43.0
+✔ GitHub CLI: gh 2.40.1
+✔ Synkra AIOX: v4.4.6
+
+Configuration:
+✔ .aiox-core/ directory exists
+✔ Agent files: 11 found
+✔ Workflow files: 8 found
+✔ Templates: 15 found
+
+Dependencies:
+✔ @clack/prompts: ^0.11.0
+✔ commander: ^12.1.0
+✔ execa: ^5.1.1
+✔ fs-extra: ^11.3.2
+✔ picocolors: ^1.1.1
+
+✅ All checks passed! Your installation is healthy.
+```
+
+### Auto-Fix Issues
+
+If diagnostics fail:
+
+```bash
+npx aiox-core doctor --fix
+```
+
+### Validate File Integrity
+
+```bash
+npx aiox-core validate
+```
+
+This checks:
+- All core files exist
+- No corrupted files
+- Configuration is valid
+
+## Troubleshooting
+
+### Common Installation Issues
+
+<AccordionGroup>
+  <Accordion title="Error: Node.js version too old">
+    **Problem:** `Error: Node.js >=18.0.0 required, found v16.x.x`
+    
+    **Solution:**
+    ```bash
+    # macOS/Linux (nvm)
+    nvm install 20
+    nvm use 20
+    
+    # Windows
+    # Download from https://nodejs.org
+    ```
+  </Accordion>
+  
+  <Accordion title="Error: npx command not found">
+    **Problem:** `bash: npx: command not found`
+    
+    **Solution:**
+    ```bash
+    npm install -g npx
+    ```
+    
+    Or use npm directly:
+    ```bash
+    npm install -g aiox-core
+    aiox install
+    ```
+  </Accordion>
+  
+  <Accordion title="Error: EACCES permission denied">
+    **Problem:** `Error: EACCES: permission denied, mkdir '/usr/local/lib/node_modules/aiox-core'`
+    
+    **Solution (macOS/Linux):**
+    ```bash
+    # Option 1: Use npx (no global install)
+    npx aiox-core install
+    
+    # Option 2: Fix npm permissions
+    mkdir ~/.npm-global
+    npm config set prefix '~/.npm-global'
+    echo 'export PATH=~/.npm-global/bin:$PATH' >> ~/.bashrc
+    source ~/.bashrc
+    ```
+  </Accordion>
+  
+  <Accordion title="Error: Git not found">
+    **Problem:** `Error: git command not found`
+    
+    **Solution:**
+    Install Git for your platform:
+    - **macOS:** `brew install git`
+    - **Windows:** Download from https://git-scm.com
+    - **Linux:** `sudo apt install git` or `sudo dnf install git`
+  </Accordion>
+  
+  <Accordion title="Installation hangs during 'Installing dependencies'">
+    **Problem:** Installation freezes during `npm install`
+    
+    **Solution:**
+    1. Cancel with Ctrl+C
+    2. Clear npm cache: `npm cache clean --force`
+    3. Try again: `npx aiox-core install`
+    
+    Or skip dependency install:
+    ```bash
+    npx aiox-core init my-project --skip-install
+    cd my-project
+    npm install
+    ```
+  </Accordion>
+  
+  <Accordion title="Agent activation doesn't work">
+    **Problem:** Agent doesn't respond to `/dev` or `@dev`
+    
+    **Solution depends on IDE:**
+    
+    **Claude Code:**
+    ```bash
+    npm run sync:ide:claude
+    npm run validate:claude-sync
+    ```
+    
+    **Gemini CLI:**
+    ```bash
+    npm run sync:ide:gemini
+    npm run validate:gemini-sync
+    ```
+    
+    **Codex CLI:**
+    ```bash
+    npm run sync:skills:codex
+    npm run validate:codex-sync
+    ```
+    
+    **Cursor:**
+    - Verify you added rules to User Rules
+    - Restart Cursor
+    
+    **All IDEs:**
+    - Check `AGENTS.md` exists in project root
+    - Check `.aiox-core/development/agents/` has all agent files
+  </Accordion>
+</AccordionGroup>
+
+### Platform-Specific Guides
+
+For detailed platform-specific instructions:
+
+- 📖 [macOS Installation Guide](https://github.com/SynkraAI/aiox-core/blob/main/docs/installation/macos.md)
+- 📖 [Windows Installation Guide](https://github.com/SynkraAI/aiox-core/blob/main/docs/installation/windows.md)
+- 📖 [Linux Installation Guide](https://github.com/SynkraAI/aiox-core/blob/main/docs/installation/linux.md)
+
+## Updating AIOX
+
+Keep your AIOX installation up to date:
+
+### Check for Updates
+
+```bash
+npx aiox-core update --check
+```
+
+### Update to Latest
+
+```bash
+npx aiox-core update
+```
+
+Or force update:
+
+```bash
+npx aiox-core@latest install --force
+```
+
+AIOX will:
+- ✅ Detect your existing installation
+- ✅ Update only changed files
+- ✅ Create `.bak` backups for customized files
+- ✅ Preserve your project settings
+
+## Uninstalling AIOX
+
+To remove AIOX from your project:
+
+```bash
+npx aiox-core uninstall
+```
+
+**Options:**
+```bash
+# Force uninstall (no confirmation)
+npx aiox-core uninstall --force
+
+# Keep project data (.aiox/)
+npx aiox-core uninstall --keep-data
+
+# Preview what would be removed
+npx aiox-core uninstall --dry-run
+```
+
+**What gets removed:**
+- `.aiox-core/` - Framework core
+- `squads/` - Squad definitions
+- `.aiox/` - Project data (unless `--keep-data`)
+- AIOX entries in `.gitignore`
+
+## Advanced Configuration
+
+### Environment Variables
+
+Create `.env` file (use `.env.example` as template):
+
+```bash
+cp .env.example .env
+```
+
+**Available variables:**
+```bash
+# AIOX Configuration
+AIOX_LOG_LEVEL=info          # Log level (debug, info, warn, error)
+AIOX_AUTO_COMMIT=false        # Auto-commit changes
+AIOX_PERMISSION_MODE=ask      # Permission mode (ask, auto, explore)
+
+# Git Configuration
+GIT_AUTHOR_NAME="Your Name"
+GIT_AUTHOR_EMAIL="your.email@example.com"
+
+# GitHub Configuration
+GITHUB_TOKEN=ghp_xxx         # GitHub personal access token
+```
+
+### Custom Configuration
+
+Edit `.aiox/config.yaml`:
+
+```yaml
+# Project Configuration
+project:
+  name: my-project
+  version: 1.0.0
+
+# Agent Configuration
+agents:
+  permissionMode: ask  # ask | auto | explore
+  autoActivate: false
+
+# Quality Gates
+quality:
+  requireLint: true
+  requireTypecheck: true
+  requireTests: true
+  minCoverage: 80
+```
+
+## Next Steps
+
+Now that AIOX is installed and configured:
+
+<CardGroup cols={2}>
+  <Card title="User Guide" icon="book-open" href="/guides/user-guide">
+    Learn the complete AIOX workflow from planning to deployment
+  </Card>
+  <Card title="Agent Guide" icon="users" href="/guides/agents">
+    Deep dive into each agent's capabilities and commands
+  </Card>
+  <Card title="Story-Driven Development" icon="bookmark" href="/guides/stories">
+    Understand how stories drive the development workflow
+  </Card>
+  <Card title="CLI Reference" icon="terminal" href="/cli">
+    Complete CLI command reference
+  </Card>
+</CardGroup>
+
+## Getting Help
+
+If you encounter issues:
+
+1. **Run diagnostics:** `npx aiox-core doctor`
+2. **Check troubleshooting:** [Installation Troubleshooting Guide](https://github.com/SynkraAI/aiox-core/blob/main/docs/guides/installation-troubleshooting.md)
+3. **Search issues:** [GitHub Issues](https://github.com/SynkraAI/aiox-core/issues)
+4. **Report a bug:** [New Issue](https://github.com/SynkraAI/aiox-core/issues/new)
+
+---
+
+**Installation complete!** You're ready to start building with AIOX.
+
+👉 **[Continue to User Guide →](/guides/user-guide)** to learn the complete workflow

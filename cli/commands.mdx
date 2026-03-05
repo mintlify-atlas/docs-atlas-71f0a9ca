@@ -1,0 +1,662 @@
+---
+title: 'CLI Commands'
+description: 'Complete reference for all AIOX CLI commands'
+icon: 'terminal'
+---
+
+# AIOX CLI Commands
+
+Complete command reference for the Synkra AIOX CLI. All commands are executed via `npx aiox-core` or the `aiox` alias after installation.
+
+## Installation Commands
+
+### install
+
+Install AIOX in the current directory.
+
+```bash
+npx aiox-core install [options]
+```
+
+<ParamField path="--force" type="flag">
+  Overwrite existing AIOX installation
+</ParamField>
+
+<ParamField path="--quiet" type="flag">
+  Minimal output (no banner, no prompts) - ideal for CI/CD
+</ParamField>
+
+<ParamField path="--dry-run" type="flag">
+  Simulate installation without modifying files
+</ParamField>
+
+<ParamField path="--merge" type="flag">
+  Auto-merge existing config files (brownfield mode)
+</ParamField>
+
+<ParamField path="--no-merge" type="flag">
+  Disable merge option, use legacy overwrite behavior
+</ParamField>
+
+#### Smart Merge (Brownfield)
+
+When installing in a project with existing config files (`.env`, `CLAUDE.md`), AIOX can merge new settings while preserving your customizations:
+
+- **`.env` files**: Adds new variables, preserves existing values
+- **`CLAUDE.md`**: Updates AIOX sections, keeps your custom rules
+
+#### Examples
+
+```bash
+# Interactive installation
+npx aiox-core install
+
+# Force reinstall without prompts
+npx aiox-core install --force
+
+# Brownfield: merge configs automatically
+npx aiox-core install --merge
+
+# Silent install for CI/CD
+npx aiox-core install --quiet --force
+
+# Preview what would be installed
+npx aiox-core install --dry-run
+```
+
+**Exit Codes:**
+- `0` - Installation successful
+- `1` - Installation failed
+
+---
+
+### init
+
+Create a new AIOX project with the specified name.
+
+```bash
+npx aiox-core init <project-name> [options]
+```
+
+<ParamField path="project-name" type="string" required>
+  Name of the project directory to create (use `.` for current directory)
+</ParamField>
+
+<ParamField path="--force" type="flag">
+  Force creation in non-empty directory
+</ParamField>
+
+<ParamField path="--skip-install" type="flag">
+  Skip npm dependency installation
+</ParamField>
+
+<ParamField path="--template" type="string">
+  Use specific template: `default`, `minimal`, or `enterprise`
+</ParamField>
+
+<ParamField path="-t" type="string">
+  Shorthand for `--template`
+</ParamField>
+
+#### Available Templates
+
+- **`default`** - Full installation with all agents, tasks, and workflows
+- **`minimal`** - Essential files only (dev agent + basic tasks)
+- **`enterprise`** - Everything + dashboards + team integrations
+
+#### Examples
+
+```bash
+# Create new project with default template
+npx aiox-core init my-project
+
+# Create with minimal template
+npx aiox-core init my-project --template minimal
+
+# Install in current directory
+npx aiox-core init . --template enterprise
+
+# Force creation and skip npm install
+npx aiox-core init my-project --force --skip-install
+```
+
+---
+
+### uninstall
+
+Remove AIOX from the current project.
+
+```bash
+npx aiox-core uninstall [options]
+```
+
+<ParamField path="--force" type="flag">
+  Skip confirmation prompt
+</ParamField>
+
+<ParamField path="--keep-data" type="flag">
+  Keep `.aiox/` directory (settings and history)
+</ParamField>
+
+<ParamField path="--dry-run" type="flag">
+  Show what would be removed without removing
+</ParamField>
+
+#### What Gets Removed
+
+- `.aiox-core/` - Framework core files
+- `docs/stories/` - Story files (if created by AIOX)
+- `squads/` - Squad definitions
+- `.gitignore` - AIOX-added entries only
+
+#### What Is Preserved (with --keep-data)
+
+- `.aiox/` - Project settings and agent history
+
+#### Examples
+
+```bash
+# Interactive uninstall (with confirmation)
+npx aiox-core uninstall
+
+# Force uninstall without prompts
+npx aiox-core uninstall --force
+
+# See what would be removed
+npx aiox-core uninstall --dry-run
+
+# Uninstall but keep project data
+npx aiox-core uninstall --keep-data
+```
+
+**Exit Codes:**
+- `0` - Uninstall successful
+- `1` - Uninstall failed or cancelled
+
+---
+
+## Update & Maintenance
+
+### update
+
+Update AIOX to the latest version.
+
+```bash
+aiox update [options]
+```
+
+<ParamField path="--check" type="flag">
+  Check for updates without applying
+</ParamField>
+
+<ParamField path="--dry-run" type="flag">
+  Preview what would be updated
+</ParamField>
+
+<ParamField path="--force" type="flag">
+  Force update even if up-to-date
+</ParamField>
+
+<ParamField path="--verbose" type="flag">
+  Show detailed output
+</ParamField>
+
+<ParamField path="-v" type="flag">
+  Alias for `--verbose`
+</ParamField>
+
+#### Examples
+
+```bash
+# Update to latest version
+aiox update
+
+# Check for updates without applying
+aiox update --check
+
+# Preview what would be updated
+aiox update --dry-run
+
+# Force update with detailed output
+aiox update --force --verbose
+```
+
+**Exit Codes:**
+- `0` - Update successful or already up-to-date
+- `1` - Update failed
+
+---
+
+### validate
+
+Validate AIOX installation integrity.
+
+```bash
+aiox validate [options]
+```
+
+<ParamField path="--repair" type="flag">
+  Repair missing or corrupted files
+</ParamField>
+
+<ParamField path="-r" type="flag">
+  Alias for `--repair`
+</ParamField>
+
+<ParamField path="--dry-run" type="flag">
+  Preview repairs without applying (use with `--repair`)
+</ParamField>
+
+<ParamField path="-d" type="flag">
+  Alias for `--dry-run`
+</ParamField>
+
+<ParamField path="--detailed" type="flag">
+  Show detailed file list
+</ParamField>
+
+<ParamField path="--no-hash" type="flag">
+  Skip hash verification (faster)
+</ParamField>
+
+<ParamField path="--extras" type="flag">
+  Detect extra files not in manifest
+</ParamField>
+
+<ParamField path="--verbose" type="flag">
+  Enable verbose output
+</ParamField>
+
+<ParamField path="-v" type="flag">
+  Alias for `--verbose`
+</ParamField>
+
+<ParamField path="--json" type="flag">
+  Output results as JSON
+</ParamField>
+
+<ParamField path="--source" type="string">
+  Source directory for repairs
+</ParamField>
+
+#### Examples
+
+```bash
+# Validate current installation
+aiox validate
+
+# Validate with detailed file list
+aiox validate --detailed
+
+# Repair missing/corrupted files
+aiox validate --repair
+
+# Preview what would be repaired
+aiox validate --repair --dry-run
+
+# Quick validation (skip hash check)
+aiox validate --no-hash
+
+# Output as JSON for CI/CD
+aiox validate --json
+```
+
+**Exit Codes:**
+- `0` - Validation passed
+- `1` - Validation failed (missing/corrupted files)
+- `2` - Validation error (could not complete)
+
+---
+
+### doctor
+
+Run health checks on your AIOX installation.
+
+```bash
+aiox doctor [options]
+```
+
+<ParamField path="--fix" type="flag">
+  Automatically fix detected issues
+</ParamField>
+
+<ParamField path="--dry-run" type="flag">
+  Show what `--fix` would do without making changes
+</ParamField>
+
+<ParamField path="--json" type="flag">
+  Output results as structured JSON
+</ParamField>
+
+<ParamField path="--quiet" type="flag">
+  Minimal output (exit code only)
+</ParamField>
+
+#### Checks Performed
+
+- Required directories exist (`.aiox-core/`, `.aiox/`)
+- Configuration files are valid JSON/YAML
+- Agent definitions are complete
+- Task files have required fields
+- Dependencies are installed
+
+#### Examples
+
+```bash
+# Run health check
+aiox doctor
+
+# Auto-fix detected issues
+aiox doctor --fix
+
+# Preview what would be fixed
+aiox doctor --fix --dry-run
+
+# Output as JSON
+aiox doctor --json
+```
+
+**Exit Codes:**
+- `0` - All checks passed (or issues fixed with `--fix`)
+- `1` - Issues detected (run with `--fix` to repair)
+
+---
+
+## Information Commands
+
+### --version
+
+Show version information.
+
+```bash
+aiox --version [options]
+```
+
+<ParamField path="--detailed" type="flag">
+  Show detailed version information
+</ParamField>
+
+<ParamField path="-d" type="flag">
+  Alias for `--detailed`
+</ParamField>
+
+#### Examples
+
+```bash
+# Show version number
+aiox --version
+
+# Show detailed version info
+aiox --version --detailed
+```
+
+**Detailed Output Includes:**
+- Package version
+- Local installation version
+- Installation mode (full/minimal)
+- Installation date
+- Last update date
+- File tracking count
+- Customized files count
+
+---
+
+### info
+
+Show system information.
+
+```bash
+aiox info
+```
+
+**Output:**
+- AIOX version
+- Platform and architecture
+- Node.js version
+- Working directory
+- Install location
+- Component counts (agents, tasks, templates, workflows)
+- AIOX Pro status (if installed)
+
+---
+
+### --help
+
+Show help information.
+
+```bash
+aiox --help
+aiox <command> --help
+```
+
+---
+
+## Configuration Commands
+
+### config show
+
+Show resolved configuration.
+
+```bash
+aiox config show [options]
+```
+
+<ParamField path="--level" type="string">
+  Show specific level: `framework`, `project`, `pro`, `local`, or `user`
+</ParamField>
+
+<ParamField path="-l" type="string">
+  Alias for `--level`
+</ParamField>
+
+<ParamField path="--app" type="string">
+  Include app-specific config (L3)
+</ParamField>
+
+<ParamField path="-a" type="string">
+  Alias for `--app`
+</ParamField>
+
+<ParamField path="--debug" type="flag">
+  Show source annotations for each value
+</ParamField>
+
+<ParamField path="-d" type="flag">
+  Alias for `--debug`
+</ParamField>
+
+#### Examples
+
+```bash
+# Show full resolved config
+aiox config show
+
+# Show framework config only
+aiox config show --level framework
+
+# Show with source annotations
+aiox config show --debug
+```
+
+---
+
+### config diff
+
+Compare configuration between two levels.
+
+```bash
+aiox config diff --levels <a,b> [options]
+```
+
+<ParamField path="--levels" type="string" required>
+  Two levels to compare (e.g., `framework,project`)
+</ParamField>
+
+<ParamField path="--app" type="string">
+  Include app-specific context
+</ParamField>
+
+#### Examples
+
+```bash
+# Compare framework vs project config
+aiox config diff --levels framework,project
+
+# Compare project vs local config
+aiox config diff --levels project,local
+```
+
+---
+
+### config migrate
+
+Migrate monolithic `core-config.yaml` to layered files.
+
+```bash
+aiox config migrate [options]
+```
+
+<ParamField path="--dry-run" type="flag">
+  Preview without writing files
+</ParamField>
+
+<ParamField path="--force" type="flag">
+  Overwrite existing split files
+</ParamField>
+
+#### Examples
+
+```bash
+# Preview migration
+aiox config migrate --dry-run
+
+# Perform migration
+aiox config migrate
+
+# Force migration (overwrite existing)
+aiox config migrate --force
+```
+
+---
+
+### config validate
+
+Validate YAML syntax and lint config files.
+
+```bash
+aiox config validate [options]
+```
+
+<ParamField path="--level" type="string">
+  Validate specific level only
+</ParamField>
+
+<ParamField path="-l" type="string">
+  Alias for `--level`
+</ParamField>
+
+#### Examples
+
+```bash
+# Validate all config files
+aiox config validate
+
+# Validate specific level
+aiox config validate --level project
+```
+
+---
+
+### config init-local
+
+Create `local-config.yaml` from template.
+
+```bash
+aiox config init-local
+```
+
+---
+
+## Service Discovery
+
+### workers search
+
+Search for workers (agents, tasks, or components).
+
+```bash
+aiox workers search <query> [options]
+```
+
+<ParamField path="query" type="string" required>
+  Search query (keywords or phrases)
+</ParamField>
+
+<ParamField path="--category" type="string">
+  Filter by category (e.g., `data`, `api`, `transformation`)
+</ParamField>
+
+<ParamField path="--tags" type="string">
+  Filter by tags (comma-separated, e.g., `etl,data`)
+</ParamField>
+
+<ParamField path="--format" type="string">
+  Output format: `table` (default) or `json`
+</ParamField>
+
+#### Examples
+
+```bash
+# Search for JSON-related workers
+aiox workers search "json"
+
+# Search with category filter
+aiox workers search "json" --category=data
+
+# Search with multiple tags
+aiox workers search "transform" --tags=etl,data
+
+# Output as JSON
+aiox workers search "api" --format=json
+```
+
+---
+
+## Exit Codes
+
+All AIOX CLI commands follow consistent exit code conventions:
+
+- **`0`** - Success
+- **`1`** - Command failed or validation errors
+- **`2`** - Fatal error or invalid usage
+
+---
+
+## Environment Variables
+
+The CLI respects the following environment variables:
+
+- **`AIOX_INSTALL_FORCE`** - Set to `1` to enable force mode
+- **`AIOX_INSTALL_QUIET`** - Set to `1` to enable quiet mode
+- **`AIOX_INSTALL_DRY_RUN`** - Set to `1` to enable dry-run mode
+- **`PROJECT_ROOT`** - Override project root directory
+- **`EXA_API_KEY`** - API key for Exa MCP server
+- **`USER_HOME`** - User home directory for MCP configuration
+
+---
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Configuration" icon="gear" href="/cli/configuration">
+    Learn about the layered configuration system
+  </Card>
+  <Card title="Workflows" icon="diagram-project" href="/cli/workflows">
+    Explore workflow patterns and automation
+  </Card>
+  <Card title="Validation" icon="check-circle" href="/cli/validation">
+    Understand validation and quality gates
+  </Card>
+  <Card title="Getting Started" icon="rocket" href="/getting-started">
+    Get started with AIOX
+  </Card>
+</CardGroup>

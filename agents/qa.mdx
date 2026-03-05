@@ -1,0 +1,554 @@
+---
+title: "Quinn - QA Agent"
+description: "Test Architect & Quality Advisor for comprehensive quality assurance"
+icon: "check-circle"
+---
+
+# ✅ Quinn - Test Architect & Quality Advisor
+
+**Role**: Test Architect with Quality Advisory Authority  
+**Archetype**: Guardian ♍ Virgo  
+**Persona**: Analytical, systematic, advisory, educational, pragmatic
+
+## When to Use Quinn
+
+Activate `@qa` for:
+
+- 📋 Comprehensive story reviews and quality gates
+- 🧪 Test architecture and strategy design
+- 🔒 Security vulnerability scanning
+- 📈 Non-functional requirements validation
+- 📄 Requirements traceability (Given-When-Then)
+
+**NOT for**: Code implementation (use `@dev`), Story drafting (use `@sm`), Push operations (use `@devops`)
+
+## Activation
+
+<CodeGroup>
+```bash Cursor IDE
+@qa
+```
+
+```bash Claude Desktop
+/qa
+```
+
+```bash Codex CLI
+@qa *review story-1.2.3
+```
+</CodeGroup>
+
+## Core Commands
+
+<AccordionGroup>
+  <Accordion title="Code Review & Analysis" icon="magnifying-glass">
+    ```bash
+    *code-review {scope}         # Run automated review (uncommitted/committed)
+    *review {story}              # Comprehensive story review
+    *review-build {story}        # 10-phase structured QA (Epic 6)
+    ```
+  </Accordion>
+
+  <Accordion title="Quality Gates" icon="shield-check">
+    ```bash
+    *gate {story}                # Create quality gate decision
+    *nfr-assess {story}          # Validate non-functional requirements
+    *risk-profile {story}        # Generate risk assessment matrix
+    ```
+  </Accordion>
+
+  <Accordion title="Enhanced Validation" icon="list-check">
+    ```bash
+    *validate-libraries {story}  # Context7 library validation
+    *security-check {story}      # 8-point security scan
+    *validate-migrations {story} # Database migration validation
+    *evidence-check {story}      # Evidence-based QA verification
+    *false-positive-check        # Critical thinking for bug fixes
+    *console-check {story}       # Browser console error detection
+    ```
+  </Accordion>
+
+  <Accordion title="Test Strategy" icon="vial">
+    ```bash
+    *test-design {story}         # Create test scenarios
+    *trace {story}               # Map requirements to tests
+    *create-suite {story}        # Create test suite (QA Authority)
+    ```
+  </Accordion>
+
+  <Accordion title="Feedback Loop" icon="arrows-rotate">
+    ```bash
+    *create-fix-request {story}  # Generate QA_FIX_REQUEST.md for @dev
+    ```
+  </Accordion>
+</AccordionGroup>
+
+## Quality Review Workflow
+
+### Comprehensive Story Review
+
+```bash
+# 1. Activate Quinn
+@qa
+
+# 2. Run comprehensive review
+*review story-1.2.3
+
+# Quinn will:
+# - Run CodeRabbit automated scan
+# - Check acceptance criteria coverage
+# - Validate test coverage
+# - Assess non-functional requirements
+# - Generate risk profile
+# - Create quality gate decision
+# - Update QA Results section in story
+```
+
+### 10-Phase Structured Review (Epic 6)
+
+```bash
+*review-build story-1.2.3
+```
+
+**Phases**:
+1. **Pre-flight**: Story completeness check
+2. **CodeRabbit**: Automated code review
+3. **Acceptance Criteria**: Traceability validation
+4. **Test Coverage**: Unit/Integration/E2E analysis
+5. **Security**: Vulnerability scan (8 points)
+6. **Performance**: Query optimization, N+1 detection
+7. **NFRs**: Non-functional requirements check
+8. **Risk Assessment**: Probability × Impact matrix
+9. **Gate Decision**: PASS/CONCERNS/FAIL/WAIVED
+10. **Fix Request**: Generate QA_FIX_REQUEST.md if issues
+
+**Output**: `docs/qa/qa_report.md`
+
+## CodeRabbit Self-Healing
+
+**Full self-healing mode** (3 iterations max):
+
+```yaml
+Workflow:
+  iteration = 0
+  max_iterations = 3
+  
+  WHILE iteration < max_iterations:
+    1. Run: wsl bash -c 'coderabbit --prompt-only -t committed --base main'
+    2. Parse for CRITICAL and HIGH issues
+    
+    IF no CRITICAL/HIGH:
+      - Create tech debt for MEDIUM issues
+      - Log: "✅ QA passed - no CRITICAL/HIGH issues"
+      - BREAK (ready to approve)
+    
+    IF CRITICAL or HIGH found:
+      - Attempt auto-fix for each
+      - iteration++
+      - CONTINUE loop
+  
+  IF iteration == 3 AND issues remain:
+    - Log: "❌ Issues remain after 3 iterations"
+    - Generate detailed QA gate report
+    - Set gate: FAIL
+    - HALT for human intervention
+```
+
+**Severity Handling**:
+
+<Tabs>
+  <Tab title="CRITICAL">
+    **Action**: Block story completion, must fix immediately
+    
+    **Examples**:
+    - SQL injection vulnerabilities
+    - Missing RLS policies
+    - Hardcoded credentials
+    - Security bypass risks
+  </Tab>
+  
+  <Tab title="HIGH">
+    **Action**: Report in QA gate, recommend fix before merge
+    
+    **Examples**:
+    - N+1 query patterns
+    - Missing indexes on foreign keys
+    - Performance bottlenecks
+    - Memory leaks
+  </Tab>
+  
+  <Tab title="MEDIUM">
+    **Action**: Document as technical debt, create follow-up issue
+    
+    **Examples**:
+    - Inconsistent API patterns
+    - Missing error handling
+    - Poor separation of concerns
+  </Tab>
+  
+  <Tab title="LOW">
+    **Action**: Optional improvements, note in review
+    
+    **Examples**:
+    - Style inconsistencies
+    - Minor optimizations
+  </Tab>
+</Tabs>
+
+## Quality Gate Decisions
+
+### Gate Types
+
+<CardGroup cols={2}>
+  <Card title="PASS" icon="circle-check" color="#10b981">
+    All checks passed. Ready for merge.
+    
+    **Criteria**:
+    - 0 CRITICAL issues
+    - 0 HIGH issues
+    - Acceptance criteria met
+    - Test coverage ≥ 80%
+  </Card>
+  
+  <Card title="CONCERNS" icon="triangle-exclamation" color="#f59e0b">
+    Minor issues exist but not blockers.
+    
+    **Criteria**:
+    - 0 CRITICAL issues
+    - MEDIUM issues documented
+    - NFRs mostly satisfied
+  </Card>
+  
+  <Card title="FAIL" icon="circle-xmark" color="#ef4444">
+    Must fix issues before proceeding.
+    
+    **Criteria**:
+    - CRITICAL or HIGH issues
+    - Acceptance criteria not met
+    - Test coverage < 60%
+  </Card>
+  
+  <Card title="WAIVED" icon="hand" color="#6366f1">
+    Issues acknowledged, proceeding anyway.
+    
+    **Criteria**:
+    - User explicitly waives concerns
+    - Risk documented
+    - Follow-up issue created
+  </Card>
+</CardGroup>
+
+### Gate File Format
+
+```yaml
+# docs/qa/gates/gate-story-1.2.3.yaml
+story: story-1.2.3
+reviewer: Quinn (QA)
+date: 2026-03-05
+decision: PASS
+
+checks:
+  coderabbit:
+    status: PASS
+    critical: 0
+    high: 0
+    medium: 2
+  
+  acceptance_criteria:
+    status: PASS
+    coverage: 100%
+  
+  test_coverage:
+    status: PASS
+    unit: 95%
+    integration: 87%
+    e2e: 80%
+  
+  security:
+    status: PASS
+    vulnerabilities: 0
+  
+  performance:
+    status: CONCERNS
+    issues:
+      - "Query on users table missing index"
+
+notes:
+  - "MEDIUM: Consider extracting validation logic to helper"
+  - "Performance: Create index on users.email for faster lookups"
+
+recommendation: "Ready for merge. Create follow-up for performance optimization."
+```
+
+## Story File Permissions
+
+<Warning>
+**CRITICAL**: Quinn can ONLY update the "QA Results" section of story files.
+
+**DO NOT** modify:
+- ❌ Status
+- ❌ Story description
+- ❌ Acceptance Criteria
+- ❌ Tasks/Subtasks
+- ❌ Dev Notes
+- ❌ Dev Agent Record
+</Warning>
+
+## Enhanced Validation Suite
+
+### Library Validation
+
+```bash
+*validate-libraries story-1.2.3
+```
+
+**Uses Context7** to:
+- Verify library versions are current
+- Check for known vulnerabilities
+- Validate correct usage patterns
+- Recommend better alternatives
+
+### Security Scan (8-Point)
+
+```bash
+*security-check story-1.2.3
+```
+
+**Validates**:
+1. **Authentication**: Proper auth implementation
+2. **Authorization**: RLS policies, permissions
+3. **Input Validation**: Sanitization, validation
+4. **SQL Injection**: Parameterized queries
+5. **XSS Prevention**: Output encoding
+6. **CSRF Protection**: Token validation
+7. **Secrets Management**: No hardcoded keys
+8. **API Security**: Rate limiting, CORS
+
+### Migration Validation
+
+```bash
+*validate-migrations story-1.2.3
+```
+
+**Checks**:
+- DDL statement ordering
+- Idempotency (IF NOT EXISTS)
+- Rollback script completeness
+- Breaking changes documented
+- Transaction boundaries
+
+### Evidence-Based QA
+
+```bash
+*evidence-check story-1.2.3
+```
+
+**Requires proof**:
+- Screenshots for UI changes
+- Test output logs
+- Performance benchmarks
+- API response samples
+
+### False Positive Detection
+
+```bash
+*false-positive-check story-1.2.3
+```
+
+**Critical thinking for bug fixes**:
+- Is the root cause addressed?
+- Could this fix introduce new bugs?
+- Are edge cases covered?
+- Is the fix properly tested?
+
+## Requirements Traceability
+
+### Given-When-Then Mapping
+
+```bash
+*trace story-1.2.3
+```
+
+**Maps**:
+
+```gherkin
+Given: User is authenticated
+When: User submits form with valid data
+Then: Data is saved and success message shown
+
+→ Test: test/api/users.test.js:42-58
+→ Acceptance Criteria: AC-1 in story-1.2.3.md
+```
+
+**Output**: Traceability matrix showing:
+- Acceptance Criteria → Tests
+- Tests → Code files
+- Coverage gaps
+
+## Collaboration
+
+### Receives Work From
+
+- **@dev (Dex)**: Story marked "Ready for Review"
+
+### Provides Feedback To
+
+- **@dev (Dex)**: Via `QA_FIX_REQUEST.md`
+
+### Works With
+
+- **@sm (River)**: Risk profiling for sprint planning
+- **CodeRabbit**: Automated pre-review
+
+## Test Suite Authority
+
+<Info>
+**Authority**: Quinn owns test suite creation.
+
+While `@dev` writes unit tests during implementation, Quinn has authority to:
+- Create comprehensive test suites
+- Define test strategy and architecture
+- Set test coverage requirements
+- Design integration and E2E tests
+</Info>
+
+```bash
+*create-suite story-1.2.3
+```
+
+**Generates**:
+- Test plan document
+- Test cases (unit/integration/E2E)
+- Test data fixtures
+- Mock configurations
+
+## QA Fix Request Loop
+
+### Generate Fix Request
+
+```bash
+*create-fix-request story-1.2.3
+```
+
+**Creates**: `docs/qa/QA_FIX_REQUEST.md`
+
+```markdown
+# QA Fix Request - Story 1.2.3
+
+## CRITICAL Issues (Must Fix)
+
+### Issue 1: SQL Injection Risk
+**Location**: `api/src/routes/users.js:45`
+**Problem**: String concatenation in query
+**Fix**: Use parameterized query
+**Test**: Add test case for malicious input
+
+## HIGH Issues (Recommended)
+
+### Issue 2: Missing Index
+**Location**: `supabase/migrations/20260305_users.sql`
+**Problem**: Query on email column without index
+**Fix**: Add index on users.email
+**Test**: Run EXPLAIN ANALYZE
+```
+
+### Dev Applies Fixes
+
+```bash
+@dev *fix-qa-issues
+
+# Dex will:
+# 1. Read QA_FIX_REQUEST.md
+# 2. Apply fixes in order (CRITICAL first)
+# 3. Run tests
+# 4. Update story
+# 5. Notify Quinn for re-review
+```
+
+## Risk Profiling
+
+```bash
+*risk-profile story-1.2.3
+```
+
+**Generates risk matrix**:
+
+```yaml
+risk_profile:
+  story: story-1.2.3
+  overall_risk: MEDIUM
+  
+  risks:
+    - id: R1
+      description: "Database migration on production table"
+      probability: LOW
+      impact: HIGH
+      risk_level: MEDIUM
+      mitigation: "Test on staging, create rollback script"
+    
+    - id: R2
+      description: "New authentication flow"
+      probability: MEDIUM
+      impact: CRITICAL
+      risk_level: HIGH
+      mitigation: "Extensive E2E testing, gradual rollout"
+```
+
+## Troubleshooting
+
+<AccordionGroup>
+  <Accordion title="CodeRabbit authentication failed" icon="lock">
+    **Check**:
+    ```bash
+    wsl bash -c '~/.local/bin/coderabbit auth status'
+    ```
+    
+    **If not authenticated**:
+    1. Run auth command in WSL
+    2. Follow OAuth flow
+    3. Retry review
+  </Accordion>
+  
+  <Accordion title="Self-healing not fixing issues" icon="rotate">
+    **Possible causes**:
+    - Issue requires human judgment
+    - Ambiguous error message
+    - External dependency issue
+    
+    **Resolution**:
+    1. Quinn generates detailed report
+    2. Sets gate to FAIL
+    3. User reviews and decides
+  </Accordion>
+  
+  <Accordion title="Test coverage below threshold" icon="chart-line">
+    **Thresholds**:
+    - Minimum: 60% (FAIL gate)
+    - Target: 80% (PASS gate)
+    - Excellent: 90%+
+    
+    **If below**:
+    ```bash
+    *test-design story-1.2.3  # Generate missing test cases
+    ```
+  </Accordion>
+</AccordionGroup>
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="DevOps Push" icon="rocket" href="/agents/devops">
+    After QA approval, use Gage to push and create PR
+  </Card>
+  
+  <Card title="Dev Fixes" icon="code" href="/agents/dev">
+    If issues found, Dex applies fixes
+  </Card>
+</CardGroup>
+
+## Learn More
+
+- [Quality Gates](/workflows/quality-gates)
+- [CodeRabbit Integration](/integrations/coderabbit)
+- [Test Architecture](/testing/architecture)
+- [Requirements Traceability](/testing/traceability)

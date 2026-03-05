@@ -1,0 +1,406 @@
+---
+title: "Dex - Developer Agent"
+description: "Full stack developer agent for code implementation, debugging, and testing"
+icon: "code"
+---
+
+# 💻 Dex - Full Stack Developer
+
+**Role**: Expert Senior Software Engineer & Implementation Specialist  
+**Archetype**: Builder ♒ Aquarius  
+**Persona**: Pragmatic, detail-oriented, solution-focused
+
+## When to Use Dex
+
+Activate `@dev` for:
+
+- 🔨 Implementing user stories from `docs/stories/`
+- 🐛 Debugging and fixing bugs
+- ♻️ Refactoring code for quality and performance
+- 🧪 Writing and running tests
+- 📝 Registering technical debt
+
+**NOT for**: Git push operations (use `@devops`), Story creation (use `@sm`), Architecture design (use `@architect`)
+
+## Activation
+
+<CodeGroup>
+```bash Cursor IDE
+@dev
+```
+
+```bash Claude Desktop
+/dev
+```
+
+```bash Codex CLI
+@dev *develop story-1.2.3
+```
+</CodeGroup>
+
+## Core Commands
+
+<AccordionGroup>
+  <Accordion title="Story Development" icon="book">
+    ```bash
+    *develop {story-id}          # Implement story (interactive mode)
+    *develop-yolo {story-id}     # Autonomous development mode
+    *develop-interactive         # Interactive with confirmations
+    *develop-preflight          # Plan before implementation
+    ```
+  </Accordion>
+
+  <Accordion title="Subtask Execution (ADE)" icon="list-check">
+    ```bash
+    *execute-subtask {id}       # 13-step Coder Agent workflow
+    *verify-subtask {id}        # Verify completion (command/api/browser/e2e)
+    ```
+  </Accordion>
+
+  <Accordion title="Build & Recovery" icon="rotate">
+    ```bash
+    *build-autonomous {story}   # Start autonomous build loop
+    *build-resume {story}       # Resume from last checkpoint
+    *build-status [--all]       # Show build status
+    *rollback {snapshot}        # Rollback to last good state
+    ```
+  </Accordion>
+
+  <Accordion title="Quality & Testing" icon="check">
+    ```bash
+    *run-tests                  # Execute linting and all tests
+    *apply-qa-fixes             # Apply QA feedback
+    *fix-qa-issues              # Fix from QA_FIX_REQUEST.md
+    ```
+  </Accordion>
+
+  <Accordion title="Worktree Isolation" icon="code-branch">
+    ```bash
+    *worktree-create {story}    # Create isolated worktree
+    *worktree-list              # List active worktrees
+    *worktree-merge {story}     # Merge worktree back
+    ```
+  </Accordion>
+</AccordionGroup>
+
+## Development Workflow
+
+### Story Implementation
+
+```bash
+# 1. Activate Dex
+@dev
+
+# 2. Start story development
+*develop story-1.2.3
+
+# Dex will:
+# - Read story from docs/stories/story-1.2.3.md
+# - Execute tasks sequentially
+# - Write tests for each task
+# - Run validations
+# - Update Dev Agent Record sections
+# - Mark checkboxes as complete
+```
+
+### Development Modes
+
+<Tabs>
+  <Tab title="Interactive (Default)">
+    **Best for**: Complex stories, learning, new team members
+    
+    ```bash
+    *develop-interactive story-1.2.3
+    ```
+    
+    - Asks for confirmation before each major step
+    - Explains decisions and reasoning
+    - Allows course correction mid-story
+  </Tab>
+  
+  <Tab title="YOLO (Autonomous)">
+    **Best for**: Trusted workflows, experienced users, simple stories
+    
+    ```bash
+    *develop-yolo story-1.2.3
+    ```
+    
+    - Executes entire story autonomously
+    - Creates decision log automatically
+    - Only halts on blockers or 3 consecutive failures
+  </Tab>
+  
+  <Tab title="Preflight (Planning)">
+    **Best for**: Complex stories, risk assessment, time estimation
+    
+    ```bash
+    *develop-preflight story-1.2.3
+    ```
+    
+    - Analyzes story complexity
+    - Creates implementation plan
+    - Estimates time and identifies risks
+    - Does NOT implement code
+  </Tab>
+</Tabs>
+
+## Story File Permissions
+
+<Warning>
+**CRITICAL**: Dex can ONLY update these story sections:
+
+- ✅ Tasks/Subtasks checkboxes `[ ]` → `[x]`
+- ✅ Dev Agent Record (all subsections)
+- ✅ Debug Log References
+- ✅ Completion Notes
+- ✅ File List
+- ✅ Change Log
+- ✅ Status field
+
+**DO NOT** modify:
+- ❌ Story description
+- ❌ Acceptance Criteria
+- ❌ Dev Notes
+- ❌ Testing sections
+</Warning>
+
+## CodeRabbit Self-Healing
+
+**Before marking story complete**, Dex runs CodeRabbit pre-commit review:
+
+```yaml
+Workflow:
+  1. Run: wsl bash -c 'coderabbit --prompt-only -t uncommitted'
+  2. Parse output for CRITICAL issues
+  3. If CRITICAL found:
+     - Auto-fix attempt (max 2 iterations)
+     - If still failing: HALT and report to user
+  4. If HIGH issues: Document in Dev Notes
+  5. If clean: Mark story complete
+```
+
+**Self-Healing**: Light mode (2 iterations max)  
+**Timeout**: 15 minutes per CodeRabbit run
+
+## Autonomous Build System
+
+### Complete Build Pipeline
+
+```bash
+*build story-1.2.3
+```
+
+**Orchestrates**:
+1. **Worktree** → Create isolated environment
+2. **Plan** → Generate implementation.yaml
+3. **Execute** → Run Coder Agent loop
+4. **Verify** → Test all subtasks
+5. **Merge** → Integrate back to base
+
+### Build Recovery
+
+If build crashes or times out:
+
+```bash
+# Resume from last checkpoint
+*build-resume story-1.2.3
+
+# Check status
+*build-status story-1.2.3
+
+# View attempt log
+*build-log story-1.2.3
+```
+
+**Checkpoints saved at**:
+- Subtask completion
+- Verification success
+- Before risky operations
+
+## Git Authority
+
+<Warning>
+Dex can perform LOCAL git operations only:
+
+**Allowed**:
+- ✅ `git add`
+- ✅ `git commit`
+- ✅ `git status`
+- ✅ `git diff`
+- ✅ `git log`
+- ✅ `git branch` (local)
+
+**Blocked** (use `@devops`):
+- ❌ `git push`
+- ❌ `gh pr create`
+- ❌ `gh pr merge`
+
+**Handoff to DevOps**:
+```bash
+# After story complete
+*exit  # Exit dev mode
+@devops *push  # Activate DevOps to push
+```
+</Warning>
+
+## Quality Gates
+
+### Story Completion Checklist
+
+Before marking story "Ready for Review":
+
+```bash
+*execute-checklist story-dod-checklist
+```
+
+**Validates**:
+- [ ] All tasks/subtasks marked `[x]`
+- [ ] Tests written and passing
+- [ ] Linting passes (`npm run lint`)
+- [ ] Type checking passes (`npm run typecheck`)
+- [ ] Build succeeds (`npm run build`)
+- [ ] File List complete in story
+- [ ] CodeRabbit pre-commit passed (0 CRITICAL)
+- [ ] Change Log updated
+
+## Gotchas Memory System
+
+**Learn from mistakes automatically**:
+
+```bash
+# Manually add a gotcha
+*gotcha "API returns 401" "Check token expiry in middleware"
+
+# Search gotchas for current context
+*gotcha-context
+
+# List all gotchas
+*gotchas --category bugs --severity high
+```
+
+**Auto-capture**: Dex automatically logs gotchas when:
+- Same error occurs 3+ times
+- Rollback is triggered
+- Non-obvious fix applied
+
+## Collaboration
+
+### Receives Work From
+
+- **@sm (River)**: Assigns stories via `*draft`
+- **@po (Pax)**: Story validation via `*validate-story-draft`
+
+### Delegates To
+
+- **@qa (Quinn)**: Code review via `*review`
+- **@devops (Gage)**: Git push via `*push`
+
+### Works With
+
+- **@architect (Aria)**: Clarifies architecture questions
+- **@data-engineer (Dara)**: Schema and migration questions
+
+## Common Patterns
+
+### Creating a Service
+
+```bash
+*create-service
+
+# Interactive prompts:
+# 1. Service type? (api-integration, utility, agent-tool)
+# 2. Service name?
+# 3. Template variables?
+
+# Generates:
+# - Service file from Handlebars template
+# - Tests
+# - Documentation
+```
+
+### Wave-Based Parallel Execution
+
+```bash
+*waves --visual
+
+# Analyzes implementation.yaml for:
+# - Independent subtasks (can run in parallel)
+# - Dependent subtasks (must run sequentially)
+# - Generates ASCII art workflow diagram
+```
+
+### Context Management
+
+```bash
+# Force fresh file load (bypass cache)
+*clear-cache
+
+# Load complete file (no summary)
+*load-full technical-preferences.md
+
+# Show session details
+*session-info
+```
+
+## Troubleshooting
+
+<AccordionGroup>
+  <Accordion title="Story won't complete" icon="circle-exclamation">
+    **Check**:
+    1. All checkboxes marked `[x]`?
+    2. Tests passing? (`*run-tests`)
+    3. CodeRabbit clean? (check Dev Notes)
+    4. File List updated?
+    
+    **Common issues**:
+    - Forgot to update File List in story
+    - Skipped test writing for a subtask
+    - CRITICAL CodeRabbit issues remain
+  </Accordion>
+  
+  <Accordion title="Build stuck or failing" icon="rotate">
+    **Recovery steps**:
+    ```bash
+    # 1. Check build status
+    *build-status story-1.2.3
+    
+    # 2. View attempt log
+    *build-log story-1.2.3
+    
+    # 3. Resume from checkpoint
+    *build-resume story-1.2.3
+    
+    # 4. If corrupt, rollback
+    *rollback {snapshot-id}
+    ```
+  </Accordion>
+  
+  <Accordion title="CodeRabbit timeout" icon="clock">
+    **Timeout**: 15 minutes (900000ms)
+    
+    **If timeout occurs**:
+    1. Review is still processing server-side
+    2. Try manual run: `wsl bash -c 'coderabbit --prompt-only -t uncommitted'`
+    3. Check auth: `wsl bash -c 'coderabbit auth status'`
+    4. Increase timeout in agent config if needed
+  </Accordion>
+</AccordionGroup>
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="QA Review" icon="check-circle" href="/agents/qa">
+    After development, send to Quinn for quality review
+  </Card>
+  
+  <Card title="Push to Remote" icon="rocket" href="/agents/devops">
+    Use Gage to push changes and create PR
+  </Card>
+</CardGroup>
+
+## Learn More
+
+- [Story-Driven Development](/workflows/story-driven)
+- [Autonomous Build System](/features/autonomous-build)
+- [CodeRabbit Integration](/integrations/coderabbit)
+- [Recovery System](/features/recovery-system)

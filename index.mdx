@@ -1,97 +1,132 @@
 ---
-title: "Introduction"
-description: "Welcome to the new home for your documentation"
+title: "Synkra AIOX"
+description: "AI-Orchestrated System for Full Stack Development"
 ---
 
-## Setting up
+<div className="bg-gradient-to-br from-[#020627] to-[#11161e] rounded-xl p-8 mb-8">
+  <h1 className="text-5xl font-bold text-white mb-4">
+    Build with AI Agents
+  </h1>
+  <p className="text-xl text-gray-300 mb-6">
+    A framework for agent-driven agile development with CLI-first orchestration. 
+    Transform your development workflow with 10+ specialized AI agents.
+  </p>
+  <div className="flex gap-4">
+    <a 
+      href="/quickstart" 
+      className="inline-block bg-[#238636] hover:bg-[#2ea043] text-white font-semibold px-6 py-3 rounded-md transition-colors"
+    >
+      Get Started
+    </a>
+    <a 
+      href="https://github.com/SynkraAI/aiox-core" 
+      className="inline-block bg-transparent border border-white text-white font-semibold px-6 py-3 rounded-md hover:bg-white hover:text-[#020627] transition-colors"
+    >
+      View on GitHub
+    </a>
+  </div>
+</div>
 
-Get your documentation site up and running in minutes.
+## Key Features
 
-<Card
-  title="Start here"
-  icon="rocket"
-  href="/quickstart"
-  horizontal
->
-  Follow our three step quickstart guide.
-</Card>
+Synkra AIOX revolutionizes development with specialized AI agents and powerful workflow orchestration.
 
-## Make it yours
-
-Design a docs site that looks great and empowers your users.
-
-<Columns cols={2}>
-  <Card
-    title="Edit locally"
-    icon="pen-to-square"
-    href="/development"
-  >
-    Edit your docs locally and preview them in real time.
+<CardGroup cols={2}>
+  <Card title="Agent-Driven Development" icon="users" href="/agents/overview">
+    10+ specialized AI agents for every role: dev, QA, architect, DevOps, and more
   </Card>
-  <Card
-    title="Customize your site"
-    icon="palette"
-    href="/essentials/settings"
-  >
-    Customize the design and colors of your site to match your brand.
+  <Card title="CLI-First Architecture" icon="terminal" href="/concepts/cli-first-architecture">
+    Complete automation and control through a powerful command-line interface
   </Card>
-    <Card
-    title="Set up navigation"
-    icon="map"
-    href="/essentials/navigation"
-  >
-    Organize your docs to help users find what they need and succeed with your product.
+  <Card title="Story-Driven Workflow" icon="book" href="/concepts/story-driven-development">
+    Hyper-detailed development stories with complete context and implementation guidance
   </Card>
-  <Card
-    title="API documentation"
-    icon="terminal"
-    href="/api-reference/introduction"
-  >
-    Auto-generate API documentation from OpenAPI specifications.
+  <Card title="Multi-IDE Support" icon="code" href="/guides/ide-integration">
+    Works with Claude Code, Gemini CLI, Codex, Cursor, GitHub Copilot, and more
   </Card>
-</Columns>
+</CardGroup>
 
-## Create beautiful pages
+## Quick Start
 
-Everything you need to create world-class documentation.
+Get up and running with Synkra AIOX in minutes.
 
-<Columns cols={2}>
-  <Card
-    title="Write with MDX"
-    icon="pen-fancy"
-    href="/essentials/markdown"
-  >
-    Use MDX to style your docs pages.
-  </Card>
-  <Card
-    title="Code samples"
-    icon="code"
-    href="/essentials/code"
-  >
-    Add sample code to demonstrate how to use your product.
-  </Card>
-  <Card
-    title="Images"
-    icon="image"
-    href="/essentials/images"
-  >
-    Display images and other media.
-  </Card>
-  <Card
-    title="Reusable snippets"
-    icon="recycle"
-    href="/essentials/reusable-snippets"
-  >
-    Write once and reuse across your docs.
-  </Card>
-</Columns>
+<Steps>
+  <Step title="Install the Framework">
+    <CodeGroup>
+    ```bash New Project
+    npx aiox-core init my-project
+    cd my-project
+    ```
+    ```bash Existing Project
+    cd your-project
+    npx aiox-core install
+    ```
+    </CodeGroup>
+  </Step>
+  
+  <Step title="Activate an Agent">
+    Choose your IDE and activate an agent:
+    - **Claude Code**: `/dev` or `/qa`
+    - **Gemini CLI**: `/aiox-menu` → select agent
+    - **Codex CLI**: `/skills` → `aiox-dev`
+  </Step>
+  
+  <Step title="Start Building">
+    Run agent commands to begin your workflow:
+    ```bash
+    *help           # View available commands
+    *create         # Create new stories
+    *develop        # Start development
+    ```
+  </Step>
+</Steps>
 
-## Need inspiration?
+## Core Concepts
 
-<Card
-  title="See complete examples"
-  icon="stars"
-  href="https://mintlify.com/customers"
->
-  Browse our showcase of exceptional documentation sites.
-</Card>
+Understand the principles that power Synkra AIOX.
+
+<CardGroup cols={2}>
+  <Card title="CLI First" icon="terminal" href="/concepts/cli-first-architecture">
+    Why the CLI is the source of truth for all operations
+  </Card>
+  <Card title="Agent Authority" icon="shield" href="/concepts/agent-authority">
+    How specialized agents maintain clear boundaries and responsibilities
+  </Card>
+  <Card title="Story-Driven Development" icon="book-open" href="/concepts/story-driven-development">
+    Eliminate context loss with comprehensive development stories
+  </Card>
+  <Card title="Workflow Orchestration" icon="diagram-project" href="/concepts/workflow-orchestration">
+    Automated workflows and lifecycle hooks for seamless collaboration
+  </Card>
+</CardGroup>
+
+## Explore the Documentation
+
+<CardGroup cols={3}>
+  <Card title="Installation Guide" icon="download" href="/installation">
+    Detailed installation instructions and setup
+  </Card>
+  <Card title="Agent Reference" icon="robot" href="/agents/overview">
+    Complete guide to all available agents
+  </Card>
+  <Card title="CLI Commands" icon="square-terminal" href="/cli/commands">
+    Full CLI command reference
+  </Card>
+  <Card title="API Reference" icon="code" href="/api/config-loader">
+    Core API documentation for developers
+  </Card>
+  <Card title="Contributing" icon="handshake" href="/community/contributing">
+    Join the Synkra AIOX community
+  </Card>
+  <Card title="Changelog" icon="clock-rotate-left" href="/community/changelog">
+    Latest updates and releases
+  </Card>
+</CardGroup>
+
+## Why Synkra AIOX?
+
+<Note>
+**Agentic Planning + Engineering-Contextualized Development**
+
+Synkra AIOX eliminates the two biggest problems in AI-assisted development: planning inconsistency and context loss. Specialized planning agents create detailed specifications, then the Scrum Master transforms them into hyper-detailed stories containing everything the dev agent needs.
+</Note>

@@ -1,0 +1,886 @@
+---
+title: IDE Integration
+description: Deploy AIOX agents across Claude Code, Gemini CLI, Codex, Cursor, and more
+icon: window
+---
+
+# IDE Integration
+
+AIOX supports multiple AI-powered development platforms. Learn how to set up, sync, and deploy your agents across different IDEs.
+
+## Supported IDEs
+
+AIOX integrates with 6 major AI development platforms:
+
+<CardGroup cols={3}>
+
+<Card title="Claude Code" icon="cloud">
+**Best Integration**
+
+Native hooks, MCP, Task tool, full automation
+</Card>
+
+<Card title="Gemini CLI" icon="terminal">
+**Excellent**
+
+Native hooks, MCP, CLI-first workflow
+</Card>
+
+<Card title="Codex CLI" icon="code">
+**Good**
+
+Skills system, terminal-first, AGENTS.md
+</Card>
+
+<Card title="Cursor" icon="cursor">
+**Popular**
+
+Composer, @mentions, multi-file editing
+</Card>
+
+<Card title="GitHub Copilot" icon="github">
+**Integrated**
+
+GitHub integration, repo instructions
+</Card>
+
+<Card title="AntiGravity" icon="rocket">
+**Google Cloud**
+
+Workflow-based, Firebase integration
+</Card>
+
+</CardGroup>
+
+## Quick Status Matrix
+
+| IDE/CLI | Overall Status | Agent Activation | Auto-Checks | Workaround |
+|---------|---------------|------------------|-------------|------------|
+| **Claude Code** | ✅ Works | `/agent-name` | Full | -- |
+| **Gemini CLI** | ✅ Works | `/aiox-menu` then `/aiox-<agent>` | High | -- |
+| **Codex CLI** | ⚠️ Limited | `/skills` then `aiox-<agent>` | Partial | Run `npm run sync:skills:codex` |
+| **Cursor** | ⚠️ Limited | `@agent` + rules | None | Manual validators |
+| **GitHub Copilot** | ⚠️ Limited | Chat + instructions | None | Use VS Code MCP |
+| **AntiGravity** | ⚠️ Limited | Workflow-driven | None | Generated workflows |
+
+**Legend:**
+- ✅ **Works** - Fully recommended for new users
+- ⚠️ **Limited** - Usable with documented workarounds
+
+## Setup Instructions
+
+<Tabs>
+
+<Tab title="Claude Code">
+
+### Claude Code Setup
+
+**Recommendation:** Best AIOX integration
+
+```yaml
+config_file: .claude/CLAUDE.md
+agent_folder: .claude/commands/AIOX/agents
+activation: /agent-name (slash commands)
+format: full-markdown-yaml
+mcp_support: native
+special_features:
+  - Task tool for subagents
+  - Native MCP integration
+  - Hooks system (pre/post)
+  - Custom skills
+  - Memory persistence
+```
+
+<Steps>
+
+### Step 1: Initialize AIOX
+
+AIOX automatically creates `.claude/` directory:
+
+```bash
+# Initialize AIOX (if not done)
+npm install -g @synkra/aiox
+aiox init
+
+# Select Claude Code during setup
+```
+
+### Step 2: Sync Agents
+
+Sync all agents to Claude Code:
+
+```bash
+# Sync all IDE targets (including Claude)
+npm run sync:ide
+
+# Or sync only Claude
+npm run sync:ide:claude
+
+# Verify setup
+ls -la .claude/commands/AIOX/agents/
+```
+
+### Step 3: Configure MCP
+
+Set up MCP servers in `~/.claude.json`:
+
+```json title="~/.claude.json"
+{
+  "mcpServers": {
+    "context7": {
+      "url": "https://mcp.context7.com/sse"
+    },
+    "supabase": {
+      "command": "npx",
+      "args": ["-y", "@supabase/mcp-server"]
+    }
+  }
+}
+```
+
+### Step 4: Activate Agent
+
+Agents are available as slash commands:
+
+```bash
+# Activate developer agent
+/dev
+
+# Activate QA agent
+/qa
+
+# Activate architect agent
+/architect
+```
+
+</Steps>
+
+</Tab>
+
+<Tab title="Gemini CLI">
+
+### Gemini CLI Setup
+
+**Recommendation:** Excellent for CLI-first workflows
+
+```yaml
+config_file: .gemini/rules.md
+agent_folder: .gemini/rules/AIOX/agents
+activation: slash launcher commands
+format: text
+mcp_support: native
+special_features:
+  - Google AI models
+  - Native hooks events
+  - Native MCP support
+  - Multimodal support
+```
+
+<Steps>
+
+### Step 1: Initialize Gemini
+
+Run installer and select Gemini:
+
+```bash
+aiox init
+# Select "gemini" when prompted for IDE
+```
+
+This creates:
+- `.gemini/rules.md`
+- `.gemini/rules/AIOX/agents/*.md`
+- `.gemini/commands/*.toml`
+- `.gemini/hooks/*.js`
+- `.gemini/settings.json`
+
+### Step 2: Sync Agents
+
+```bash
+# Sync Gemini
+npm run sync:ide:gemini
+
+# Validate integration
+npm run validate:gemini-sync
+npm run validate:gemini-integration
+```
+
+### Step 3: Activate Agents
+
+**Option 1: Menu System (Recommended)**
+
+```bash
+# Show agent menu
+/aiox-menu
+
+# Activate specific agent
+/aiox-dev
+/aiox-architect
+/aiox-qa
+```
+
+**Option 2: Generic Launcher**
+
+```bash
+/aiox-agent <agent-id>
+```
+
+</Steps>
+
+</Tab>
+
+<Tab title="Codex CLI">
+
+### Codex CLI Setup
+
+**Recommendation:** Great for terminal-first workflow
+
+```yaml
+config_file: AGENTS.md
+agent_folder: .codex/agents
+activation: /skills menu
+skills_folder: .codex/skills (local)
+format: markdown
+mcp_support: via Codex tooling
+special_features:
+  - AGENTS.md instructions
+  - /skills activation
+  - Strong CLI integration
+  - Notify command
+```
+
+<Steps>
+
+### Step 1: Keep AGENTS.md
+
+AIOX maintains `AGENTS.md` at repository root:
+
+```markdown title="AGENTS.md"
+# AGENTS.md - Synkra AIOX
+
+This file configures agent behavior in Codex CLI.
+
+## Agent Shortcuts
+
+- `@dev`, `/dev` → Developer agent
+- `@qa`, `/qa` → QA agent
+- `@architect`, `/architect` → Architect agent
+```
+
+### Step 2: Sync Codex Files
+
+```bash
+# Sync agent files
+npm run sync:ide:codex
+
+# Generate local skills (recommended)
+npm run sync:skills:codex
+
+# Validate
+npm run validate:codex-sync
+npm run validate:codex-integration
+npm run validate:codex-skills
+```
+
+### Step 3: Activate via Skills
+
+**Preferred Method:**
+
+```bash
+# Open skills menu
+/skills
+
+# Select from menu
+aiox-dev
+aiox-architect
+aiox-qa
+```
+
+**Alternative - Shortcuts:**
+
+```bash
+# Direct activation
+@dev
+/architect
+```
+
+</Steps>
+
+<Note>
+Codex uses **local-first** approach: `.codex/skills` is versioned in the project.
+Use `sync:skills:codex:global` only for testing outside the repo.
+</Note>
+
+</Tab>
+
+<Tab title="Cursor">
+
+### Cursor Setup
+
+**Recommendation:** Popular AI IDE with limitations
+
+```yaml
+config_file: .cursor/rules.md
+agent_folder: .cursor/rules
+activation: @agent-name
+format: condensed-rules
+mcp_support: via configuration
+special_features:
+  - Composer integration
+  - Chat modes
+  - @codebase context
+  - Multi-file editing
+  - Subagents (latest)
+```
+
+<Steps>
+
+### Step 1: Sync Rules
+
+```bash
+# Sync Cursor only
+npm run sync:ide:cursor
+
+# Verify setup
+ls -la .cursor/rules/
+```
+
+### Step 2: Configure MCP
+
+Create `.cursor/mcp.json`:
+
+```json title=".cursor/mcp.json"
+{
+  "mcpServers": {
+    "context7": {
+      "url": "https://mcp.context7.com/sse"
+    }
+  }
+}
+```
+
+### Step 3: Activate with @mention
+
+```bash
+# In Cursor chat
+@dev
+@qa
+@architect
+```
+
+</Steps>
+
+<Warning>
+Cursor has no automatic pre/post-action checks. Run validators manually:
+```bash
+npm run validate:parity
+npm run lint
+npm run test
+```
+</Warning>
+
+</Tab>
+
+<Tab title="GitHub Copilot">
+
+### GitHub Copilot Setup
+
+**Recommendation:** Good for GitHub integration
+
+```yaml
+config_file: .github/copilot-instructions.md
+agent_folder: .github/agents
+activation: chat modes
+format: text
+mcp_support: via VS Code MCP config
+special_features:
+  - GitHub integration
+  - PR assistance
+  - Code review
+```
+
+<Steps>
+
+### Step 1: Enable Copilot
+
+Enable GitHub Copilot in your repository settings.
+
+### Step 2: Sync Instructions
+
+```bash
+# Sync all targets
+npm run sync:ide
+
+# Verify
+cat .github/copilot-instructions.md
+```
+
+### Step 3: Use in VS Code
+
+Copilot reads repository instructions automatically.
+
+</Steps>
+
+</Tab>
+
+<Tab title="AntiGravity">
+
+### AntiGravity Setup
+
+**Recommendation:** Good for Google Cloud integration
+
+```yaml
+config_file: .antigravity/rules.md
+config_json: .antigravity/antigravity.json
+agent_folder: .agent/workflows
+activation: workflow-based
+format: cursor-style
+mcp_support: native (Google)
+special_features:
+  - Google Cloud integration
+  - Workflow system
+  - Native Firebase tools
+```
+
+<Steps>
+
+### Step 1: Initialize
+
+```bash
+# AIOX creates .antigravity/ directory
+aiox init
+# Select antigravity
+```
+
+### Step 2: Configure Google Cloud
+
+Set up Google Cloud credentials per AntiGravity docs.
+
+### Step 3: Sync Workflows
+
+```bash
+npm run sync:ide
+```
+
+</Steps>
+
+</Tab>
+
+</Tabs>
+
+## Sync System
+
+### How Sync Works
+
+AIOX maintains a single source of truth and syncs to all IDEs:
+
+```
+┌──────────────────────────────────────────────────┐
+│               AIOX Core - Source of Truth              │
+│    .aiox-core/development/agents/ (Agent Files)       │
+│                        │                              │
+│            ┌───────────┬───────────┐              │
+│            │           │           │              │
+│            │           │           │              │
+│            ↓           ↓           ↓              │
+│      .claude/     .codex/      .cursor/              │
+│      .gemini/     .antigravity/                       │
+└──────────────────────────────────────────────────┘
+```
+
+### Sync Commands
+
+```bash
+# Sync all IDE targets
+npm run sync:ide
+
+# Sync specific IDE
+npm run sync:ide:claude
+npm run sync:ide:gemini
+npm run sync:ide:codex
+npm run sync:ide:cursor
+npm run sync:ide:github-copilot
+npm run sync:ide:antigravity
+
+# Validate sync
+npm run sync:ide:check
+
+# Check drift
+npm run validate:parity
+```
+
+### Automatic Sync
+
+Enable auto-sync on agent changes:
+
+```yaml title=".aiox-core/core/config/sync.yaml"
+auto_sync:
+  enabled: true
+  watch_paths:
+    - .aiox-core/development/agents/
+  platforms:
+    - claude
+    - codex
+    - github-copilot
+    - cursor
+    - gemini
+    - antigravity
+```
+
+## Hook Compatibility
+
+Hooks provide automation at lifecycle events:
+
+### Hook Support Matrix
+
+| Hook Event | Claude Code | Gemini CLI | Codex | Cursor | Copilot | AntiGravity |
+|------------|-------------|------------|-------|--------|---------|-------------|
+| **Session Start** | ❌ | ✅ | ❌ | ❌ | ❌ | ❌ |
+| **Before Agent** | ✅* | ✅ | ❌ | ❌ | ❌ | ❌ |
+| **Before Tool** | ✅ | ✅ | ❌ | ❌ | ❌ | ❌ |
+| **After Tool** | ✅ | ✅ | ❌ | ❌ | ❌ | ❌ |
+| **Session End** | ✅ | ✅ | ❌ | ❌ | ❌ | ❌ |
+| **Rewind** | ❌ | ✅ | ❌ | ❌ | ❌ | ❌ |
+
+**Legend:**
+- ✅ Native support
+- ✅* Mapped to PreToolUse
+- ❌ Not available
+
+### Example Hooks
+
+<AccordionGroup>
+
+<Accordion title="Before Tool - Security Validation">
+```javascript title=".aiox-core/hooks/gemini/before-tool.js"
+#!/usr/bin/env node
+const BLOCKED_PATTERNS = [
+  /api[_-]?key\s*[:=]\s*['"][^'"]+['"]/i,
+  /password\s*[:=]\s*['"][^'"]+['"]/i,
+];
+
+async function beforeTool() {
+  const input = JSON.parse(process.argv[2]);
+  const toolName = input.tool;
+  const toolArgs = input.args;
+
+  // Block secrets in file writes
+  if (toolName === 'write_file') {
+    const content = toolArgs.content || '';
+    for (const pattern of BLOCKED_PATTERNS) {
+      if (pattern.test(content)) {
+        console.log(JSON.stringify({
+          status: 'block',
+          message: 'Blocked: Potential secret detected'
+        }));
+        process.exit(2); // Exit 2 = block
+      }
+    }
+  }
+
+  console.log(JSON.stringify({ status: 'allow' }));
+  process.exit(0);
+}
+
+beforeTool();
+```
+</Accordion>
+
+<Accordion title="Session Start - Context Loading">
+```javascript title=".aiox-core/hooks/gemini/session-start.js"
+#!/usr/bin/env node
+const fs = require('fs');
+const path = require('path');
+
+async function sessionStart() {
+  const projectDir = process.cwd();
+  
+  // Load project context
+  const contextPath = path.join(projectDir, '.aiox/context.json');
+  let context = {};
+  
+  if (fs.existsSync(contextPath)) {
+    context = JSON.parse(fs.readFileSync(contextPath, 'utf8'));
+  }
+
+  // Inject context into session
+  console.log(JSON.stringify({
+    status: 'success',
+    contextInjection: {
+      projectContext: context,
+      timestamp: new Date().toISOString()
+    }
+  }));
+  
+  process.exit(0);
+}
+
+sessionStart();
+```
+</Accordion>
+
+<Accordion title="After Tool - Audit Logging">
+```javascript title=".aiox-core/hooks/gemini/after-tool.js"
+#!/usr/bin/env node
+const fs = require('fs');
+const path = require('path');
+
+async function afterTool() {
+  const input = JSON.parse(process.argv[2]);
+  const toolName = input.tool;
+  const result = input.result;
+
+  // Log to audit trail
+  const logDir = path.join(process.cwd(), '.aiox/logs');
+  if (!fs.existsSync(logDir)) {
+    fs.mkdirSync(logDir, { recursive: true });
+  }
+
+  const logEntry = {
+    timestamp: new Date().toISOString(),
+    tool: toolName,
+    success: result.success,
+    provider: 'gemini'
+  };
+
+  fs.appendFileSync(
+    path.join(logDir, 'tool-audit.jsonl'),
+    JSON.stringify(logEntry) + '\n'
+  );
+
+  console.log(JSON.stringify({ status: 'success' }));
+  process.exit(0);
+}
+
+afterTool();
+```
+</Accordion>
+
+</AccordionGroup>
+
+## Workarounds and Limitations
+
+### Claude Code
+
+✅ **Full support** - No workarounds needed
+
+### Gemini CLI
+
+✅ **Excellent support** - Minor event timing differences
+
+**Workaround:** Use native Gemini checks, they cover most scenarios
+
+### Codex CLI
+
+⚠️ **Limited session tracking**
+
+**Workaround:**
+```bash
+# Keep agents in sync
+npm run sync:ide:codex
+npm run sync:skills:codex
+
+# Validate integration
+npm run validate:codex-sync
+npm run validate:codex-integration
+
+# Use /skills flow for activation
+```
+
+### Cursor
+
+⚠️ **No automatic checks**
+
+**Workaround:**
+```bash
+# Run validators manually
+npm run validate:parity
+npm run lint
+npm run typecheck
+npm run test
+
+# Use MCP for context
+# Configure .cursor/mcp.json
+```
+
+### GitHub Copilot
+
+⚠️ **Same as Cursor**
+
+**Workaround:**
+```bash
+# Use repo instructions + VS Code MCP
+# Run validators manually
+npm run validate:parity
+```
+
+### AntiGravity
+
+⚠️ **Workflow-driven, no automatic checks**
+
+**Workaround:**
+```bash
+# Use generated workflows
+# Run validators manually
+```
+
+## Troubleshooting
+
+<AccordionGroup>
+
+<Accordion title="Agent Not Appearing in IDE">
+```bash
+# 1. Verify agent exists
+ls .aiox-core/development/agents/
+
+# 2. Sync and validate
+npm run sync:ide
+npm run sync:ide:check
+
+# 3. Check IDE-specific directory
+ls .claude/commands/AIOX/agents/       # Claude
+ls .gemini/rules/AIOX/agents/          # Gemini
+ls .codex/agents/                       # Codex
+ls .cursor/rules/agents/                # Cursor
+```
+</Accordion>
+
+<Accordion title="Sync Conflicts">
+```bash
+# Preview changes
+npm run sync:ide -- --dry-run
+
+# Backup before force sync
+cp -r .cursor/rules/ .cursor/rules.backup/
+npm run sync:ide
+```
+</Accordion>
+
+<Accordion title="MCP Not Working">
+```bash
+# Check MCP status
+aiox mcp status
+
+# Verify MCP config
+cat ~/.claude.json           # Claude
+cat .cursor/mcp.json         # Cursor
+
+# Test MCP connection
+aiox mcp test context7
+```
+</Accordion>
+
+<Accordion title="Hooks Not Firing">
+```bash
+# Check hook permissions
+chmod +x .aiox-core/hooks/**/*.js
+
+# Test hook directly
+node .gemini/hooks/before-tool.js '{"tool":"read","args":{}}'
+
+# Check hook config
+cat .gemini/settings.json
+```
+</Accordion>
+
+</AccordionGroup>
+
+## Platform Decision Guide
+
+Choose the right IDE for your needs:
+
+```
+Do you use Claude/Anthropic API?
+├── Yes → Claude Code (Best AIOX integration)
+└── No
+    └── Do you prefer terminal?
+        ├── Yes → Codex CLI or Gemini CLI
+        └── No → Want dedicated AI IDE?
+            ├── Yes → Cursor (Most popular)
+            └── No → Use Google Cloud?
+                ├── Yes → AntiGravity
+                └── No → GitHub Copilot
+```
+
+## Migration Between IDEs
+
+### From Cursor to Claude Code
+
+```bash
+# 1. Export current rules
+cp -r .cursor/rules/ ./rules-backup/
+
+# 2. Initialize Claude Code
+npm run sync:ide
+
+# 3. Verify migration
+diff -r ./rules-backup/ .claude/commands/AIOX/agents/
+```
+
+### From Claude Code to Gemini CLI
+
+```bash
+# Sync to Gemini
+npm run sync:ide:gemini
+
+# Validate
+npm run validate:gemini-sync
+```
+
+## Best Practices
+
+<CardGroup cols={2}>
+
+<Card title="Single Source" icon="database">
+Maintain agents in `.aiox-core/development/agents/` only. Never edit IDE-synced copies.
+</Card>
+
+<Card title="Regular Sync" icon="rotate">
+Sync after every agent change: `npm run sync:ide`
+</Card>
+
+<Card title="Validate Parity" icon="equals">
+Run `npm run validate:parity` to check for drift across IDEs.
+</Card>
+
+<Card title="Version Control" icon="git">
+Commit `.claude/`, `.gemini/`, `.codex/` to Git for team consistency.
+</Card>
+
+<Card title="Hook Testing" icon="flask">
+Test hooks in isolation before deploying to production workflows.
+</Card>
+
+<Card title="MCP Security" icon="shield">
+Validate MCP server sources. Use official servers only.
+</Card>
+
+</CardGroup>
+
+## Next Steps
+
+<CardGroup cols={2}>
+
+<Card title="Creating Agents" icon="robot" href="/guides/creating-agents">
+Create agents that work across all IDEs
+</Card>
+
+<Card title="Hooks & Lifecycle" icon="link" href="/guides/hooks-and-lifecycle">
+Automate with lifecycle hooks
+</Card>
+
+<Card title="Writing Tasks" icon="clipboard-list" href="/guides/writing-tasks">
+Create executable task workflows
+</Card>
+
+<Card title="Creating Squads" icon="users" href="/guides/creating-squads">
+Organize agents into squads
+</Card>
+
+</CardGroup>
+
+## Reference
+
+- [IDE Integration Docs](https://github.com/synkra-ai/aiox/blob/main/docs/ide-integration.md)
+- [Sync Configuration](https://github.com/synkra-ai/aiox-core/blob/main/core/config/sync.yaml)
+- [Compatibility Contract](https://github.com/synkra-ai/aiox-core/blob/main/infrastructure/contracts/compatibility/aiox-4.2.11.yaml)

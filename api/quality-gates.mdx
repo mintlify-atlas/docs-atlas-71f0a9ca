@@ -1,0 +1,533 @@
+---
+title: "Quality Gates API"
+description: "3-layer quality gate pipeline for code validation"
+icon: "shield-halved"
+---
+
+## Overview
+
+The Quality Gate Manager orchestrates a 3-layer quality validation pipeline:
+
+- **Layer 1:** Pre-commit (lint, test, typecheck) - Fail-fast
+- **Layer 2:** PR Automation (CodeRabbit, Quinn) - Block on issues
+- **Layer 3:** Human Review (checklist, sign-off) - Manual validation
+
+## Class: QualityGateManager
+
+### Constructor
+
+<ParamField path="config" type="Object" default="{}">
+  Configuration object with layer settings
+</ParamField>
+
+```javascript
+const { QualityGateManager } = require('.aiox-core/core/quality-gates/quality-gate-manager');
+
+const manager = new QualityGateManager({
+  layer1: {
+    enabled: true,
+    failFast: true
+  },
+  layer2: {
+    enabled: true,
+    tools: ['coderabbit', 'quinn']
+  },
+  layer3: {
+    enabled: true,
+    requireSignoff: true
+  }
+});
+```
+
+### load
+
+Load configuration from file.
+
+<ParamField path="configPath" type="string" default=".aiox-core/core/quality-gates/quality-gate-config.yaml">
+  Path to config file
+</ParamField>
+
+<ResponseField name="manager" type="QualityGateManager">
+  Manager instance with loaded config
+</ResponseField>
+
+```javascript
+const manager = await QualityGateManager.load();
+
+// With custom config path
+const customManager = await QualityGateManager.load('.aiox/custom-gates.yaml');
+```
+
+## Layer Execution
+
+### runLayer1
+
+Execute Layer 1: Pre-commit checks.
+
+<ParamField path="context" type="Object" default="{}">
+  Execution context
+</ParamField>
+
+<ResponseField name="result" type="Object">
+  <ResponseField name="pass" type="boolean">
+    Whether layer passed
+  </ResponseField>
+  <ResponseField name="layer" type="string">
+    Layer name
+  </ResponseField>
+  <ResponseField name="results" type="Array">
+    Individual check results
+  </ResponseField>
+  <ResponseField name="duration" type="number">
+    Execution time in milliseconds
+  </ResponseField>
+</ResponseField>
+
+```javascript
+const result = await manager.runLayer1({ verbose: true });
+
+if (result.pass) {
+  console.log('✅ Layer 1 passed');
+} else {
+  console.error('❌ Layer 1 failed');
+  result.results.forEach(r => {
+    if (!r.pass) {
+      console.error(`  - ${r.check}: ${r.message}`);
+    }
+  });
+}
+```
+
+### runLayer2
+
+Execute Layer 2: PR Automation.
+
+<ParamField path="context" type="Object" default="{}">
+  Execution context
+</ParamField>
+
+<ResponseField name="result" type="Object">
+  Layer 2 results with automation tool feedback
+</ResponseField>
+
+```javascript
+const result = await manager.runLayer2({ verbose: true });
+
+if (!result.pass) {
+  console.error('⚠️ Layer 2 issues found');
+  console.log('CodeRabbit findings:', result.coderabbit);
+  console.log('Quinn analysis:', result.quinn);
+}
+```
+
+### runLayer3
+
+Execute Layer 3: Human Review.
+
+<ParamField path="context" type="Object" default="{}">
+  <ParamField path="previousLayers" type="Array">
+    Results from layers 1 and 2
+  </ParamField>
+</ParamField>
+
+<ResponseField name="result" type="Object">
+  Human review status and checklist
+</ResponseField>
+
+```javascript
+const result = await manager.runLayer3({
+  previousLayers: [layer1Result, layer2Result]
+});
+
+console.log('Review status:', result.status);
+console.log('Checklist:', result.checklist);
+```
+
+### runLayer
+
+Run a specific layer by number.
+
+<ParamField path="layerNum" type="number" required>
+  Layer number (1, 2, or 3)
+</ParamField>
+
+<ParamField path="context" type="Object" default="{}">
+  Execution context
+</ParamField>
+
+```javascript
+// Run layer 1
+const result = await manager.runLayer(1, { verbose: true });
+
+// Run layer 2
+const result2 = await manager.runLayer(2, { verbose: true });
+```
+
+## Pipeline Orchestration
+
+### orchestrate
+
+Run the complete 3-layer pipeline.
+
+<ParamField path="context" type="Object" default="{}">
+  <ParamField path="verbose" type="boolean" default="false">
+    Enable verbose output
+  </ParamField>
+</ParamField>
+
+<ResponseField name="result" type="Object">
+  <ResponseField name="pass" type="boolean">
+    Overall pass status
+  </ResponseField>
+  <ResponseField name="status" type="string">
+    Status: 'passed', 'pending', 'failed'
+  </ResponseField>
+  <ResponseField name="duration" type="number">
+    Total pipeline duration
+  </ResponseField>
+  <ResponseField name="layers" type="Array">
+    Results from each layer
+  </ResponseField>
+  <ResponseField name="exitCode" type="number">
+    Exit code (0 = success, 1 = failure, 2 = blocked)
+  </ResponseField>
+</ResponseField>
+
+```javascript
+const result = await manager.orchestrate({ verbose: true });
+
+console.log('Status:', result.status);
+console.log('Duration:', result.duration, 'ms');
+console.log('Exit code:', result.exitCode);
+
+if (result.pass) {
+  console.log('✅ All quality gates passed');
+} else {
+  console.error('❌ Quality gates failed');
+  process.exit(result.exitCode);
+}
+```
+
+### orchestrateHumanReview
+
+Orchestrate 3-layer flow with human review request.
+
+<ParamField path="prContext" type="Object" default="{}">
+  <ParamField path="verbose" type="boolean">
+    Enable verbose output
+  </ParamField>
+  <ParamField path="changedFiles" type="string[]">
+    List of changed files
+  </ParamField>
+</ParamField>
+
+<ResponseField name="result" type="Object">
+  <ResponseField name="reviewRequest" type="Object">
+    Human review request details
+  </ResponseField>
+  <ResponseField name="status" type="string">
+    Status: 'pending_human_review' or 'blocked'
+  </ResponseField>
+</ResponseField>
+
+```javascript
+const result = await manager.orchestrateHumanReview({
+  verbose: true,
+  changedFiles: [
+    'src/services/UserService.ts',
+    'tests/unit/user-service.test.ts'
+  ]
+});
+
+if (result.status === 'pending_human_review') {
+  console.log('⏳ Human review requested');
+  console.log('Reviewer:', result.reviewRequest.reviewer);
+  console.log('Focus areas:', result.reviewRequest.focusAreas);
+  console.log('Estimated time:', result.reviewRequest.estimatedTime, 'minutes');
+} else {
+  console.log('🚫 Blocked - fix issues first');
+}
+```
+
+## Status Management
+
+### getStatus
+
+Get current quality gate status.
+
+<ResponseField name="status" type="Object">
+  <ResponseField name="lastRun" type="string">
+    ISO timestamp of last run
+  </ResponseField>
+  <ResponseField name="layer1" type="Object">
+    Layer 1 status
+  </ResponseField>
+  <ResponseField name="layer2" type="Object">
+    Layer 2 status
+  </ResponseField>
+  <ResponseField name="layer3" type="Object">
+    Layer 3 status
+  </ResponseField>
+  <ResponseField name="overall" type="string">
+    Overall status
+  </ResponseField>
+</ResponseField>
+
+```javascript
+const status = await manager.getStatus();
+
+console.log('Last run:', status.lastRun);
+console.log('Overall status:', status.overall);
+
+if (status.layer1) {
+  console.log('Layer 1:', status.layer1.pass ? '✅ Passed' : '❌ Failed');
+}
+```
+
+### saveStatus
+
+Save current results to status file.
+
+```javascript
+await manager.saveStatus();
+console.log('✅ Status saved to .aiox/qa-status.json');
+```
+
+### saveReport
+
+Save detailed report with metrics.
+
+<ParamField path="storyId" type="string" default="unknown">
+  Story identifier for report filename
+</ParamField>
+
+<ResponseField name="reportPath" type="string">
+  Path to saved report
+</ResponseField>
+
+```javascript
+const reportPath = await manager.saveReport('FEAT-123');
+console.log('Report saved:', reportPath);
+// Output: .aiox/qa-reports/qa-report-FEAT-123-2026-03-05T14-30-00.json
+```
+
+## Human Review
+
+### completeHumanReview
+
+Complete a human review request.
+
+<ParamField path="requestId" type="string" required>
+  Review request ID
+</ParamField>
+
+<ParamField path="reviewResult" type="Object" required>
+  <ParamField path="approved" type="boolean">
+    Whether changes are approved
+  </ParamField>
+  <ParamField path="comments" type="string[]">
+    Review comments
+  </ParamField>
+</ParamField>
+
+```javascript
+const completed = await manager.completeHumanReview('review-123', {
+  approved: true,
+  comments: [
+    'Code looks good',
+    'Tests are comprehensive',
+    'Documentation is clear'
+  ]
+});
+
+console.log('Review completed:', completed.id);
+```
+
+### getPendingReviews
+
+Get list of pending review requests.
+
+<ResponseField name="reviews" type="Array">
+  Array of pending review requests
+</ResponseField>
+
+```javascript
+const pending = await manager.getPendingReviews();
+
+console.log(`${pending.length} pending reviews`);
+pending.forEach(review => {
+  console.log(`- ${review.id}: ${review.storyId}`);
+});
+```
+
+## Pipeline Control
+
+### failFast
+
+Handle fail-fast on Layer 1 failure.
+
+```javascript
+const result = manager.failFast(layer1Result, { verbose: true });
+
+console.log('Status:', result.status);        // 'failed'
+console.log('Stopped at:', result.stoppedAt);  // 'layer1'
+console.log('Reason:', result.reason);          // 'fail-fast'
+```
+
+### escalate
+
+Handle escalation on Layer 2 issues.
+
+```javascript
+const result = manager.escalate(layer2Result, { verbose: true });
+
+console.log('Status:', result.status);        // 'blocked'
+console.log('Stopped at:', result.stoppedAt);  // 'layer2'
+console.log('Reason:', result.reason);          // 'escalation'
+```
+
+## Result Formatting
+
+### formatResults
+
+Format results for display.
+
+<ResponseField name="formatted" type="string">
+  Formatted output with icons and colors
+</ResponseField>
+
+```javascript
+const formatted = manager.formatResults();
+console.log(formatted);
+```
+
+**Example Output:**
+
+```
+🔍 Quality Gate Pipeline Results
+──────────────────────────────────────────────────
+
+✅ Layer 1: Pre-commit - PASSED
+   ✓ lint: All files passed linting
+   ✓ test: 247 tests passed
+   ✓ typecheck: No type errors
+
+✅ Layer 2: PR Automation - PASSED
+   ✓ coderabbit: No issues found
+   ✓ quinn: Code quality score: 9.2/10
+
+⏳ Layer 3: Human Review - PENDING
+   ✓ checklist: 8/10 items completed
+   ✗ signoff: Awaiting approval
+
+──────────────────────────────────────────────────
+Total Duration: 45.2s
+```
+
+## Complete Example
+
+```javascript
+const { QualityGateManager } = require('.aiox-core/core/quality-gates/quality-gate-manager');
+
+// Initialize manager
+const manager = await QualityGateManager.load();
+
+// Run full pipeline
+console.log('🚀 Starting quality gate pipeline...\n');
+
+const result = await manager.orchestrate({
+  verbose: true
+});
+
+// Check result
+if (result.pass) {
+  console.log('\n✅ ALL QUALITY GATES PASSED');
+  
+  // Save status and report
+  await manager.saveStatus();
+  const reportPath = await manager.saveReport('FEAT-123');
+  console.log('Report saved:', reportPath);
+  
+  process.exit(0);
+} else {
+  console.log('\n❌ QUALITY GATES FAILED');
+  
+  // Display formatted results
+  console.log(manager.formatResults());
+  
+  // Save status for debugging
+  await manager.saveStatus();
+  
+  process.exit(result.exitCode);
+}
+```
+
+## Human Review Orchestration Example
+
+```javascript
+const { QualityGateManager } = require('.aiox-core/core/quality-gates/quality-gate-manager');
+
+// Initialize manager
+const manager = await QualityGateManager.load();
+
+// Run 3-layer orchestration with human review
+const result = await manager.orchestrateHumanReview({
+  verbose: true,
+  changedFiles: [
+    'src/services/UserService.ts',
+    'src/api/users.ts',
+    'tests/unit/user-service.test.ts'
+  ]
+});
+
+if (result.status === 'blocked') {
+  console.log('🚫 BLOCKED');
+  console.log('Fix the following issues:');
+  
+  result.layers.forEach(layer => {
+    if (!layer.pass) {
+      console.log(`\n${layer.layer}:`);
+      layer.results.forEach(r => {
+        if (!r.pass) {
+          console.log(`  - ${r.check}: ${r.message}`);
+        }
+      });
+    }
+  });
+  
+  process.exit(1);
+}
+
+if (result.status === 'pending_human_review') {
+  console.log('⏳ HUMAN REVIEW REQUESTED');
+  console.log('\n📝 Review Details:');
+  console.log('Reviewer:', result.reviewRequest.reviewer);
+  console.log('Estimated time:', result.reviewRequest.estimatedTime, 'minutes');
+  
+  console.log('\n🎯 Focus Areas:');
+  result.reviewRequest.focusAreas.primary.forEach(area => {
+    console.log(`  • ${area.area}: ${area.reason}`);
+  });
+  
+  if (result.reviewRequest.skipAreas) {
+    console.log('\n⏭️ Skip (already validated):');
+    console.log('  ', result.reviewRequest.skipAreas.join(', '));
+  }
+  
+  // Save review request
+  await manager.saveStatus();
+  
+  console.log('\n✅ Layers 1+2 passed. Awaiting human review.');
+  process.exit(0);
+}
+```
+
+## Best Practices
+
+1. **Fail Fast** - Layer 1 should catch obvious errors quickly
+2. **Automation First** - Use Layer 2 to automate as much as possible
+3. **Smart Reviews** - Layer 3 should focus on what automation can't catch
+4. **Save Reports** - Always save reports for audit trails
+5. **Verbose Mode** - Use verbose output for CI/CD visibility
+6. **Exit Codes** - Use proper exit codes (0 = success, 1 = failure, 2 = blocked)
+7. **Status Tracking** - Save status after each run for debugging

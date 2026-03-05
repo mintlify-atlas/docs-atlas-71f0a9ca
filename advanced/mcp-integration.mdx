@@ -1,0 +1,527 @@
+---
+title: MCP Integration
+description: Model Context Protocol integration for enhanced AI agent capabilities
+---
+
+# MCP Integration
+
+Synkra AIOX integrates with the Model Context Protocol (MCP) to provide AI agents with enhanced capabilities through standardized tool access.
+
+## What is MCP?
+
+The Model Context Protocol is a standardized protocol for connecting AI models to external tools and data sources. MCP enables:
+
+- **Standardized Tool Access**: Consistent interface for diverse tools
+- **Context Sharing**: Share information across agent sessions
+- **Enhanced Capabilities**: Access to specialized services (search, databases, APIs)
+- **Security**: Sandboxed execution with credential management
+
+## Architecture
+
+```
+mcp/
+├── global-config-manager.js    # Global MCP configuration
+├── config-migrator.js          # Config migration tools
+├── symlink-manager.js          # Symlink management
+├── os-detector.js              # OS-specific paths
+└── index.js                    # MCP module exports
+```
+
+### Global Configuration Structure
+
+```
+~/.aiox/
+└── mcp/
+    ├── config.json             # Global MCP config
+    ├── servers/                # Server installations
+    ├── cache/                  # Response cache
+    └── credentials/            # Encrypted credentials
+```
+
+## Setup
+
+### Initialize Global MCP Configuration
+
+```javascript .aiox-core/core/mcp/global-config-manager.js
+const mcp = require('./.aiox-core/core/mcp');
+
+// Initialize global MCP directory
+if (!mcp.globalDirExists()) {
+  mcp.createGlobalDir();
+  console.log('Global AIOX directory created at:', mcp.getGlobalAioxDir());
+}
+
+if (!mcp.globalMcpDirExists()) {
+  mcp.createGlobalMcpDir();
+  console.log('MCP directory created at:', mcp.getGlobalMcpDir());
+}
+
+if (!mcp.globalConfigExists()) {
+  mcp.createGlobalConfig();
+  console.log('Global MCP config created');
+}
+```
+
+### Load Configuration
+
+```javascript
+// Load global config
+const config = mcp.loadGlobalConfig();
+console.log('Available servers:', Object.keys(config.servers));
+
+// Get specific paths
+const mcpDir = mcp.getGlobalMcpDir();
+const configPath = mcp.getGlobalConfigPath();
+const serversDir = mcp.getServersDir();
+const cacheDir = mcp.getCacheDir();
+const credentialsDir = mcp.getCredentialsDir();
+```
+
+## Available MCP Servers
+
+AIOX includes templates for common MCP servers:
+
+### 1. Context7 (SSE)
+
+```javascript
+const server = mcp.getServerTemplate('context7');
+// {
+//   type: 'sse',
+//   url: 'https://mcp.context7.com/sse',
+//   enabled: true,
+// }
+
+mcp.addServer('context7', server);
+```
+
+### 2. Exa Search
+
+```javascript
+const server = mcp.getServerTemplate('exa');
+// {
+//   command: 'npx',
+//   args: ['-y', 'exa-mcp-server'],
+//   env: { EXA_API_KEY: '${EXA_API_KEY}' },
+//   enabled: true,
+// }
+
+mcp.addServer('exa', server);
+mcp.setServerEnv('exa', 'EXA_API_KEY', process.env.EXA_API_KEY);
+```
+
+### 3. GitHub
+
+```javascript
+const server = mcp.getServerTemplate('github');
+// {
+//   command: 'npx',
+//   args: ['-y', '@modelcontextprotocol/server-github'],
+//   env: { GITHUB_TOKEN: '${GITHUB_TOKEN}' },
+//   enabled: true,
+// }
+
+mcp.addServer('github', server);
+mcp.setServerEnv('github', 'GITHUB_TOKEN', process.env.GITHUB_TOKEN);
+```
+
+### 4. Puppeteer (Browser Automation)
+
+```javascript
+const server = mcp.getServerTemplate('puppeteer');
+mcp.addServer('puppeteer', server);
+```
+
+### 5. Desktop Commander
+
+```javascript
+const server = mcp.getServerTemplate('desktop-commander');
+mcp.addServer('desktop-commander', server);
+```
+
+### 6. Filesystem
+
+```javascript
+const server = mcp.getServerTemplate('filesystem');
+mcp.addServer('filesystem', server);
+```
+
+### 7. Memory (Context Persistence)
+
+```javascript
+const server = mcp.getServerTemplate('memory');
+mcp.addServer('memory', server);
+```
+
+## Server Management
+
+### Add Custom Server
+
+```javascript
+mcp.addServer('custom-api', {
+  command: 'node',
+  args: ['./servers/custom-api-server.js'],
+  env: {
+    API_KEY: process.env.CUSTOM_API_KEY,
+    API_URL: 'https://api.example.com',
+  },
+  enabled: true,
+  timeout: 30000,
+  retries: 3,
+});
+```
+
+### Enable/Disable Servers
+
+```javascript
+// Enable server
+mcp.enableServer('github');
+
+// Disable server
+mcp.disableServer('puppeteer');
+
+// Get enabled servers
+const enabled = mcp.getEnabledServers();
+console.log('Enabled servers:', enabled);
+```
+
+### Update Server Configuration
+
+```javascript
+// Update server settings
+mcp.updateServer('exa', {
+  timeout: 60000,
+  retries: 5,
+});
+
+// Set environment variable
+mcp.setServerEnv('github', 'GITHUB_TOKEN', newToken);
+
+// Remove server
+mcp.removeServer('old-server');
+```
+
+## Configuration Migration
+
+Migrate MCP configuration between projects:
+
+```javascript .aiox-core/core/mcp/config-migrator.js
+const { configMigrator } = require('./.aiox-core/core/mcp');
+
+// Export project config to global
+const exported = configMigrator.exportProjectConfig('.aiox/mcp-config.json');
+console.log(`Exported ${exported.servers.length} servers`);
+
+// Import global config to project
+const imported = configMigrator.importGlobalConfig('.aiox/mcp-config.json');
+console.log(`Imported ${imported.servers.length} servers`);
+
+// Merge configurations
+const merged = configMigrator.mergeConfigs(
+  projectConfig,
+  globalConfig,
+  {
+    strategy: 'prefer-project', // 'prefer-project' | 'prefer-global' | 'merge'
+    overwriteEnv: false,
+  }
+);
+
+// Validate configuration
+const validation = configMigrator.validateConfig(config);
+if (!validation.valid) {
+  console.error('Config validation errors:');
+  validation.errors.forEach((error) => {
+    console.error(`  - ${error.message}`);
+  });
+}
+```
+
+## Symlink Management
+
+Manage symlinks for MCP server installations:
+
+```javascript .aiox-core/core/mcp/symlink-manager.js
+const { symlinkManager } = require('./.aiox-core/core/mcp');
+
+// Create symlink to server
+await symlinkManager.createSymlink(
+  '/path/to/server',
+  '~/.aiox/mcp/servers/my-server'
+);
+
+// Check if symlink exists
+const exists = await symlinkManager.symlinkExists('~/.aiox/mcp/servers/my-server');
+
+// Resolve symlink target
+const target = await symlinkManager.resolveSymlink('~/.aiox/mcp/servers/my-server');
+
+// Remove symlink
+await symlinkManager.removeSymlink('~/.aiox/mcp/servers/my-server');
+
+// List all symlinks
+const symlinks = await symlinkManager.listSymlinks('~/.aiox/mcp/servers');
+symlinks.forEach((link) => {
+  console.log(`${link.name} -> ${link.target}`);
+});
+```
+
+## OS-Specific Paths
+
+Handle cross-platform path differences:
+
+```javascript .aiox-core/core/mcp/os-detector.js
+const { osDetector } = require('./.aiox-core/core/mcp');
+
+// Detect OS
+const os = osDetector.detectOS();
+console.log(`Platform: ${os.platform}`); // 'win32' | 'linux' | 'darwin'
+console.log(`Home directory: ${os.homeDir}`);
+
+// Get OS-specific paths
+const globalDir = osDetector.getGlobalAioxDir();
+// Windows: C:\Users\username\.aiox
+// Linux/Mac: /home/username/.aiox
+
+const mcpDir = osDetector.getGlobalMcpDir();
+// Windows: C:\Users\username\.aiox\mcp
+// Linux/Mac: /home/username/.aiox/mcp
+
+// Normalize paths
+const normalized = osDetector.normalizePath('~/.aiox/mcp/config.json');
+console.log(normalized); // Absolute path for current OS
+```
+
+## Using MCP Servers in Agents
+
+### Configure Agent with MCP Tools
+
+```yaml agent.yaml
+name: research-agent
+persona: Research specialist with web search capabilities
+
+mcp:
+  enabled: true
+  servers:
+    - exa          # Web search
+    - github       # GitHub integration
+    - memory       # Context persistence
+  
+  tools:
+    - name: search
+      server: exa
+      description: Search the web for information
+    
+    - name: get_repo
+      server: github
+      description: Get repository information
+    
+    - name: remember
+      server: memory
+      description: Store information for later
+```
+
+### Access MCP Tools in Code
+
+```javascript
+const agent = await loadAgentConfig('research-agent');
+
+// Check if MCP is enabled
+if (agent.mcp?.enabled) {
+  console.log('MCP enabled for agent');
+  console.log('Available servers:', agent.mcp.servers);
+  
+  // Call MCP tool
+  const searchResults = await agent.callTool('search', {
+    query: 'latest AI developments',
+    limit: 10,
+  });
+  
+  // Store result in memory
+  await agent.callTool('remember', {
+    key: 'ai-research',
+    value: searchResults,
+  });
+}
+```
+
+## Credential Management
+
+Securely manage API keys and tokens:
+
+```javascript
+const mcp = require('./.aiox-core/core/mcp');
+
+// Store credential (encrypted)
+await mcp.storeCredential('EXA_API_KEY', apiKey, {
+  description: 'Exa search API key',
+  expiresAt: Date.now() + 30 * 24 * 60 * 60 * 1000, // 30 days
+});
+
+// Retrieve credential
+const credential = await mcp.getCredential('EXA_API_KEY');
+if (credential.expired) {
+  console.warn('Credential expired, please update');
+}
+
+// Update credential
+await mcp.updateCredential('EXA_API_KEY', newApiKey);
+
+// Delete credential
+await mcp.deleteCredential('EXA_API_KEY');
+
+// List all credentials
+const credentials = await mcp.listCredentials();
+credentials.forEach((cred) => {
+  console.log(`${cred.name}: ${cred.description}`);
+  console.log(`  Expires: ${new Date(cred.expiresAt).toISOString()}`);
+});
+```
+
+## Response Caching
+
+Cache MCP responses for performance:
+
+```javascript
+const mcp = require('./.aiox-core/core/mcp');
+
+// Enable caching for a server
+mcp.updateServer('exa', {
+  cache: {
+    enabled: true,
+    ttl: 3600000, // 1 hour
+    maxSize: 100, // Max cached items
+  },
+});
+
+// Clear cache for server
+await mcp.clearServerCache('exa');
+
+// Clear all caches
+await mcp.clearAllCaches();
+
+// Get cache statistics
+const stats = await mcp.getCacheStats('exa');
+console.log(`Cache hits: ${stats.hits}`);
+console.log(`Cache misses: ${stats.misses}`);
+console.log(`Hit rate: ${stats.hitRate}%`);
+```
+
+## Complete Configuration Example
+
+```javascript
+const mcp = require('./.aiox-core/core/mcp');
+
+async function setupMCP() {
+  // Initialize
+  if (!mcp.globalDirExists()) {
+    mcp.createGlobalDir();
+    mcp.createGlobalMcpDir();
+    mcp.createGlobalConfig();
+  }
+
+  // Add servers
+  mcp.addServer('exa', mcp.getServerTemplate('exa'));
+  mcp.addServer('github', mcp.getServerTemplate('github'));
+  mcp.addServer('memory', mcp.getServerTemplate('memory'));
+
+  // Configure credentials
+  await mcp.storeCredential('EXA_API_KEY', process.env.EXA_API_KEY);
+  await mcp.storeCredential('GITHUB_TOKEN', process.env.GITHUB_TOKEN);
+
+  // Set environment variables
+  mcp.setServerEnv('exa', 'EXA_API_KEY', '${EXA_API_KEY}');
+  mcp.setServerEnv('github', 'GITHUB_TOKEN', '${GITHUB_TOKEN}');
+
+  // Enable caching
+  mcp.updateServer('exa', {
+    cache: { enabled: true, ttl: 3600000 },
+  });
+
+  // Save configuration
+  mcp.saveGlobalConfig();
+
+  console.log('✅ MCP setup complete');
+  console.log(`Config location: ${mcp.getGlobalConfigPath()}`);
+}
+
+setupMCP().catch(console.error);
+```
+
+## Testing MCP Integration
+
+```javascript
+const mcp = require('./.aiox-core/core/mcp');
+
+async function testMCPServer(serverName) {
+  console.log(`Testing ${serverName}...`);
+
+  const server = mcp.getServer(serverName);
+  if (!server) {
+    console.error(`Server ${serverName} not found`);
+    return;
+  }
+
+  if (!server.enabled) {
+    console.warn(`Server ${serverName} is disabled`);
+    return;
+  }
+
+  try {
+    // Test connection
+    const result = await mcp.testServer(serverName);
+    console.log(`✅ ${serverName}: ${result.status}`);
+    console.log(`   Response time: ${result.responseTime}ms`);
+  } catch (error) {
+    console.error(`❌ ${serverName}: ${error.message}`);
+  }
+}
+
+// Test all enabled servers
+const enabled = mcp.getEnabledServers();
+for (const serverName of enabled) {
+  await testMCPServer(serverName);
+}
+```
+
+## Best Practices
+
+1. **Use Environment Variables**: Never hardcode credentials
+2. **Enable Caching**: Reduce API calls and improve performance
+3. **Test Servers**: Verify connectivity before use
+4. **Manage Credentials**: Rotate keys regularly
+5. **Monitor Usage**: Track API quotas and rate limits
+
+## Troubleshooting
+
+### Server Not Found
+
+```javascript
+if (!mcp.globalConfigExists()) {
+  console.error('MCP not initialized. Run setup first.');
+  mcp.createGlobalConfig();
+}
+```
+
+### Credential Issues
+
+```javascript
+const cred = await mcp.getCredential('API_KEY');
+if (!cred) {
+  console.error('Credential not found. Store it first.');
+  await mcp.storeCredential('API_KEY', process.env.API_KEY);
+}
+```
+
+### Server Timeout
+
+```javascript
+mcp.updateServer('slow-server', {
+  timeout: 60000,  // Increase timeout
+  retries: 5,      // More retries
+});
+```
+
+## Next Steps
+
+- [Brownfield Migration →](/advanced/brownfield-migration)
+- [Custom MCP Servers →](/customization/mcp-servers)
+- [Agent Configuration →](/guides/agent-configuration)

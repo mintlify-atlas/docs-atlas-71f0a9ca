@@ -1,0 +1,396 @@
+---
+title: "Code Intelligence API"
+description: "Smart code analysis and enrichment capabilities"
+icon: "brain-circuit"
+---
+
+## Overview
+
+The Code Intelligence system provides smart code analysis, dependency tracking, and contextual enrichment for AI agents. It integrates with code graph providers and registries to deliver comprehensive code understanding.
+
+## Quick Start
+
+```javascript
+const { getClient, getEnricher, enrichWithCodeIntel } = require('.aiox-core/core/code-intel');
+
+// Check availability
+if (isCodeIntelAvailable()) {
+  // Enrich a result with code intelligence
+  const enriched = await enrichWithCodeIntel(baseResult, {
+    capabilities: ['assessImpact', 'detectDuplicates'],
+    files: ['src/components/Button.tsx']
+  });
+}
+```
+
+## Singleton Functions
+
+### getClient
+
+Get the default CodeIntelClient singleton.
+
+<ParamField path="options" type="Object">
+  Options passed on first creation
+</ParamField>
+
+<ResponseField name="client" type="CodeIntelClient">
+  Singleton client instance
+</ResponseField>
+
+```javascript
+const { getClient } = require('.aiox-core/core/code-intel');
+
+const client = getClient();
+```
+
+### getEnricher
+
+Get the default CodeIntelEnricher singleton.
+
+<ParamField path="options" type="Object">
+  Options passed to client on first creation
+</ParamField>
+
+<ResponseField name="enricher" type="CodeIntelEnricher">
+  Singleton enricher instance
+</ResponseField>
+
+```javascript
+const { getEnricher } = require('.aiox-core/core/code-intel');
+
+const enricher = getEnricher();
+```
+
+### isCodeIntelAvailable
+
+Check if any code intelligence provider is available.
+
+<ResponseField name="available" type="boolean">
+  True if code intelligence is available
+</ResponseField>
+
+```javascript
+const { isCodeIntelAvailable } = require('.aiox-core/core/code-intel');
+
+if (isCodeIntelAvailable()) {
+  console.log('✅ Code intelligence available');
+} else {
+  console.log('⚠️ Code intelligence not available');
+}
+```
+
+### enrichWithCodeIntel
+
+Enrich a base result with code intelligence data. Graceful - never throws, returns base result unchanged on failure.
+
+<ParamField path="baseResult" type="any" required>
+  The base result to enrich
+</ParamField>
+
+<ParamField path="options" type="Object" required>
+  <ParamField path="capabilities" type="string[]" required>
+    List of enricher capabilities to use
+  </ParamField>
+  <ParamField path="timeout" type="number" default="5000">
+    Timeout in milliseconds
+  </ParamField>
+  <ParamField path="fallbackBehavior" type="string" default="warn-and-continue">
+    Fallback strategy ('warn-and-continue' or 'silent')
+  </ParamField>
+  <ParamField path="files" type="string[]">
+    Files for impact assessment
+  </ParamField>
+  <ParamField path="description" type="string">
+    Description for duplicate detection
+  </ParamField>
+  <ParamField path="symbol" type="string">
+    Symbol name for test finding
+  </ParamField>
+  <ParamField path="target" type="string">
+    Target directory for conventions/project description
+  </ParamField>
+</ParamField>
+
+<ResponseField name="enriched" type="Object">
+  Enriched result with _codeIntel property
+</ResponseField>
+
+```javascript
+const { enrichWithCodeIntel } = require('.aiox-core/core/code-intel');
+
+// Enrich with impact assessment
+const result = await enrichWithCodeIntel(baseResult, {
+  capabilities: ['assessImpact'],
+  files: ['src/api/users.ts', 'src/models/User.ts'],
+  timeout: 3000
+});
+
+if (result._codeIntel?.assessImpact) {
+  console.log('Impact assessment:', result._codeIntel.assessImpact);
+}
+```
+
+## Capabilities
+
+Available enricher capabilities:
+
+### assessImpact
+
+Assess the impact of changes to specific files.
+
+```javascript
+const enricher = getEnricher();
+const impact = await enricher.assessImpact([
+  'src/api/users.ts',
+  'src/models/User.ts'
+]);
+
+console.log('Affected files:', impact.affectedFiles);
+console.log('Risk level:', impact.riskLevel);
+```
+
+### detectDuplicates
+
+Detect duplicate or similar code based on description.
+
+```javascript
+const duplicates = await enricher.detectDuplicates(
+  'User authentication service',
+  { threshold: 0.8 }
+);
+
+duplicates.forEach(dup => {
+  console.log(`Similar: ${dup.file} (${dup.similarity}%)`);
+});
+```
+
+### findTests
+
+Find tests related to a symbol or module.
+
+```javascript
+const tests = await enricher.findTests('UserService');
+
+tests.forEach(test => {
+  console.log(`Test: ${test.file} - ${test.description}`);
+});
+```
+
+### getConventions
+
+Get coding conventions from a target directory.
+
+```javascript
+const conventions = await enricher.getConventions('src/');
+
+console.log('Naming:', conventions.naming);
+console.log('Patterns:', conventions.patterns);
+console.log('Structure:', conventions.structure);
+```
+
+### describeProject
+
+Get a high-level project description.
+
+```javascript
+const description = await enricher.describeProject('.');
+
+console.log('Project:', description.name);
+console.log('Type:', description.type);
+console.log('Stack:', description.techStack);
+```
+
+## Hook Runtime
+
+The hook runtime provides code intelligence context for file operations.
+
+### resolveCodeIntel
+
+Resolve code intelligence context for a file.
+
+<ParamField path="filePath" type="string" required>
+  Absolute or relative path to the target file
+</ParamField>
+
+<ParamField path="cwd" type="string" required>
+  Project root / working directory
+</ParamField>
+
+<ResponseField name="intel" type="Object">
+  <ResponseField name="entity" type="Object">
+    Entity definition (path, layer, purpose, type)
+  </ResponseField>
+  <ResponseField name="references" type="Array">
+    Files that use this entity
+  </ResponseField>
+  <ResponseField name="dependencies" type="Object">
+    Entities this file depends on
+  </ResponseField>
+</ResponseField>
+
+```javascript
+const { resolveCodeIntel } = require('.aiox-core/core/code-intel/hook-runtime');
+
+const intel = await resolveCodeIntel(
+  'src/services/UserService.ts',
+  process.cwd()
+);
+
+if (intel) {
+  console.log('Entity:', intel.entity);
+  console.log('Referenced by:', intel.references?.length, 'files');
+  console.log('Dependencies:', intel.dependencies?.nodes?.length, 'entities');
+}
+```
+
+### formatAsXml
+
+Format code intelligence data as XML for injection into AI context.
+
+<ParamField path="intel" type="Object" required>
+  Result from resolveCodeIntel()
+</ParamField>
+
+<ParamField path="filePath" type="string" required>
+  Target file path (for display)
+</ParamField>
+
+<ResponseField name="xml" type="string">
+  XML string or null if no data
+</ResponseField>
+
+```javascript
+const { resolveCodeIntel, formatAsXml } = require('.aiox-core/core/code-intel/hook-runtime');
+
+const intel = await resolveCodeIntel('src/services/UserService.ts', process.cwd());
+const xml = formatAsXml(intel, 'src/services/UserService.ts');
+
+if (xml) {
+  console.log(xml);
+  // <code-intel-context>
+  //   <target-file>src/services/UserService.ts</target-file>
+  //   <existing-entity>
+  //     <path>src/services/UserService.ts</path>
+  //     <purpose>User management service</purpose>
+  //   </existing-entity>
+  //   <referenced-by count="5">
+  //     <ref file="src/api/users.ts" context="API endpoint" />
+  //     ...
+  //   </referenced-by>
+  // </code-intel-context>
+}
+```
+
+## Provider Interface
+
+### CAPABILITIES
+
+Available provider capabilities.
+
+```javascript
+const { CAPABILITIES } = require('.aiox-core/core/code-intel');
+
+console.log(CAPABILITIES);
+// {
+//   FIND_DEFINITION: 'findDefinition',
+//   FIND_REFERENCES: 'findReferences',
+//   ANALYZE_DEPENDENCIES: 'analyzeDependencies',
+//   SEARCH_SYMBOLS: 'searchSymbols',
+//   GET_CONTEXT: 'getContext'
+// }
+```
+
+### TOOL_MAP
+
+Mapping of tools to provider capabilities.
+
+```javascript
+const { TOOL_MAP } = require('.aiox-core/core/code-intel');
+
+console.log(TOOL_MAP);
+// {
+//   'codeGraph.findDefinition': 'findDefinition',
+//   'codeGraph.findReferences': 'findReferences',
+//   'codeGraph.analyzeDependencies': 'analyzeDependencies',
+//   ...
+// }
+```
+
+## Complete Example
+
+```javascript
+const {
+  getClient,
+  getEnricher,
+  enrichWithCodeIntel,
+  isCodeIntelAvailable
+} = require('.aiox-core/core/code-intel');
+
+// Check availability
+if (!isCodeIntelAvailable()) {
+  console.log('⚠️ Code intelligence not available');
+  process.exit(1);
+}
+
+// Get client and enricher
+const client = getClient();
+const enricher = getEnricher();
+
+// Example: Assess impact of changes
+const changedFiles = [
+  'src/services/UserService.ts',
+  'src/models/User.ts'
+];
+
+const baseResult = {
+  files: changedFiles,
+  changes: 'Updated user authentication'
+};
+
+// Enrich with multiple capabilities
+const enriched = await enrichWithCodeIntel(baseResult, {
+  capabilities: [
+    'assessImpact',
+    'detectDuplicates',
+    'findTests',
+    'getConventions'
+  ],
+  files: changedFiles,
+  description: 'User authentication service',
+  timeout: 5000
+});
+
+// Access enrichment data
+if (enriched._codeIntel) {
+  const { assessImpact, detectDuplicates, findTests, getConventions } = enriched._codeIntel;
+  
+  if (assessImpact) {
+    console.log('🎯 Impact Assessment:');
+    console.log(`  Affected files: ${assessImpact.affectedFiles?.length || 0}`);
+    console.log(`  Risk level: ${assessImpact.riskLevel}`);
+  }
+  
+  if (detectDuplicates?.length > 0) {
+    console.log('
+🔍 Potential Duplicates:');
+    detectDuplicates.slice(0, 3).forEach(dup => {
+      console.log(`  - ${dup.file} (${dup.similarity}% similar)`);
+    });
+  }
+  
+  if (findTests?.length > 0) {
+    console.log('
+✅ Related Tests:');
+    findTests.forEach(test => {
+      console.log(`  - ${test.file}`);
+    });
+  }
+  
+  if (getConventions) {
+    console.log('
+📜 Conventions:');
+    console.log(`  Naming: ${getConventions.naming}`);
+    console.log(`  Patterns: ${getConventions.patterns?.join(', ')}`);
+  }
+}
+```

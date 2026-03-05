@@ -1,0 +1,658 @@
+---
+title: Brownfield Migration
+description: Integrate AIOX into existing projects with discovery, analysis, and incremental adoption strategies
+---
+
+# Brownfield Migration
+
+Brownfield development refers to adding features, fixing bugs, or modernizing existing software projects. AIOX provides specialized workflows and tools for integrating with existing codebases safely and incrementally.
+
+## What is Brownfield Development?
+
+Unlike greenfield (new) projects, brownfield work requires:
+
+- Understanding existing code and architecture
+- Respecting existing constraints and patterns
+- Ensuring new changes integrate seamlessly
+- Avoiding breaking existing functionality
+- Working with legacy systems and technical debt
+
+## When to Use AIOX for Brownfield
+
+AIOX is valuable for brownfield projects when you need to:
+
+- Add significant new features to existing applications
+- Modernize legacy codebases
+- Integrate new technologies or services
+- Refactor complex systems
+- Fix bugs requiring architectural understanding
+- Document undocumented systems
+
+## When NOT to Use Brownfield Flow
+
+If you just completed an MVP with AIOX and want to continue post-MVP development:
+
+1. Talk to the PM agent to create a new epic in the PRD
+2. Shard out the epic with the SM agent
+3. Update architecture documents with the Architect agent
+4. Continue with normal AIOX workflow
+
+The full brownfield flow is for **integrating AIOX into existing non-AIOX projects**.
+
+## Choose Your Approach
+
+### Approach A: PRD-First (Recommended)
+
+**Best for**: Large codebases, monorepos, or when you know exactly what to build
+
+1. Create PRD first to define requirements
+2. Document only relevant areas based on PRD needs
+3. More efficient - avoids documenting unused code
+
+**Advantages**:
+- Focused documentation effort
+- Clear scope from start
+- Faster for large codebases
+- Identifies required documentation upfront
+
+### Approach B: Document-First
+
+**Best for**: Smaller codebases, unknown systems, or exploratory changes
+
+1. Document entire system first
+2. Create PRD with full context
+3. More thorough - captures everything
+
+**Advantages**:
+- Complete system understanding
+- Discover hidden dependencies
+- Better for exploration
+- Comprehensive baseline documentation
+
+## Complete Brownfield Workflow
+
+### Phase 1: Discovery and Analysis
+
+#### Step 1: Analyze Existing Project
+
+Use the brownfield analyzer to understand the current state:
+
+```javascript .aiox-core/development/tasks/analyze-brownfield.md
+const { analyzeProject, formatMigrationReport } = require(
+  './.aiox-core/infrastructure/scripts/documentation-integrity/brownfield-analyzer'
+);
+
+const targetDir = process.cwd();
+const analysis = analyzeProject(targetDir);
+
+// Display analysis report
+const report = formatMigrationReport(analysis);
+console.log(report);
+```
+
+**Analysis Output**:
+
+```typescript
+interface BrownfieldAnalysis {
+  // Project flags
+  hasExistingStructure: boolean;   // src/, lib/, tests/
+  hasExistingWorkflows: boolean;   // CI/CD configs
+  hasExistingStandards: boolean;   // Linting/formatting
+  
+  // Merge strategy
+  mergeStrategy: 'parallel' | 'manual';
+  
+  // Detected tech stack
+  techStack: string[];      // ['Node.js', 'TypeScript', 'Python']
+  frameworks: string[];     // ['React', 'Express', 'Next.js']
+  version: string | null;   // Project version
+  
+  // Configuration paths
+  configs: {
+    eslint: string | null;
+    prettier: string | null;
+    tsconfig: string | null;
+    packageJson: string | null;
+    githubWorkflows: string | null;
+  };
+  
+  // Detected settings
+  linting: string;      // 'ESLint' | 'Flake8' | 'none'
+  formatting: string;   // 'Prettier' | 'Black' | 'none'
+  testing: string;      // 'Jest' | 'Vitest' | 'pytest' | 'none'
+  
+  // Integration guidance
+  recommendations: string[];
+  conflicts: string[];
+  manualReviewItems: string[];
+  summary: string;
+}
+```
+
+#### Step 2: Interpret Results
+
+**Merge Strategy**:
+
+| Strategy | Meaning | Action |
+|----------|---------|--------|
+| `parallel` | Safe to proceed with standard setup | Use standard AIOX setup |
+| `manual` | Existing CI/CD requires review | Review workflows first |
+
+**Review Manual Items**:
+
+```bash
+# Review GitHub workflows
+ls -la .github/workflows/
+
+# Check for conflicts with AIOX workflows
+# Look for: quality-gate.yml, release.yml, staging.yml
+
+# Review GitLab CI
+cat .gitlab-ci.yml | grep -E "^[a-z]+:"
+
+# Review CircleCI
+cat .circleci/config.yml
+```
+
+**Handle Conflicts**:
+
+```bash
+# If docs/architecture/ exists:
+# Option A: Rename existing
+mv docs/architecture docs/legacy-architecture
+
+# Option B: Configure alternate path
+echo "AIOX_DOCS_PATH=docs/aiox-architecture" >> .env
+
+# Create backup before integration
+tar -czf backup-$(date +%Y%m%d).tar.gz .
+```
+
+### Phase 2: Documentation Strategy
+
+#### PRD-First Approach (Recommended)
+
+**Step 1: Create Brownfield PRD**
+
+In Gemini Web (with codebase uploaded):
+
+```bash
+@pm
+*create-doc brownfield-prd
+```
+
+The PM agent will:
+- Ask about your enhancement requirements
+- Explore the codebase to understand current state
+- Identify affected areas needing documentation
+- Create focused PRD with clear scope
+
+**Key Advantage**: PRD identifies which parts of your codebase actually need documentation!
+
+For example, if adding payment processing:
+- Documents only: user service, API endpoints, database schemas, payment integrations
+- Creates focused source tree showing payment-related code paths
+- Skips: admin panels, reporting modules, unrelated microservices
+
+**Step 2: Focused Documentation**
+
+Still in Gemini Web, with PRD context:
+
+```bash
+@analyst
+*document-project
+```
+
+The analyst will:
+- Reference the PRD to understand scope
+- Focus on relevant modules identified in PRD
+- Skip unrelated areas to keep docs lean
+- Generate ONE architecture document for all environments
+
+#### Document-First Approach
+
+**Best Approach - Gemini Web with 1M+ Context**:
+
+1. Go to [Gemini Web](https://gemini.google.com)
+2. Upload your project:
+   - **Option A**: Paste GitHub repository URL
+   - **Option B**: Upload up to 1000 files from src/
+   - **Option C**: Zip project and upload archive
+3. Load analyst agent: Upload `dist/agents/analyst.txt`
+4. Run documentation: Type `*document-project`
+
+The analyst generates comprehensive documentation of everything.
+
+### Phase 3: Planning Enhancement
+
+#### Option A: Full Brownfield Workflow (Major Changes)
+
+**1. Create Brownfield PRD** (if not already done):
+
+```bash
+@pm
+*create-doc brownfield-prd
+```
+
+The PM agent will:
+- Analyze existing documentation
+- Request specific enhancement details
+- Assess complexity and recommend approach
+- Create epic/story structure
+- Identify risks and integration points
+
+**Key Prompts You'll Encounter**:
+- "What specific enhancement or feature do you want to add?"
+- "Are there any existing systems this needs to integrate with?"
+- "What are the critical constraints we must respect?"
+- "What is your timeline and team size?"
+
+**2. Create Brownfield Architecture**:
+
+```bash
+@architect
+*create-doc brownfield-architecture
+```
+
+The architect will:
+- Review the brownfield PRD
+- Design integration strategy
+- Plan migration approach if needed
+- Identify technical risks
+- Define compatibility requirements
+
+#### Option B: Quick Enhancement (Focused Changes)
+
+**For Single Epic**:
+
+```bash
+@pm
+*brownfield-create-epic
+```
+
+Use when:
+- Enhancement is well-defined and isolated
+- Existing documentation is comprehensive
+- Changes don't impact multiple systems
+- Quick turnaround needed
+
+**For Single Story**:
+
+```bash
+@pm
+*brownfield-create-story
+```
+
+Use when:
+- Bug fix or tiny feature
+- Very isolated change
+- No architectural impact
+- Clear implementation path
+
+### Phase 4: Validation
+
+Validate planning artifacts:
+
+```bash
+@po
+*execute-checklist po-master-checklist
+```
+
+The PO ensures:
+- Compatibility with existing system
+- No breaking changes planned
+- Risk mitigation strategies in place
+- Clear integration approach
+
+### Phase 5: Development
+
+**1. Prepare Project**:
+
+```bash
+# Copy planning documents to project
+cp docs/brownfield-prd.md docs/prd.md
+cp docs/brownfield-architecture.md docs/architecture.md
+
+# Shard documents for stories
+@po
+# Ask: "Please shard docs/prd.md into epics and stories"
+```
+
+**2. Development Cycle**:
+
+```bash
+# Create stories (with integration awareness)
+@sm
+*create-story
+
+# Implement (respecting existing code)
+@dev
+*develop
+
+# Review (checking compatibility)
+@qa
+*review-qa
+```
+
+## Brownfield Best Practices
+
+### 1. Always Document First
+
+Even if you think you know the codebase:
+
+```bash
+@analyst
+*document-project
+```
+
+Benefits:
+- Captures current state for AI agents
+- Discovers undocumented patterns
+- Reveals hidden dependencies
+- Provides baseline for changes
+
+### 2. Respect Existing Patterns
+
+Brownfield templates specifically look for:
+
+- Current coding conventions
+- Existing architectural patterns
+- Technology constraints
+- Team preferences
+
+**Example**: If project uses Prettier with 2-space indents, AIOX will generate code matching that style.
+
+### 3. Plan for Gradual Rollout
+
+Brownfield changes should include:
+
+```javascript
+// Feature flags for gradual rollout
+if (featureFlags.newPaymentFlow) {
+  return newPaymentService.process(order);
+} else {
+  return legacyPaymentService.process(order);
+}
+
+// Migration scripts
+const migration = {
+  up: async () => {
+    // Add new columns
+    await db.schema.table('users', (table) => {
+      table.string('external_id').nullable();
+    });
+  },
+  down: async () => {
+    // Rollback changes
+    await db.schema.table('users', (table) => {
+      table.dropColumn('external_id');
+    });
+  },
+};
+
+// Backwards compatibility
+const getUserData = (user) => {
+  // Support both old and new formats
+  return {
+    id: user.id,
+    name: user.fullName || user.name, // Fallback to old field
+    email: user.email,
+  };
+};
+```
+
+### 4. Test Integration Thoroughly
+
+Focus testing on:
+
+```yaml
+test-strategy:
+  integration-points:
+    - API endpoint compatibility
+    - Database schema changes
+    - External service calls
+    - Event handling
+  
+  regression:
+    - Existing user flows
+    - Critical business logic
+    - Edge cases
+    - Error handling
+  
+  performance:
+    - Response times
+    - Database query efficiency
+    - Memory usage
+    - Concurrent requests
+  
+  data-migration:
+    - Data integrity
+    - Rollback capability
+    - Zero downtime
+    - Validation checks
+```
+
+### 5. Communicate Changes
+
+Document in `docs/CHANGELOG.md`:
+
+```markdown
+## [2.0.0] - 2024-03-15
+
+### Added
+- New payment processing system with Stripe integration
+- Support for subscription billing
+- Payment method management UI
+
+### Changed
+- **BREAKING**: Payment API now uses `/api/v2/payments`
+- Order schema includes `payment_method_id` field
+- Checkout flow redesigned for better UX
+
+### Deprecated
+- `/api/v1/payments` endpoint (use v2, v1 supported until 2024-06-15)
+- `PaymentService.processLegacy()` method
+
+### Migration Guide
+- Update API calls from `/api/v1/payments` to `/api/v2/payments`
+- Run migration: `npm run migrate:payment-v2`
+- Update payment webhooks to new format
+- Test with Stripe test mode before production
+
+### Rollback Plan
+1. Set `ENABLE_PAYMENT_V2=false` in environment
+2. Rollback database: `npm run migrate:rollback payment-v2`
+3. Redeploy previous version
+```
+
+## Common Brownfield Scenarios
+
+### Scenario 1: Adding New Feature to Existing App
+
+```bash
+# 1. Document existing system
+@analyst
+*document-project
+
+# 2. Create brownfield PRD with integration focus
+@pm
+*create-doc brownfield-prd
+# Prompt: "Add real-time chat to our e-commerce platform"
+
+# 3. Architecture emphasizes compatibility
+@architect
+*create-doc brownfield-architecture
+
+# 4. Create stories with integration tasks
+@sm
+*create-story
+# Stories include: WebSocket integration, UI components, database schema
+```
+
+### Scenario 2: Modernizing Legacy Code
+
+```bash
+# 1. Extensive documentation phase
+@analyst
+*document-project --detailed
+
+# 2. PRD includes migration strategy
+@pm
+*create-doc brownfield-prd
+# Prompt: "Migrate from jQuery to React incrementally"
+
+# 3. Architecture plans gradual transition
+@architect
+*create-doc brownfield-architecture
+# Strategy: Strangler fig pattern, component-by-component
+
+# 4. Stories follow migration phases
+@sm
+*create-story
+# Phase 1: Setup React, Phase 2: Migrate header, Phase 3: Migrate dashboard
+```
+
+### Scenario 3: Bug Fix in Complex System
+
+```bash
+# 1. Document relevant subsystems
+@analyst
+*document-project --path src/payment
+
+# 2. Use focused story creation
+@pm
+*brownfield-create-story
+# Prompt: "Fix race condition in payment processing"
+
+# 3. Include regression test requirements
+@dev
+*develop
+# Ensure fix includes tests preventing recurrence
+
+# 4. QA validates no side effects
+@qa
+*review-qa
+# Focus on payment flows and edge cases
+```
+
+### Scenario 4: API Integration
+
+```bash
+# 1. Document existing API patterns
+@analyst
+*document-project --path src/api
+
+# 2. PRD defines integration requirements
+@pm
+*create-doc brownfield-prd
+# Prompt: "Integrate Salesforce CRM for customer data sync"
+
+# 3. Architecture ensures consistent patterns
+@architect
+*create-doc brownfield-architecture
+# Design: API gateway, sync service, error handling
+
+# 4. Stories include API documentation updates
+@sm
+*create-story
+# Tasks: API client, sync logic, webhook handlers, docs
+```
+
+## Troubleshooting
+
+### "The AI doesn't understand my codebase"
+
+**Solution**: Re-run documentation with specific paths
+
+```bash
+@analyst
+*document-project --paths "src/core,src/api,src/services"
+```
+
+### "Generated plans don't fit our patterns"
+
+**Solution**: Update generated documentation with your conventions before planning
+
+```markdown
+## Coding Standards
+
+Our project uses:
+- 2-space indentation (not 4)
+- Single quotes (not double)
+- Functional components (not class components)
+- Async/await (not promises)
+- Jest for testing (not Vitest)
+```
+
+### "Too much boilerplate for small changes"
+
+**Solution**: Use focused story creation
+
+```bash
+@pm
+*brownfield-create-story
+# Skip full PRD and architecture docs
+```
+
+### "Integration points unclear"
+
+**Solution**: Provide more context during PRD creation
+
+```
+Integration requirements:
+- Must use existing AuthService for authentication
+- Database changes require migration scripts
+- API endpoints follow /api/v2/:resource pattern
+- Events published to RabbitMQ message bus
+```
+
+## Quick Reference
+
+### Commands
+
+```bash
+# Document existing project
+@analyst → *document-project
+
+# Create enhancement PRD
+@pm → *create-doc brownfield-prd
+
+# Create architecture with integration focus
+@architect → *create-doc brownfield-architecture
+
+# Quick epic creation
+@pm → *brownfield-create-epic
+
+# Single story creation
+@pm → *brownfield-create-story
+```
+
+### Decision Tree
+
+```
+Do you have a large codebase or monorepo?
+├─ Yes → PRD-First Approach
+│   └─ Create PRD → Document only affected areas
+└─ No → Is the codebase well-known to you?
+    ├─ Yes → PRD-First Approach
+    └─ No → Document-First Approach
+
+Is this a major enhancement affecting multiple systems?
+├─ Yes → Full Brownfield Workflow
+└─ No → Is this more than a simple bug fix?
+    ├─ Yes → brownfield-create-epic
+    └─ No → brownfield-create-story
+```
+
+## Tools and Resources
+
+- **Brownfield Analyzer**: `.aiox-core/infrastructure/scripts/documentation-integrity/brownfield-analyzer.js`
+- **Mode Detector**: `.aiox-core/infrastructure/scripts/documentation-integrity/mode-detector.js`
+- **Migration Guide**: `.aiox-core/product/data/migration-safety-guide.md`
+- **Compatibility Checklist**: `.aiox-core/development/checklists/brownfield-compatibility-checklist.md`
+
+## Next Steps
+
+- [Working with Existing Code →](/guides/existing-code)
+- [Migration Strategies →](/deployment/migration)
+- [Incremental Adoption →](/guides/incremental-adoption)

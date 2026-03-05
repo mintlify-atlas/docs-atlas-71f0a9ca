@@ -1,0 +1,648 @@
+---
+title: "Dara - Data Engineer Agent"
+description: "Database Architect & Operations Engineer for schema design, migrations, and performance"
+icon: "database"
+---
+
+# 📊 Dara - Database Architect & Operations Engineer
+
+**Role**: Master Database Architect & Reliability Engineer  
+**Archetype**: Sage ♊ Gemini  
+**Persona**: Methodical, precise, security-conscious, performance-aware, operations-focused
+
+## When to Use Dara
+
+Activate `@data-engineer` for:
+
+- 🗄️ Database schema design and domain modeling
+- 🔄 Database migrations and version control
+- 🔒 RLS policies and database security
+- ⚡ Query optimization and performance tuning
+- 🛠️ Database operations and DBA tasks
+- 📊 Supabase configuration and setup
+
+**NOT for**: Application-level architecture (use `@architect`), Frontend design (use `@ux-design-expert`), Code implementation (use `@dev`)
+
+## Activation
+
+<CodeGroup>
+```bash Cursor IDE
+@data-engineer
+```
+
+```bash Claude Desktop
+/data-engineer
+```
+
+```bash Codex CLI
+@data-engineer *create-schema
+```
+</CodeGroup>
+
+## Core Commands
+
+<AccordionGroup>
+  <Accordion title="Architecture & Design" icon="drafting-compass">
+    ```bash
+    *create-schema                    # Design database schema
+    *create-rls-policies              # Design RLS policies
+    *create-migration-plan            # Create migration strategy
+    *design-indexes                   # Design indexing strategy
+    *model-domain                     # Domain modeling session
+    ```
+  </Accordion>
+
+  <Accordion title="Operations & DBA" icon="gears">
+    ```bash
+    *env-check                        # Validate database environment
+    *bootstrap                        # Scaffold database structure
+    *apply-migration {path}           # Run migration with snapshot
+    *dry-run {path}                   # Test migration without commit
+    *seed {path}                      # Apply seed data (idempotent)
+    *snapshot {label}                 # Create schema snapshot
+    *rollback {snapshot_or_file}      # Restore snapshot or rollback
+    *smoke-test {version}             # Run database tests
+    ```
+  </Accordion>
+
+  <Accordion title="Security & Performance" icon="shield">
+    ```bash
+    *security-audit {scope}           # Audit (rls/schema/full)
+    *analyze-performance {type}       # Performance analysis
+    *policy-apply {table} {mode}      # Install RLS policy (KISS/granular)
+    *test-as-user {user_id}           # Emulate user for RLS testing
+    *verify-order {path}              # Lint DDL ordering
+    ```
+  </Accordion>
+
+  <Accordion title="Data Operations" icon="database">
+    ```bash
+    *load-csv {table} {file}          # Safe CSV loader
+    *run-sql {file_or_inline}         # Execute raw SQL
+    ```
+  </Accordion>
+
+  <Accordion title="Setup & Documentation" icon="book">
+    ```bash
+    *setup-database [type]            # Database project setup
+    *research {topic}                 # Deep research for DB topics
+    *doc-out                          # Output complete document
+    *execute-checklist {checklist}    # Run DBA checklist
+    ```
+  </Accordion>
+</AccordionGroup>
+
+## Database Design Workflow
+
+### Domain Modeling
+
+```bash
+# 1. Activate Dara
+@data-engineer
+
+# 2. Start domain modeling
+*model-domain
+
+# Dara will:
+# - Understand business domain
+# - Identify entities and relationships
+# - Define data boundaries
+# - Map access patterns
+# - Consider scale requirements
+# - Document security constraints
+```
+
+### Schema Design
+
+```bash
+*create-schema
+
+# Dara will:
+# 1. Design tables and relationships
+# 2. Define constraints (NOT NULL, CHECK, UNIQUE)
+# 3. Create foreign keys for integrity
+# 4. Add audit fields (created_at, updated_at)
+# 5. Design indexes based on access patterns
+# 6. Document with COMMENT ON statements
+# 7. Generate schema-design-tmpl.yaml
+```
+
+**Schema design principles**:
+
+<CardGroup cols={2}>
+  <Card title="Correctness First" icon="circle-check">
+    Get the schema right before optimizing for speed
+  </Card>
+  
+  <Card title="Versioned & Reversible" icon="clock-rotate-left">
+    Every change has a snapshot and rollback script
+  </Card>
+  
+  <Card title="Security by Default" icon="shield-check">
+    RLS, constraints, triggers for data consistency
+  </Card>
+  
+  <Card title="Idempotent Operations" icon="arrows-rotate">
+    Safe to run migrations multiple times
+  </Card>
+</CardGroup>
+
+## Migration Workflow
+
+### Safe Migration Process
+
+```bash
+# 1. Create snapshot before changes
+*snapshot baseline-before-users-table
+
+# 2. Dry run to test migration
+*dry-run supabase/migrations/20260305_users.sql
+
+# Dara will:
+# - Parse SQL for syntax errors
+# - Check DDL ordering (dependencies first)
+# - Verify idempotency (IF NOT EXISTS)
+# - Validate constraint definitions
+# - Report potential issues
+
+# 3. Apply migration if dry run passes
+*apply-migration supabase/migrations/20260305_users.sql
+
+# Dara will:
+# - Create automatic snapshot
+# - Run migration in transaction
+# - Validate schema after changes
+# - Log migration completion
+# - Update migration tracking
+```
+
+### Migration Best Practices
+
+<Warning>
+**CRITICAL Migration Rules**:
+
+- ✅ Always create snapshot before migration
+- ✅ Use IF NOT EXISTS / IF EXISTS for idempotency
+- ✅ Order DDL statements (tables before foreign keys)
+- ✅ Create rollback script for every migration
+- ✅ Test on staging before production
+- ✅ Use transactions for multi-statement changes
+
+**NEVER**:
+
+- ❌ Run migrations without dry-run first
+- ❌ Skip rollback script creation
+- ❌ Use DROP without safeguards
+- ❌ Hardcode credentials in migrations
+</Warning>
+
+### Rollback Strategy
+
+```bash
+# If migration fails or causes issues:
+
+# Option 1: Rollback to snapshot
+*rollback baseline-before-users-table
+
+# Option 2: Run rollback script
+*rollback supabase/migrations/20260305_users_rollback.sql
+
+# Dara will:
+# - Restore database to previous state
+# - Verify rollback completed
+# - Log rollback action
+# - Update migration tracking
+```
+
+## RLS Security
+
+### Security Audit
+
+```bash
+*security-audit full
+
+# Dara will audit:
+# 1. RLS policy coverage (all public tables have RLS)
+# 2. Policy correctness (proper auth.uid() checks)
+# 3. Sensitive data protection (passwords, tokens)
+# 4. SQL injection vulnerabilities
+# 5. Missing constraints
+# 6. Unsafe SECURITY DEFINER functions
+# 7. Data exposure risks
+# 8. Authentication bypass risks
+```
+
+**Audit scopes**:
+
+<Tabs>
+  <Tab title="RLS Audit">
+    ```bash
+    *security-audit rls
+    ```
+    
+    **Checks**:
+    - RLS enabled on all public tables
+    - Policies exist for SELECT, INSERT, UPDATE, DELETE
+    - auth.uid() used correctly
+    - No RLS bypass patterns
+    - Policy testing coverage
+  </Tab>
+  
+  <Tab title="Schema Audit">
+    ```bash
+    *security-audit schema
+    ```
+    
+    **Checks**:
+    - NOT NULL constraints on required fields
+    - CHECK constraints for validation
+    - Foreign key integrity
+    - Proper indexing on FK columns
+    - Audit fields present (created_at, updated_at)
+    - Naming conventions followed
+  </Tab>
+  
+  <Tab title="Full Audit">
+    ```bash
+    *security-audit full
+    ```
+    
+    **Checks**: All RLS + Schema + Performance + Security
+  </Tab>
+</Tabs>
+
+### RLS Policy Design
+
+```bash
+*create-rls-policies
+
+# Dara will:
+# 1. Analyze access patterns
+# 2. Design policies per table
+# 3. Choose KISS or granular approach
+# 4. Document policy logic
+# 5. Generate rls-policies-tmpl.yaml
+```
+
+**RLS Policy Modes**:
+
+<Tabs>
+  <Tab title="KISS (Simple)">
+    **When to use**: Most tables, straightforward access control
+    
+    ```sql
+    -- Single policy per operation
+    CREATE POLICY "Users can view own data"
+      ON users FOR SELECT
+      USING (auth.uid() = id);
+    
+    CREATE POLICY "Users can update own data"
+      ON users FOR UPDATE
+      USING (auth.uid() = id);
+    ```
+    
+    **Benefits**:
+    - Easy to understand
+    - Simple to maintain
+    - Good performance
+  </Tab>
+  
+  <Tab title="Granular (Complex)">
+    **When to use**: Multi-tenant, role-based access, complex rules
+    
+    ```sql
+    -- Separate policies for different roles
+    CREATE POLICY "Admins can view all users"
+      ON users FOR SELECT
+      USING (
+        EXISTS (
+          SELECT 1 FROM user_roles
+          WHERE user_id = auth.uid()
+          AND role = 'admin'
+        )
+      );
+    
+    CREATE POLICY "Users can view own data"
+      ON users FOR SELECT
+      USING (auth.uid() = id);
+    ```
+    
+    **Benefits**:
+    - Fine-grained control
+    - Role-based access
+    - Multi-tenant support
+  </Tab>
+</Tabs>
+
+### Testing RLS Policies
+
+```bash
+*test-as-user 123e4567-e89b-12d3-a456-426614174000
+
+# Dara will:
+# 1. Set session variable to user ID
+# 2. Run test queries as that user
+# 3. Verify RLS policies work correctly
+# 4. Test both positive and negative cases
+# 5. Document test results
+```
+
+## Performance Optimization
+
+### Query Performance Analysis
+
+```bash
+# Analyze specific query
+*analyze-performance query "SELECT * FROM posts WHERE user_id = $1"
+
+# Dara will:
+# - Run EXPLAIN ANALYZE
+# - Identify missing indexes
+# - Detect sequential scans
+# - Suggest optimizations
+# - Calculate cost improvements
+```
+
+**Performance analysis types**:
+
+<Tabs>
+  <Tab title="Query Analysis">
+    ```bash
+    *analyze-performance query "SELECT ..."
+    ```
+    
+    **Analyzes**:
+    - Execution plan
+    - Index usage
+    - Sequential scans
+    - Join strategies
+    - Cost estimates
+  </Tab>
+  
+  <Tab title="Hotpath Analysis">
+    ```bash
+    *analyze-performance hotpaths
+    ```
+    
+    **Finds**:
+    - Most executed queries
+    - Slowest queries
+    - Missing indexes
+    - N+1 query patterns
+    - Optimization opportunities
+  </Tab>
+  
+  <Tab title="Interactive Mode">
+    ```bash
+    *analyze-performance interactive
+    ```
+    
+    **Provides**:
+    - Query optimization session
+    - Step-by-step improvements
+    - Before/after comparisons
+    - Index recommendations
+  </Tab>
+</Tabs>
+
+### Index Design
+
+```bash
+*design-indexes
+
+# Dara will:
+# 1. Analyze query patterns
+# 2. Identify columns for indexing
+# 3. Choose index types (B-tree, GIN, GIST)
+# 4. Design composite indexes
+# 5. Consider index maintenance cost
+# 6. Generate index-strategy-tmpl.yaml
+```
+
+**Indexing principles**:
+
+- ✅ Index foreign keys
+- ✅ Index columns in WHERE clauses
+- ✅ Index columns in JOIN conditions
+- ✅ Index columns in ORDER BY
+- ✅ Use partial indexes for filtered queries
+- ❌ Don't over-index (slows INSERT/UPDATE)
+- ❌ Avoid indexing low-cardinality columns
+
+## Database Setup
+
+### Project Bootstrap
+
+```bash
+*setup-database
+
+# Auto-detects database type or prompts:
+# 1. PostgreSQL (Supabase)
+# 2. MongoDB
+# 3. MySQL
+# 4. SQLite
+
+# For Supabase, creates:
+supabase/
+├── config.toml              # Supabase configuration
+├── migrations/              # Migration scripts
+│   └── 20260305_init.sql
+├── seed.sql                 # Seed data
+└── .env.example             # Environment variables
+```
+
+### Environment Check
+
+```bash
+*env-check
+
+# Dara will validate:
+# - SUPABASE_URL present
+# - SUPABASE_ANON_KEY present
+# - SUPABASE_SERVICE_ROLE_KEY present (for admin)
+# - DATABASE_URL format correct
+# - Connection successful
+# - SSL mode configured
+```
+
+## CodeRabbit Integration
+
+**Focus**: SQL quality, schema design, query performance, RLS security, migration safety
+
+```bash
+# Before applying migration
+wsl bash -c 'cd ${PROJECT_ROOT} && ~/.local/bin/coderabbit --prompt-only -t uncommitted'
+```
+
+**Severity handling**:
+
+<Tabs>
+  <Tab title="CRITICAL">
+    **Action**: Block migration/deployment
+    
+    **Examples**:
+    - SQL injection vulnerabilities (string concatenation)
+    - Missing RLS policies on public tables
+    - Hardcoded credentials in migration scripts
+    - DROP statements without safeguards
+    - Unsafe SECURITY DEFINER functions
+    - Exposure of sensitive data (passwords, tokens, PII)
+  </Tab>
+  
+  <Tab title="HIGH">
+    **Action**: Fix before migration or create rollback plan
+    
+    **Examples**:
+    - N+1 query patterns in API code
+    - Missing indexes on foreign keys
+    - Queries without WHERE clauses on large tables
+    - Missing NOT NULL constraints
+    - Cascading deletes without safeguards
+    - Unoptimized JOIN patterns
+    - Memory-intensive queries
+  </Tab>
+  
+  <Tab title="MEDIUM">
+    **Action**: Document as technical debt
+    
+    **Examples**:
+    - Denormalization without justification
+    - Missing foreign key relationships
+    - Lack of comments on complex tables/functions
+    - Inconsistent naming conventions
+    - Missing audit fields (created_at, updated_at)
+    - Unused indexes
+  </Tab>
+</Tabs>
+
+## Data Operations
+
+### CSV Loading
+
+```bash
+*load-csv users data/users.csv
+
+# Dara will:
+# 1. Create staging table
+# 2. COPY CSV to staging
+# 3. Validate data (constraints, types)
+# 4. Merge staging → target table
+# 5. Clean up staging table
+```
+
+### Seed Data
+
+```bash
+*seed supabase/seed.sql
+
+# Dara will:
+# - Run seed script (idempotent)
+# - Validate data after seeding
+# - Log seed completion
+```
+
+## Collaboration
+
+### Receives Work From
+
+- **@architect (Aria)**: System architecture with database requirements
+- **@dev (Dex)**: Data layer feedback and query optimization requests
+
+### Delegates From Architect
+
+**Gate 2 Decision**: When `@architect` encounters database-specific tasks:
+
+- Database schema design → `@data-engineer`
+- Query optimization → `@data-engineer`
+- RLS policies → `@data-engineer`
+- Migration scripts → `@data-engineer`
+
+**Aria retains**:
+- Database technology selection (PostgreSQL vs MongoDB)
+- Application-level data patterns (repository pattern, caching)
+- Integration of data layer with application
+
+### Works With
+
+- **@qa (Quinn)**: Database testing and validation
+
+## Troubleshooting
+
+<AccordionGroup>
+  <Accordion title="Migration failed" icon="circle-exclamation">
+    **Recovery steps**:
+    ```bash
+    # 1. Check error message
+    *dry-run supabase/migrations/failed.sql
+    
+    # 2. Rollback to last snapshot
+    *rollback baseline-before-migration
+    
+    # 3. Fix migration script
+    # 4. Test with dry-run again
+    # 5. Re-apply migration
+    *apply-migration supabase/migrations/fixed.sql
+    ```
+  </Accordion>
+  
+  <Accordion title="RLS policies blocking legitimate access" icon="shield">
+    **Debug steps**:
+    ```bash
+    # 1. Test as specific user
+    *test-as-user {user_id}
+    
+    # 2. Check policy logic
+    *security-audit rls
+    
+    # 3. Review auth.uid() returns expected value
+    # 4. Verify policy USING clause logic
+    # 5. Test positive and negative cases
+    ```
+  </Accordion>
+  
+  <Accordion title="Query performance slow" icon="gauge">
+    **Optimization steps**:
+    ```bash
+    # 1. Analyze query execution
+    *analyze-performance query "SELECT ..."
+    
+    # 2. Check for missing indexes
+    *analyze-performance hotpaths
+    
+    # 3. Design indexes
+    *design-indexes
+    
+    # 4. Apply index migration
+    *apply-migration supabase/migrations/add-indexes.sql
+    
+    # 5. Re-analyze to verify improvement
+    ```
+  </Accordion>
+</AccordionGroup>
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Architecture" icon="building" href="/agents/architect">
+    Collaborate with Aria on system architecture
+  </Card>
+  
+  <Card title="Development" icon="code" href="/agents/dev">
+    Provide migrations to Dex for implementation
+  </Card>
+  
+  <Card title="QA Testing" icon="check-circle" href="/agents/qa">
+    Work with Quinn on database testing
+  </Card>
+  
+  <Card title="DevOps" icon="rocket" href="/agents/devops">
+    Deploy migrations with Gage
+  </Card>
+</CardGroup>
+
+## Learn More
+
+- [Database Design Principles](/database/design-principles)
+- [Migration Best Practices](/database/migrations)
+- [RLS Security Patterns](/database/rls-patterns)
+- [Query Optimization Guide](/database/performance)
