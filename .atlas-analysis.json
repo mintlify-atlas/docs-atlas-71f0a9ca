@@ -1,0 +1,159 @@
+{
+  "projectType": "framework",
+  "projectName": "Synkra AIOX",
+  "projectDescription": "AI-Orchestrated System for Full Stack Development - A framework for agent-driven agile development with CLI-first orchestration.",
+  "theme": "aspen",
+  "primaryColor": "#848c8e",
+  "lightColor": "#11161e",
+  "darkColor": "#cfd0d2",
+  "navigation": {
+    "tabs": [
+      {
+        "tab": "Documentation",
+        "groups": [
+          {
+            "group": "Get Started",
+            "pages": [
+              "introduction",
+              "quickstart",
+              "installation"
+            ]
+          },
+          {
+            "group": "Core Concepts",
+            "pages": [
+              "concepts/cli-first-architecture",
+              "concepts/agent-authority",
+              "concepts/story-driven-development",
+              "concepts/workflow-orchestration"
+            ]
+          },
+          {
+            "group": "Agents",
+            "pages": [
+              "agents/overview",
+              "agents/dev",
+              "agents/qa",
+              "agents/architect",
+              "agents/devops",
+              "agents/pm",
+              "agents/po",
+              "agents/sm",
+              "agents/analyst",
+              "agents/data-engineer",
+              "agents/ux-design-expert"
+            ]
+          },
+          {
+            "group": "CLI Reference",
+            "pages": [
+              "cli/commands",
+              "cli/configuration",
+              "cli/workflows",
+              "cli/validation"
+            ]
+          },
+          {
+            "group": "Guides",
+            "pages": [
+              "guides/creating-agents",
+              "guides/writing-tasks",
+              "guides/creating-squads",
+              "guides/ide-integration",
+              "guides/hooks-and-lifecycle"
+            ]
+          },
+          {
+            "group": "Advanced",
+            "pages": [
+              "advanced/core-modules",
+              "advanced/workflow-intelligence",
+              "advanced/quality-gates",
+              "advanced/mcp-integration",
+              "advanced/brownfield-migration"
+            ]
+          }
+        ]
+      },
+      {
+        "tab": "API Reference",
+        "groups": [
+          {
+            "group": "Core API",
+            "pages": [
+              "api/config-loader",
+              "api/elicitation-engine",
+              "api/session-manager",
+              "api/code-intelligence"
+            ]
+          },
+          {
+            "group": "Agent API",
+            "pages": [
+              "api/agent-definition",
+              "api/commands",
+              "api/permissions",
+              "api/handoffs"
+            ]
+          },
+          {
+            "group": "Workflow API",
+            "pages": [
+              "api/tasks",
+              "api/templates",
+              "api/hooks",
+              "api/quality-gates"
+            ]
+          }
+        ]
+      },
+      {
+        "tab": "Community",
+        "groups": [
+          {
+            "group": "Contributing",
+            "pages": [
+              "community/contributing",
+              "community/code-of-conduct",
+              "community/changelog"
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "keyFeatures": [
+    "Agent-driven agile development with 10+ specialized AI agents",
+    "CLI-first architecture with full automation capabilities",
+    "Story-driven development with hyper-detailed context",
+    "Workflow orchestration and lifecycle hooks",
+    "Multi-IDE support (Claude, Gemini, Codex, Cursor, Copilot)",
+    "Modular core with plugin system and squads",
+    "Quality gates and automated validation",
+    "Configuration management with layered config system"
+  ],
+  "publicApiSurface": [
+    "ConfigCache - Global configuration cache with TTL support",
+    "loadAgentConfig(agentId) - Load agent configuration",
+    "ElicitationEngine - Interactive prompting system",
+    "SessionManager - Session context management",
+    "CodeIntelClient - Code intelligence and analysis",
+    "QualityGateRunner - Execute quality gates",
+    "TaskExecutor - Execute workflow tasks",
+    "HookRuntime - Lifecycle hook management",
+    "aiox install - Install framework in project",
+    "aiox init <name> - Create new project",
+    "aiox validate - Validate installation",
+    "aiox update - Update to latest version",
+    "aiox config - Manage configuration",
+    "Agent commands: *help, *create, *develop, *test, *deploy",
+    "@dev - Development agent",
+    "@qa - Quality assurance agent",
+    "@architect - Architecture agent",
+    "@devops - DevOps agent",
+    "@pm - Product manager agent",
+    "@po - Product owner agent",
+    "@sm - Scrum master agent",
+    "@analyst - Business analyst agent"
+  ]
+}
